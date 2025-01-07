@@ -1,4 +1,4 @@
-package qastudio.backend.domain.scenario.entity;
+package qastudio.backend.domain.test.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

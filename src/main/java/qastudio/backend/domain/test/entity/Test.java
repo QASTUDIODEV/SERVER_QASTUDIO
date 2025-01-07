@@ -1,9 +1,9 @@
-package qastudio.backend.domain.scenario.entity;
+package qastudio.backend.domain.test.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.project.entity.Project;
-import qastudio.backend.domain.scenario.entity.enums.State;
+import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
