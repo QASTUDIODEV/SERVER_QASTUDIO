@@ -5,6 +5,7 @@ import lombok.*;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.scenario.entity.enums.State;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.time.LocalDate;
 
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Test {
+public class Test extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

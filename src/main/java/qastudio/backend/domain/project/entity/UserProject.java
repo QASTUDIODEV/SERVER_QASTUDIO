@@ -4,13 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.project.entity.enums.Role;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class UserProject {
+public class UserProject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

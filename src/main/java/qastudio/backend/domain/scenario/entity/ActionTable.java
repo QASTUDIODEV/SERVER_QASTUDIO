@@ -2,13 +2,14 @@ package qastudio.backend.domain.scenario.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class ActionTable {
+public class ActionTable extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

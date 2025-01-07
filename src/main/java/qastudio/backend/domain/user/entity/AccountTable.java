@@ -3,13 +3,14 @@ package qastudio.backend.domain.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.user.entity.enums.EmailType;
+import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class AccountTable {
+public class AccountTable extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
