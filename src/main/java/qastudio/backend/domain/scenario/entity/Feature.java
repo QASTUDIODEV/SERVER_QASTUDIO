@@ -16,7 +16,7 @@ public class Feature extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "feature_json", length = 3000)
+    @Column(nullable = false, name = "feature_json", columnDefinition = "TEXT")
     private String featureJson;
 
     @ManyToOne(fetch = FetchType.LAZY)

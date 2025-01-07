@@ -36,8 +36,8 @@ public class Test extends BaseEntity {
     @Column(nullable = false)
     private Double time;
 
-    @Column(nullable = false, length = 3000, name = "acrtion_record_json")
-    private String actionRecordJson;
+    @Column(columnDefinition = "TEXT", nullable = false, name = "record_json")
+    private String recordJson;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
