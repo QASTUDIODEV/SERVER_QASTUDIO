@@ -3,6 +3,7 @@ package qastudio.backend.domain.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.domain.project.entity.enums.ViewType;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
@@ -28,4 +29,7 @@ public class Project extends BaseEntity {
 
     @Column(length = 500)
     private String introduction;
+
+    @Column(name = "view_type", nullable = false)
+    private ViewType viewType;
 }
