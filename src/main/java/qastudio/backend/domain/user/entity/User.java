@@ -1,24 +1,27 @@
 package qastudio.backend.domain.user.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long id;
 
-    private String email; // 이메일
+    @Column(nullable = false, length = 20)
+    private String nickname;
 
-    private String password; // 비밀번호
+    @Column(name = "profile_image")
+    private String profileImage;
+
+    @Column(name = "banner_image")
+    private String bannerImage;
 }
