@@ -13,6 +13,7 @@ public class ActionTable extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "action_table_id")
     private Long id;
 
     @Column(nullable = false, name = "scenario_name")

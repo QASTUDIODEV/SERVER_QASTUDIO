@@ -14,6 +14,7 @@ public class Scenario extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "scenario_id")
     private Long id;
 
     @Column(nullable = false, name = "scenario_name")

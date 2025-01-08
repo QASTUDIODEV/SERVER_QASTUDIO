@@ -13,6 +13,7 @@ public class CharacterTable extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "character_table_id")
     private Long id;
 
     @Column(name = "character_name", nullable = false)

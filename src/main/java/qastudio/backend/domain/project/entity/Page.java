@@ -13,6 +13,7 @@ public class Page extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "page_id")
     private Long id;
 
     @Column(name = "page_name", nullable = false)

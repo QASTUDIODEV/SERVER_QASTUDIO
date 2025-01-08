@@ -14,6 +14,7 @@ public class Feature extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "feature_id")
     private Long id;
 
     @Column(nullable = false, name = "feature_json", columnDefinition = "TEXT")

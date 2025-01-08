@@ -14,6 +14,7 @@ public class AccountTable extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "account_table_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)

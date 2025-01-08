@@ -15,6 +15,7 @@ public class UserProject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_project_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)

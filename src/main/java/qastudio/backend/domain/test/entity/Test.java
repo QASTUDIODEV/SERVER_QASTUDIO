@@ -18,6 +18,7 @@ public class Test extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "test_id")
     private Long id;
 
     @Column(nullable = false, name = "test_date")

@@ -13,6 +13,7 @@ public class Error extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "error_id")
     private Long id;
 
     @Column(name = "error_code", nullable = false)
