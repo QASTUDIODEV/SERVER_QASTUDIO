@@ -48,7 +48,7 @@ public class Test extends BaseEntity {
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "error_id")
     private Error error;
 }
