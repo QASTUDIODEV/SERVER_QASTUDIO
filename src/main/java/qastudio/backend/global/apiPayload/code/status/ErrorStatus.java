@@ -17,7 +17,10 @@ public enum ErrorStatus implements BaseErrorCode {
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
     // For test
-    TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트");
+    TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트"),
+
+    // Auth 관련 응답
+    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이미 등록된 이메일입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
