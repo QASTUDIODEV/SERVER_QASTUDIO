@@ -19,7 +19,7 @@ public class Page extends BaseEntity {
     @Column(name = "page_name", nullable = false)
     private String pageName;
 
-    @Column(name = "page_description", nullable = false)
+    @Column(name = "page_description", nullable = false, length = 100)
     private String pageDescription;
 
     @Column(nullable = false)
