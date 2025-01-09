@@ -1,5 +1,6 @@
 package qastudio.backend.domain.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.user.entity.enums.EmailType;
@@ -28,5 +29,6 @@ public class AccountTable extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
+    @JsonBackReference
     private User user;
 }
