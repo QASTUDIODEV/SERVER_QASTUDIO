@@ -21,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(
-            summary = "User 자체 회원가입 API",
+            summary = "User 자체 회원가입 API | by 지지",
             description = "사용자가 자체 회원가입을 합니다."
     )
     @PostMapping("/sign-up")
@@ -31,7 +31,7 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "User 자체 로그인 API",
+            summary = "User 자체 로그인 API | by 지지",
             description = "사용자가 자체 로그인을 합니다."
     )
     @PostMapping("/login/local")
