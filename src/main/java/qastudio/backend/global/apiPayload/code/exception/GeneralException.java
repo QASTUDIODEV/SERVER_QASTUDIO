@@ -10,12 +10,20 @@ import qastudio.backend.global.apiPayload.code.ErrorReasonDTO;
 public class GeneralException extends RuntimeException {
 
     private BaseErrorCode code;
+    private String customMessage;
+
+    public GeneralException(BaseErrorCode code) {
+        this.code = code;
+        this.customMessage = code.getReason().getMessage();
+    }
 
     public ErrorReasonDTO getErrorReason() {
         return this.code.getReason();
     }
 
-    public ErrorReasonDTO getErrorReasonHttpStatus(){
+    public ErrorReasonDTO getErrorReasonHttpStatus() {
         return this.code.getReasonHttpStatus();
     }
 }
+
+
