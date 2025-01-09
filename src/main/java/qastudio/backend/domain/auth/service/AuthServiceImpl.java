@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import qastudio.backend.domain.auth.converter.SignUpRequestConverter;
+import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.LoginRequest;
 import qastudio.backend.domain.auth.dto.request.SignUpRequest;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final SignUpRequestConverter signUpRequestConverter;
+    private final AuthConverter signUpRequestConverter;
 
     // Command 메서드
     @Override

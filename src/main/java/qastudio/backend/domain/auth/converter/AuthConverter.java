@@ -10,7 +10,7 @@ import qastudio.backend.domain.user.entity.enums.EmailType;
 
 @Component
 @RequiredArgsConstructor
-public class SignUpRequestConverter {
+public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
 
