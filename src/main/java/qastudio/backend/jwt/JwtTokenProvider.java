@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import javax.crypto.SecretKey;
 import java.util.Collections;
@@ -34,19 +36,19 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성 (공통 메서드)
-    public TokenInfo generateToken(String email, Authentication authentication, boolean isSocial) {
-        String accessToken = generateAccessToken(email, authentication, isSocial);
+    public TokenInfo generateToken(Long userId, Authentication authentication, boolean isSocial) {
+        String accessToken = generateAccessToken(userId, authentication, isSocial);
         String refreshToken = generateRefreshToken();
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
     // Access Token 생성
-    private String generateAccessToken(String email, Authentication authentication, boolean isSocial) {
+    private String generateAccessToken(Long userId, Authentication authentication, boolean isSocial) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + ACCESS_TOKEN_DURATION);
 
         JwtBuilder jwtBuilder = Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId.toString())
                 .setIssuedAt(now)
                 .setExpiration(expiredDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256);
@@ -54,8 +56,8 @@ public class JwtTokenProvider {
         if (isSocial && authentication != null) {
             String authorities = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.joining());
-            jwtBuilder.claim("auth", authorities);
+                    .collect(Collectors.joining(","));
+            jwtBuilder.claim("auth", authorities); // 권한 정보 추가
         }
 
         return jwtBuilder.compact();
@@ -97,12 +99,19 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(accessToken);
 
         if (claims.get("auth") == null) {
-            throw new IllegalArgumentException("권한 정보가 없는 토큰입니다.");
+            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
         List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        Long userId = Long.parseLong(claims.getSubject());
+
+        UserDetails principal = User.builder()
+                .username(userId.toString())
+                .password("")
+                .authorities(authorities)
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(principal, null, authorities);
     }
 
     // Claims 파싱

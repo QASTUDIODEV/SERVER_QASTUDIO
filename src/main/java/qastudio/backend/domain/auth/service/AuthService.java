@@ -2,6 +2,8 @@ package qastudio.backend.domain.auth.service;
 
 import qastudio.backend.domain.auth.dto.request.LoginRequest;
 import qastudio.backend.domain.auth.dto.request.SignUpRequest;
+import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.jwt.TokenInfo;
 
 public interface AuthService {
@@ -12,4 +14,5 @@ public interface AuthService {
 
     // Query 메서드
     boolean existsEmail(String email);
+    Long findUserIdByEmailAndEmailType(String email, EmailType emailType);
 }

@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.dto.request.LoginRequest;
 import qastudio.backend.domain.auth.dto.request.SignUpRequest;
+import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTableRepository;
 import qastudio.backend.domain.user.repository.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -52,8 +54,10 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
 
+            Long userId = findUserIdByEmailAndEmailType(loginRequest.email(), EmailType.LOCAL);
+
             return jwtTokenProvider.generateToken(
-                    loginRequest.email(),
+                    userId,
                     authentication,
                     false // 소셜 로그인 여부
             );
@@ -67,5 +71,13 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(readOnly = true)
     public boolean existsEmail(String email) {
         return accountTableRepository.existsByEmail(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long findUserIdByEmailAndEmailType(String email, EmailType emailType) {
+        AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+        return account.getUser().getId();
     }
 }
