@@ -10,8 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.converter.AuthConverter;
-import qastudio.backend.domain.auth.dto.request.LoginRequest;
-import qastudio.backend.domain.auth.dto.request.SignUpRequest;
+import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
@@ -37,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
 
     // Command 메서드
     @Override
-    public void userSignUp(SignUpRequest request) {
+    public void userSignUp(AuthRequest request) {
         if (existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
@@ -47,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public TokenInfo localLogin(LoginRequest loginRequest) {
+    public TokenInfo localLogin(AuthRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
