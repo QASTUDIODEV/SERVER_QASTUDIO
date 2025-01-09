@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import qastudio.backend.domain.auth.dto.request.LoginRequest;
-import qastudio.backend.domain.auth.dto.response.LoginResponse;
+import qastudio.backend.domain.auth.dto.request.SignUpRequest;
 import qastudio.backend.domain.auth.service.AuthService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
@@ -16,9 +16,19 @@ import qastudio.backend.jwt.TokenInfo;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
-public class LoginController {
+public class AuthController {
 
     private final AuthService authService;
+
+    @Operation(
+            summary = "User 자체 회원가입 API",
+            description = "사용자가 자체 회원가입을 합니다."
+    )
+    @PostMapping("/sign-up")
+    public ApiResponse<Void> UserSignUp(@RequestBody @Valid SignUpRequest signUpRequest) {
+        authService.userSignUp(signUpRequest);
+        return ApiResponse.onSuccess(null);
+    }
 
     @Operation(
             summary = "User 자체 로그인 API",
