@@ -28,8 +28,4 @@ public class Page extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "character_table_id")
-    private CharacterTable characterTable;
 }
