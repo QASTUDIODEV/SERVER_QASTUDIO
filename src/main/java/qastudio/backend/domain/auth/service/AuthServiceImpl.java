@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.auth.converter.SignUpRequestConverter;
 import qastudio.backend.domain.auth.dto.request.LoginRequest;
 import qastudio.backend.domain.auth.dto.request.SignUpRequest;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -32,15 +33,16 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final SignUpRequestConverter signUpRequestConverter;
 
     // Command 메서드
     @Override
     public void userSignUp(SignUpRequest request) {
-        if (existsEmail(request.email())) {
+        if (existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        User user = request.toEntity(passwordEncoder);
+        User user = signUpRequestConverter.toEntity(request);
         userRepository.save(user);
     }
 
@@ -49,12 +51,12 @@ public class AuthServiceImpl implements AuthService {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.email(),
-                            loginRequest.password()
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
                     )
             );
 
-            Long userId = findUserIdByEmailAndEmailType(loginRequest.email(), EmailType.LOCAL);
+            Long userId = findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
 
             return jwtTokenProvider.generateToken(
                     userId,
