@@ -63,8 +63,8 @@ deploy-to-ec2:
         port: 22
         key: ${{ env.PRIVATE_KEY }}
         script: |
-          # Check for running container on port 80
-          CONTAINER_ID=$(sudo docker ps -q --filter "publish=80")
+          # Check for running container on port 8080
+          CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
           
           # Stop the running container if it exists
           if [ ! -z "$CONTAINER_ID" ]; then
