@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTableRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -20,7 +21,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        AccountTable account = accountTableRepository.findByEmail(email)
+        return loadUserByEmailAndType(email, EmailType.LOCAL); // 기본적으로 LOCAL 타입 사용
+    }
+
+    public UserDetails loadUserByEmailAndType(String email, EmailType emailType) {
+        AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         return new org.springframework.security.core.userdetails.User(
