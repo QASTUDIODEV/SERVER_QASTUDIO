@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        User user = signUpRequestConverter.toEntity(request);
+        User user = signUpRequestConverter.toUser(request);
         userRepository.save(user);
     }
 

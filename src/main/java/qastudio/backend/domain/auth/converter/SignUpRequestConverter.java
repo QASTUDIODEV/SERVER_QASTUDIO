@@ -14,7 +14,7 @@ public class SignUpRequestConverter {
 
     private final PasswordEncoder passwordEncoder;
 
-    public User toEntity(SignUpRequest request) {
+    public User toUser(SignUpRequest request) {
         User user = User.builder()
                 .nickname("") // 기본 닉네임
                 .profileImage("") // 기본 프로필 이미지
