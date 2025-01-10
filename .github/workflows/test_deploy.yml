@@ -30,7 +30,7 @@ jobs:
       - name: Generate resources folder
         run: mkdir -p ./src/main/resources
 
-      - name: Set up application-database.yml
+      - name: Set up application.yml
         run: echo "${{ secrets.APPLICATION_DEV }}" > ./src/main/resources/application.yml
 
       - name: Grant execute permission for gradlew
