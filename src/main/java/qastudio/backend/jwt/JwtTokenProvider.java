@@ -53,7 +53,7 @@ public class JwtTokenProvider {
                 .setExpiration(expiredDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256);
 
-        if (isSocial && authentication != null) {
+        if (authentication != null) {
             String authorities = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.joining(","));
