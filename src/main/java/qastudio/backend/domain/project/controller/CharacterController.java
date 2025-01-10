@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -46,6 +47,16 @@ public class CharacterController {
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
         DetailCharacterList detailCharacters = characterQueryService.getDetailCharacterList(projectId);
         return ApiResponse.onSuccess(detailCharacters);
+    }
+
+    @Operation(
+            summary = "역할 별 시나리오 리스트 조회 API",
+            description = "역할 별로 시나리오 리스트를 조회합니다."
+    )
+    @GetMapping("/{characterId}/scenarios")
+    public ApiResponse<CharacterResponse.ScenarioList> getScenarioLost (@PathVariable("characterId") Long characterId) {
+        ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
+        return ApiResponse.onSuccess(scenarioList);
     }
 
 }

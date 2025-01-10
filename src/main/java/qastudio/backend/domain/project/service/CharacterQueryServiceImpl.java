@@ -18,4 +18,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) { return null; }
 
+    @Override
+    public CharacterResponse.ScenarioList getScenarioList(Long characterId) { return null; }
+
 }

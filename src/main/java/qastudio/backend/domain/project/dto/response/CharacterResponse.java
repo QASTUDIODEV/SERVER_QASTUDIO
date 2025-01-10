@@ -57,4 +57,26 @@ public class CharacterResponse {
         private List<DetailCharacter> detailCharacters;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class Scenario {
+        // 개별 시나리오
+        private Long scenarioId;
+        private String scenarioName;
+        private String author;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ScenarioList {
+        // 시나리오 리스트
+        private List<Scenario> scenarioList;
+    }
+
 }
