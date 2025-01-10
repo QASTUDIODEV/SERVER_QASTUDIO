@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.dto.response;
 
+import java.time.LocalDateTime;
 import lombok.*;
 
 import java.util.List;
@@ -34,4 +35,26 @@ public class CharacterResponse {
         // 역할 리스트
         private List<ProjectCharacter> projectCharacters;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class DetailCharacter {
+        // 역할 detail
+        private Long characterId;
+        private String author;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class DetailCharacterList {
+        // detail 역할 리스트
+        private List<DetailCharacter> detailCharacters;
+    }
+
 }

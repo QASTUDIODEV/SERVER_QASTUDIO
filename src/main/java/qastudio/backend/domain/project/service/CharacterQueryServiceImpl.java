@@ -2,6 +2,7 @@ package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
@@ -13,4 +14,8 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     public List<CharacterTable> getProjectCharacter(Long projectId) {
         return List.of();
     }
+
+    @Override
+    public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) { return null; }
+
 }

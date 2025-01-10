@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -36,4 +37,15 @@ public class CharacterController {
         List<CharacterTable> characters = characterQueryService.getProjectCharacter(projectId);
         return ApiResponse.onSuccess(CharacterConverter.toProjectCharacterList(characters));
     }
+
+    @Operation(
+            summary = "프로젝트 별 역할 리스트 조회 API",
+            description = "프로젝트 별로 역할 리스트를 조회합니다."
+    )
+    @GetMapping("/{projectId}/detail")
+    public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
+        DetailCharacterList detailCharacters = characterQueryService.getDetailCharacterList(projectId);
+        return ApiResponse.onSuccess(detailCharacters);
+    }
+
 }
