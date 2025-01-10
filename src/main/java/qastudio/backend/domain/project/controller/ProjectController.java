@@ -7,10 +7,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
+import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.service.ProjectQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+
+import java.util.List;
 
 
 @RestController
@@ -68,8 +72,8 @@ public class ProjectController {
     })
     @GetMapping("/list")
     public ApiResponse<ProjectResponse.ProjectList> getProjectList() {
-        ProjectResponse.ProjectList projectList = projectQueryService.getProjectList();
-        return ApiResponse.onSuccess(projectList);
+        List<Project> projects = projectQueryService.getProjectList();
+        return ApiResponse.onSuccess(ProjectConverter.toProjectList(projects));
     }
 
     @Operation(
