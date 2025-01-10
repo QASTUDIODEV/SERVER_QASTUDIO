@@ -23,7 +23,10 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401", "비밀번호가 잘못되었습니다."),
     MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "권한 정보가 없는 토큰입니다. 기본 권한이 필요합니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "존재하지 않는 사용자입니다."),
-    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이미 등록된 이메일입니다."),
+    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이메일 인증 코드 전송을 실패했습니다."),
+
+    // 이메일 관련 에러
+    EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 코드 전송을 실패했습니다."),
 
     // 토큰 관련 에러
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "토큰이 유효하지 않습니다."),
