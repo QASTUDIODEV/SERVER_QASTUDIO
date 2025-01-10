@@ -55,7 +55,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||
                 uri.equals("/default-ui.css") ||
-                uri.equals("/favicon.ico");
+                uri.equals("/favicon.ico") ||
+                uri.equals("/health");
     }
 
     /**

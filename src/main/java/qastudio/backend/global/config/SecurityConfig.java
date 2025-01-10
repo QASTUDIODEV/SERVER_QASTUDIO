@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/login/local", // 로컬 로그인 경로 허용
                                 "/error",
                                 "/favicon.ico",
-                                "/default-ui.css"
+                                "/default-ui.css",
+                                "/health"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
