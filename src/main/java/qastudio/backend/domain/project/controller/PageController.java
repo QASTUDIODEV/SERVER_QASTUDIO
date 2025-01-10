@@ -12,7 +12,7 @@ import qastudio.backend.global.apiPayload.ApiResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/page")
+@RequestMapping("/api/v0/page")
 public class PageController {
 
     private final PageQueryService pageQueryService;

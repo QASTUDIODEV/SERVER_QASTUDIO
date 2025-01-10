@@ -15,7 +15,7 @@ import qastudio.backend.global.apiPayload.ApiResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/project")
+@RequestMapping("/api/v0/project")
 public class ProjectController {
 
     private final ProjectQueryService projectQueryService;
