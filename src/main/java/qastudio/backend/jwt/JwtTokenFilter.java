@@ -75,7 +75,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             clientIp = request.getRemoteAddr();
         }
 
-        log.error("Invalid token for requestURI: {}, Access from IP: {}", request.getRequestURI(), clientIp);
         throw new TokenException(ErrorStatus.INVALID_TOKEN);
     }
 
