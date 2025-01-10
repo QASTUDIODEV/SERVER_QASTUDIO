@@ -49,68 +49,68 @@ jobs:
         run: docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
 
 
-deploy-to-ec2:
+  deploy-to-ec2:
 
-  needs: build-and-push-docker
-  runs-on: ubuntu-latest
+    needs: build-and-push-docker
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.EC2_HOST }}
-        username: ${{ env.EC2_SSH_USER }}
-        port: 22
-        key: ${{ env.PRIVATE_KEY }}
-        script: |
-          # Check for running container on port 8080
-          CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
-          
-          # Stop the running container if it exists
-          if [ ! -z "$CONTAINER_ID" ]; then
-            echo "Stopping existing container: $CONTAINER_ID"
-            sudo docker stop $CONTAINER_ID
-          fi
-          
-          # Pull the latest image from Docker Hub
-          echo "Pulling latest image: ${{ env.DOCKER_IMAGE_NAME }}"
-          sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}
-          
-          # Run the new container
-          echo "Starting new container: ${{ env.CONTAINER_NAME }}"
-          sudo docker run --name ${{ env.CONTAINER_NAME }}_new -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=develop TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
-          
-          # Perform health check
-          echo "Performing health check on the new container..."
-          HEALTH_CHECK_URL="http://127.0.0.1:8080/health"
-          for i in {1..30}; do
-            HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
-            if [ "$HEALTH_STATUS" == "200" ]; then
-              echo "Health check passed. New container is healthy."
-              # Remove old container and image
-              if [ ! -z "$CONTAINER_ID" ]; then
-                echo "Removing old container: $CONTAINER_ID"
-                sudo docker rm $CONTAINER_ID
-              fi
-              IMAGE_ID=$(sudo docker images -q ${{ env.DOCKER_IMAGE_NAME }})
-              if [ ! -z "$IMAGE_ID" ]; then
-                echo "Removing old image: $IMAGE_ID"
-                sudo docker rmi $IMAGE_ID
-              fi
-              exit 0
-            fi
-            echo "Health check failed. Retrying in 5 seconds... ($i/10)"
-            sleep 5
-          done
-
-          # If health check failed
-          if [ "$HEALTH_STATUS" != "200" ]; then
-            echo "Health check failed after multiple attempts. Restarting old container."
-            sudo docker stop ${{ env.CONTAINER_NAME }}_new
-            sudo docker rm ${{ env.CONTAINER_NAME }}_new
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_SSH_USER }}
+          port: 22
+          key: ${{ env.PRIVATE_KEY }}
+          script: |
+            # Check for running container on port 8080
+            CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
+            
+            # Stop the running container if it exists
             if [ ! -z "$CONTAINER_ID" ]; then
-              echo "Restarting old container: $CONTAINER_ID"
-              sudo docker start $CONTAINER_ID
+              echo "Stopping existing container: $CONTAINER_ID"
+              sudo docker stop $CONTAINER_ID
             fi
-            exit 1
-          fi
+            
+            # Pull the latest image from Docker Hub
+            echo "Pulling latest image: ${{ env.DOCKER_IMAGE_NAME }}"
+            sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}
+            
+            # Run the new container
+            echo "Starting new container: ${{ env.CONTAINER_NAME }}"
+            sudo docker run --name ${{ env.CONTAINER_NAME }}_new -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=develop TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
+            
+            # Perform health check
+            echo "Performing health check on the new container..."
+            HEALTH_CHECK_URL="http://127.0.0.1:8080/health"
+            for i in {1..30}; do
+              HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+              if [ "$HEALTH_STATUS" == "200" ]; then
+                echo "Health check passed. New container is healthy."
+                # Remove old container and image
+                if [ ! -z "$CONTAINER_ID" ]; then
+                  echo "Removing old container: $CONTAINER_ID"
+                  sudo docker rm $CONTAINER_ID
+                fi
+                IMAGE_ID=$(sudo docker images -q ${{ env.DOCKER_IMAGE_NAME }})
+                if [ ! -z "$IMAGE_ID" ]; then
+                  echo "Removing old image: $IMAGE_ID"
+                  sudo docker rmi $IMAGE_ID
+                fi
+                exit 0
+              fi
+              echo "Health check failed. Retrying in 5 seconds... ($i/10)"
+              sleep 5
+            done
+  
+            # If health check failed
+            if [ "$HEALTH_STATUS" != "200" ]; then
+              echo "Health check failed after multiple attempts. Restarting old container."
+              sudo docker stop ${{ env.CONTAINER_NAME }}_new
+              sudo docker rm ${{ env.CONTAINER_NAME }}_new
+              if [ ! -z "$CONTAINER_ID" ]; then
+                echo "Restarting old container: $CONTAINER_ID"
+                sudo docker start $CONTAINER_ID
+              fi
+              exit 1
+            fi
