@@ -85,3 +85,7 @@ sourceSets {
 clean {
 	delete file(generated)
 }
+
+jar {
+	enabled = false
+}
