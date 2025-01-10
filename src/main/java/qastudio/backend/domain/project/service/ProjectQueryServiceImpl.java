@@ -28,4 +28,9 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     public ProjectResponse.ProjectDetail updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
         return null;
     }
+
+    @Override
+    public ProjectResponse.ProjectDetail createProject(ProjectRequest.CreateProject createProject){
+        return null;
+    }
 }

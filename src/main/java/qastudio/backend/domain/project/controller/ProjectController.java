@@ -21,6 +21,16 @@ public class ProjectController {
     private final ProjectQueryService projectQueryService;
 
     @Operation(
+            summary = "프로젝트 생성 API",
+            description = "새로운 프로젝트를 생성합니다."
+    )
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<ProjectResponse.ProjectDetail> createProject(@RequestBody @Valid ProjectRequest.CreateProject createProject){
+        ProjectResponse.ProjectDetail projectDetail = projectQueryService.createProject(createProject);
+        return ApiResponse.onSuccess(projectDetail);
+    }
+
+    @Operation(
             summary = "zip 파일 업로드 API",
             description = "zip파일을 업로드하여 프로젝트 구조를 학습합니다."
     )
