@@ -17,4 +17,6 @@ public interface CharacterQueryService {
 
     CharacterResponse.CharacterScenario updateCharacter(Long characterId,
                                                         CharacterRequest.UpdateCharacter updateCharacter);
+
+    CharacterResponse.DetailCharacter deleteCharacter(Long characterId);
 }

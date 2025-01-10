@@ -79,4 +79,13 @@ public class CharacterController {
         return ApiResponse.onSuccess(characterScenario);
     }
 
+    @Operation(
+            summary = "역할 삭제 API",
+            description = "역할을 삭제합니다."
+    )
+    @DeleteMapping("/{characterId}")
+    public ApiResponse<Void>  deleteCharacter(@PathVariable("characterId") Long characterId) {
+        CharacterResponse.DetailCharacter deleteCharacter = characterQueryService.deleteCharacter(characterId);
+        return ApiResponse.onSuccess(null);
+    }
 }
