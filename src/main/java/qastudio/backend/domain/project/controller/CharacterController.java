@@ -69,4 +69,14 @@ public class CharacterController {
         return ApiResponse.onSuccess(characterScenario);
     }
 
+    @Operation(
+            summary = "역할-시나리오 수정 API",
+            description = "역할을 수정한 후, ai에게 시나리오 생성을 재요청합니다."
+    )
+    @PatchMapping("/{characterId}")
+    public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (@PathVariable("characterId") Long characterId, @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter) {
+        CharacterScenario characterScenario = characterQueryService.updateCharacter(characterId, updateCharacter);
+        return ApiResponse.onSuccess(characterScenario);
+    }
+
 }

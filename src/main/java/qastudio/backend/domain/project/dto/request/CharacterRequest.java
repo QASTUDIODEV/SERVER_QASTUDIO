@@ -16,4 +16,15 @@ public class CharacterRequest {
         @NotBlank(message = "accessPage 필드는 필수 입력 값입니다.")
         private List<String> accessPage;
     }
+
+    @Getter
+    public static class UpdateCharacter {
+        // 역할 수정
+        @NotBlank(message = "characterName 필드는 필수 입력 값입니다.")
+        private String characterName;
+        @NotBlank(message = "characterDescription 필드는 필수 입력 값입니다.")
+        private String characterDescription;
+        @NotBlank(message = "accessPage 필드는 필수 입력 값입니다.")
+        private List<String> accessPage;
+    }
 }

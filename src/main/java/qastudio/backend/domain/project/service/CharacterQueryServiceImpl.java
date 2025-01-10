@@ -25,4 +25,8 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     @Override
     public CharacterResponse.CharacterScenario createCharacter(CharacterRequest.CreateCharacter createCharacter) { return null; }
 
+    @Override
+    public CharacterResponse.CharacterScenario updateCharacter(Long characterId,
+                                                               CharacterRequest.UpdateCharacter updateCharacter) { return null; }
+
 }
