@@ -2,6 +2,7 @@ package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
@@ -20,5 +21,8 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
 
     @Override
     public CharacterResponse.ScenarioList getScenarioList(Long characterId) { return null; }
+
+    @Override
+    public CharacterResponse.CharacterScenario createCharacter(CharacterRequest.CreateCharacter createCharacter) { return null; }
 
 }

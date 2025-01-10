@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.service;
 
+import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
@@ -11,4 +12,6 @@ public interface CharacterQueryService {
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
 
     CharacterResponse.ScenarioList getScenarioList(Long characterId);
+
+    CharacterResponse.CharacterScenario createCharacter(CharacterRequest.CreateCharacter createCharacter);
 }

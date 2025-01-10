@@ -2,13 +2,13 @@ package qastudio.backend.domain.project.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.CharacterConverter;
+import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterScenario;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.entity.CharacterTable;
@@ -57,6 +57,16 @@ public class CharacterController {
     public ApiResponse<CharacterResponse.ScenarioList> getScenarioLost (@PathVariable("characterId") Long characterId) {
         ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
         return ApiResponse.onSuccess(scenarioList);
+    }
+
+    @Operation(
+            summary = "역할-시나리오 생성 API",
+            description = "역할을 생성하며 ai에게 시나리오 생성을 요청합니다."
+    )
+    @PostMapping("")
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
+        CharacterScenario characterScenario = characterQueryService.createCharacter(createCharacter);
+        return ApiResponse.onSuccess(characterScenario);
     }
 
 }
