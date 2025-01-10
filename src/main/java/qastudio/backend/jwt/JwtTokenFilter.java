@@ -49,8 +49,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         return uri.startsWith("/swagger-ui") || // Swagger 관련 경로 제외
                 uri.startsWith("/v3/api-docs") ||
-                uri.startsWith("/api/v1/auth") || // 인증 관련 경로 제외
-                uri.startsWith("/css") || // 정적 리소스
+                uri.startsWith("/api/v1/auth/sign-up") || // 회원가입 제외
+                uri.startsWith("/api/v1/auth/login/local") || // 로그인 제외
+                uri.startsWith("/css") ||
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||
                 uri.equals("/default-ui.css") ||
