@@ -43,7 +43,7 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성
-    private String generateAccessToken(Long userId, Authentication authentication, boolean isSocial) {
+    private String generateAccessToken (Long userId, Authentication authentication, boolean isSocial) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + ACCESS_TOKEN_DURATION);
 
@@ -77,6 +77,7 @@ public class JwtTokenProvider {
     // 유효성 검사
     public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
+            log.error("Token is empty or null");
             return false;
         }
 
@@ -87,9 +88,9 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            log.error("Token is expired", e);
         } catch (JwtException e) {
-            log.info("Invalid JWT Token", e);
+            log.error("Token is invalid", e);
         }
         return false;
     }
@@ -103,10 +104,10 @@ public class JwtTokenProvider {
         }
 
         List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
-        Long userId = Long.parseLong(claims.getSubject());
+        String userId = claims.getSubject();
 
         UserDetails principal = User.builder()
-                .username(userId.toString())
+                .username(userId)
                 .password("")
                 .authorities(authorities)
                 .build();

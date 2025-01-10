@@ -20,10 +20,15 @@ public class AuthResolver implements HandlerMethodArgumentResolver {
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            return authentication.getName();
+            String userIdString = authentication.getName();
+            try {
+                return Long.parseLong(userIdString);
+            } catch (NumberFormatException e) {
+                throw new AuthException(ErrorStatus.INVALID_USER_ID_FORMAT);
+            }
         }
         throw new AuthException(ErrorStatus.TOKEN_ERROR);
     }
