@@ -3,16 +3,12 @@ package qastudio.backend.domain.auth.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.service.AuthService;
-import qastudio.backend.domain.user.repository.UserRepository;
 import qastudio.backend.global.apiPayload.ApiResponse;
-import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
