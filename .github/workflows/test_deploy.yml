@@ -30,7 +30,7 @@ jobs:
       - name: Generate resources folder
         run: mkdir -p ./src/main/resources
 
-      - name: Set up application-database.yml
+      - name: Set up application.yml
         run: echo "${{ secrets.APPLICATION_DEV }}" > ./src/main/resources/application.yml
 
       - name: Grant execute permission for gradlew
@@ -78,7 +78,7 @@ jobs:
             
             # Run the new container
             echo "Starting new container: ${{ env.CONTAINER_NAME }}"
-            sudo docker run --name ${{ env.CONTAINER_NAME }}_new -d -p 8080:8080 -e SPRING_PROFILES_ACTIVE=develop TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
+            sudo docker run --name ${{ env.CONTAINER_NAME }}_new -d -p 8080:8080 -e TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
             
             # Perform health check
             echo "Performing health check on the new container..."
@@ -99,10 +99,10 @@ jobs:
                 fi
                 exit 0
               fi
-              echo "Health check failed. Retrying in 5 seconds... ($i/10)"
+              echo "Health check failed. Retrying in 5 seconds... ($i/30)"
               sleep 5
             done
-  
+            
             # If health check failed
             if [ "$HEALTH_STATUS" != "200" ]; then
               echo "Health check failed after multiple attempts. Restarting old container."
