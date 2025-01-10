@@ -1,5 +1,6 @@
 package qastudio.backend.domain.auth.controller;
 
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.service.AuthService;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.UserRepository;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import qastudio.backend.global.handler.annotation.Auth;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -19,6 +23,8 @@ import qastudio.backend.jwt.TokenInfo;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(
             summary = "User 자체 회원가입 API | by 지지",
@@ -38,5 +44,16 @@ public class AuthController {
     public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
         TokenInfo loginResponse = authService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
+    }
+
+    @Operation(
+            summary = "@Auth 테스트",
+            description = "사용자가 자체 로그인을 합니다."
+    )
+    @PostMapping("/test")
+    public ApiResponse<Void> test(@Auth Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        log.info(user.getId().toString());
+        return ApiResponse.onSuccess(null);
     }
 }
