@@ -14,5 +14,5 @@ public interface TeamMemberQueryService {
 
     List<TeamMemberResponse.Member> deleteMembers(Long projectId, TeamMemberRequest.EmailList deleteMembers);
 
-    List<AccountTable> searchMember(Long projectId, TeamMemberRequest.UserEmail userEmail);
+    List<AccountTable> searchMember(Long projectId, String email);
 }

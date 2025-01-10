@@ -28,7 +28,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     }
 
     @Override
-    public List<AccountTable> searchMember(Long projectId, TeamMemberRequest.UserEmail userEmail) {
+    public List<AccountTable> searchMember(Long projectId, String email) {
         return List.of();
     }
 }
