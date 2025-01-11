@@ -31,7 +31,7 @@ public class AuthController {
         return ApiResponse.onSuccess(null);
     }
 
-    @Operation(summary = "이메일 인증번호 전송", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
