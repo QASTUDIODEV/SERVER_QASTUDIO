@@ -9,4 +9,6 @@ public interface TestQueryService {
     TestResponse.TestList getTestList(Long projectId, Integer page, LocalDate date, String pageName, State state);
 
     TestResponse.TestStatistics getTestStatistics(Long projectId);
+
+    TestResponse.TestList searchTestsByTestName(Long projectId, String testName, Integer page, LocalDate date, String pageName, State state);
 }

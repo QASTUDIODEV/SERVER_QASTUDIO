@@ -19,4 +19,9 @@ public class TestQueryServiceImpl implements TestQueryService{
     public TestResponse.TestStatistics getTestStatistics(Long projectId) {
         return null;
     }
+
+    @Override
+    public TestResponse.TestList searchTestsByTestName(Long projectId, String testName, Integer page, LocalDate date, String pageName, State state) {
+        return null;
+    };
 }
