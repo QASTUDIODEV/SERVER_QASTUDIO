@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/character")
+@RequestMapping("/api/v0/characters")
 public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
