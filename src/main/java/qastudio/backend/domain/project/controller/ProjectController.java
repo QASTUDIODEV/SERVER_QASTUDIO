@@ -70,7 +70,7 @@ public class ProjectController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
     })
-    @GetMapping("/list")
+    @GetMapping()
     public ApiResponse<ProjectResponse.ProjectList> getProjectList() {
         List<Project> projects = projectQueryService.getProjectList();
         return ApiResponse.onSuccess(ProjectConverter.toProjectList(projects));
