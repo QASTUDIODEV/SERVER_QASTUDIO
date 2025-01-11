@@ -3,6 +3,8 @@ package qastudio.backend.domain.project.dto.response;
 import lombok.*;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 
+import java.util.List;
+
 public class ProjectResponse {
 
     @Getter
@@ -10,6 +12,15 @@ public class ProjectResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ProjectList {
+        // 프로젝트 리스트
+        private List<ProjectSummary> projectList;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ProjectSummary {
         // 프로젝트 pk
         private Long projectId;
         // 프로젝트 이미지
