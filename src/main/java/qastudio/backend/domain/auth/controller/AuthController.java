@@ -73,7 +73,7 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "회원가입에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
@@ -92,7 +92,7 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "회원가입에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
@@ -112,7 +112,7 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "회원가입에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
