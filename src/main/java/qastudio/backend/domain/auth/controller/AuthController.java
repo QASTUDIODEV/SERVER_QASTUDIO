@@ -31,6 +31,18 @@ public class AuthController {
         return ApiResponse.onSuccess(null);
     }
 
+    @Operation(summary = "이메일 인증번호 전송", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "EMAIL400", description = "이메일 인증 코드 전송을 실패했습니다.")
+    })
+    @PostMapping("/sign-up/email")
+    public ApiResponse<EmailResponse> mailConfirm(@RequestBody @Valid EmailRequest emailRequest){
+        EmailResponse emailResponse = emailService.sendEmail(emailRequest);
+        return ApiResponse.onSuccess(emailResponse);
+    }
+
     @Operation(
             summary = "User 자체 로그인 API | by 지지",
             description = "사용자가 자체 로그인을 합니다."
@@ -39,17 +51,5 @@ public class AuthController {
     public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
         TokenInfo loginResponse = authService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
-    }
-
-    @Operation(summary = "이메일 인증번호 전송", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "EMAIL400", description = "이메일 인증 코드 전송을 실패했습니다.")
-    })
-    @PostMapping("/email")
-    public ApiResponse<EmailResponse> mailConfirm(@RequestBody @Valid EmailRequest emailRequest){
-        EmailResponse emailResponse = emailService.sendEmail(emailRequest);
-        return ApiResponse.onSuccess(emailResponse);
     }
 }
