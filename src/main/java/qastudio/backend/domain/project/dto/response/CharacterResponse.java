@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.dto.response;
 
+import java.time.LocalDateTime;
 import lombok.*;
 
 import java.util.List;
@@ -33,5 +34,62 @@ public class CharacterResponse {
     public static class ProjectCharacterList {
         // 역할 리스트
         private List<ProjectCharacter> projectCharacters;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class DetailCharacter {
+        // 역할 detail
+        private Long characterId;
+        private String author;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class DetailCharacterList {
+        // detail 역할 리스트
+        private List<DetailCharacter> detailCharacters;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class Scenario {
+        // 개별 시나리오
+        private Long scenarioId;
+        private String scenarioName;
+        private String author;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ScenarioList {
+        // 시나리오 리스트
+        private List<Scenario> scenarioList;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class CharacterScenario {
+        // 역할 생성 시에 받는 시나리오
+        private Long characterId;
+        private String characterName;
+        private String characterDescription;
+        private String accessPage;
+        private Long scenarioId;
+        private String scenarioDescription;
     }
 }
