@@ -39,6 +39,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 페이지 관련 에러
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "존재하지 않는 페이지입니다."),
 
+    // 테스트 관련 에러
+    TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "존재하지 않는 테스트입니다."),
+
     ;
 
     private final HttpStatus httpStatus;
