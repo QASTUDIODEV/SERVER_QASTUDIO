@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/{projectId}/tests")
+@RequestMapping("/api/v0/projects/{projectId}/tests")
 public class TestController {
 
     private final TestQueryService testQueryService;
