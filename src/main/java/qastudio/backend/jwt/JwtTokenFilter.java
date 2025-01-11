@@ -50,7 +50,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         return uri.startsWith("/swagger-ui") || // Swagger 관련 경로 제외
                 uri.startsWith("/v3/api-docs") ||
                 uri.startsWith("/api/v0/auth/sign-up") || // 회원가입 제외
-                uri.startsWith("/api/v0/auth/email") || // 이메일 제외
+                uri.startsWith("/api/v0/auth/sign-up/email") || // 이메일 제외
                 uri.startsWith("/api/v0/auth/login/") || // 로그인 제외
                 uri.startsWith("/css") ||
                 uri.startsWith("/js") ||

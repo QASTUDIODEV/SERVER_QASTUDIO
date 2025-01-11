@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/v0/auth/sign-up",   // 회원가입 경로 허용
-                                "/api/v0/auth/email", // 이메일 인증 경로 허용
+                                "/api/v0/auth/sign-up/email", // 이메일 인증 경로 허용
                                 "/api/v0/auth/login/local", // 로컬 로그인 경로 허용
                                 "/error",
                                 "/favicon.ico",
