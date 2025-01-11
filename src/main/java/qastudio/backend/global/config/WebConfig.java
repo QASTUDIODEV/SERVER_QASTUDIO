@@ -6,6 +6,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import qastudio.backend.global.handler.resolver.AuthResolver;
 
@@ -21,25 +22,14 @@ public class WebConfig implements WebMvcConfigurer {
         this.authResolver = authResolver;
     }
 
-    @Bean
-    public static CorsConfigurationSource apiConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        List<String> allowedOriginPatterns = Arrays.asList("*");
-        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
-
-        List<String> allowedHttpMethods = Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH");
-        configuration.setAllowedMethods(allowedHttpMethods);
-
-        List<String> allowedHeaders = Arrays.asList("*");
-        configuration.setAllowedHeaders(allowedHeaders);
-
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowCredentials(false)
+                .maxAge(6000);
     }
 
     @Override
