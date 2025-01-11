@@ -13,7 +13,7 @@ import qastudio.backend.global.apiPayload.ApiResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/{testId}/errors")
+@RequestMapping("/api/v0/tests/{testId}/errors")
 public class ErrorController {
 
     private final ErrorQueryService errorQueryService;
@@ -26,7 +26,7 @@ public class ErrorController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "TEST404", description = "존재하지 않는 테스트입니다.")
     })
-    @GetMapping("/errors")
+    @GetMapping("")
     public ApiResponse<ErrorResponse.Error> getError(@PathVariable("testId") Long testId) {
         ErrorResponse.Error errorDetail = errorQueryService.getError(testId);
         return ApiResponse.onSuccess(errorDetail);
