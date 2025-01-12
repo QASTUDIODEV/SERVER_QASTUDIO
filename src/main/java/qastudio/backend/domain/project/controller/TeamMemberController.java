@@ -45,7 +45,7 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
     })
-    @GetMapping()
+    @GetMapping("/{projectId}/team-members")
     public ApiResponse<TeamMemberResponse.MemberList> getTeamMemberList(@PathVariable("projectId") Long projectId) {
         List<TeamMemberResponse.Member> members = teamMemberQueryService.getTeamMemberList(projectId);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
@@ -61,7 +61,7 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @DeleteMapping()
+    @DeleteMapping("/{projectId}/team-members")
     public ApiResponse<TeamMemberResponse.MemberList> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.EmailList inviteMembers) {
         List<TeamMemberResponse.Member> members = teamMemberQueryService.deleteMembers(projectId, inviteMembers);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
@@ -76,7 +76,7 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @GetMapping("/search")
+    @GetMapping("/{projectId}/team-members/search")
     public ApiResponse<TeamMemberResponse.UserEmailList> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
         // 주의 - 프로젝트에 초대되지 않은 사람을 응답해야 함
         List<AccountTable> accountTables = teamMemberQueryService.searchMember(projectId, email);
