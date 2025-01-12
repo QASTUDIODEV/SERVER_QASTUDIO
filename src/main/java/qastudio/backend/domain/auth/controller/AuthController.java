@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
@@ -25,6 +26,20 @@ public class AuthController {
             summary = "User 자체 회원가입 API | by 지지",
             description = "사용자가 자체 회원가입을 합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "회원가입에 성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "AUTH409",
+                    description = "이미 등록된 이메일입니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON400",
+                    description = "잘못된 요청입니다."
+            )
+    })
     @PostMapping("/sign-up")
     public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
         authService.userSignUp(authRequest);
@@ -47,9 +62,82 @@ public class AuthController {
             summary = "User 자체 로그인 API | by 지지",
             description = "사용자가 자체 로그인을 합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "로그인에 성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "AUTH401",
+                    description = "비밀번호가 잘못되었습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "AUTH404",
+                    description = "존재하지 않는 사용자입니다."
+            )
+    })
     @PostMapping("/login/local")
     public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
         TokenInfo loginResponse = authService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
     }
+
+    @Operation(
+            summary = "Kakao Web 소셜 로그인 용 API",
+            description = "사용자가 카카오 소셜 로그인을 합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON400",
+                    description = "잘못된 요청입니다."
+            )
+    })
+    @PostMapping("/login/kakao")
+    public RedirectView kakaoLogin() {
+        return new RedirectView("/oauth2/authorization/kakao");
+    }
+
+    @Operation(
+            summary = "Google Web 소셜 로그인 용 API",
+            description = "사용자가 구글 소셜 로그인을 합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON400",
+                    description = "잘못된 요청입니다."
+            )
+    })
+    @PostMapping("/login/google")
+    public RedirectView googleLogin() {
+        return new RedirectView("/oauth2/authorization/google");
+    }
+
+
+    @Operation(
+            summary = "Github Web 소셜 로그인 용 API",
+            description = "사용자가 github 소셜 로그인을 합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON400",
+                    description = "잘못된 요청입니다."
+            )
+    })
+    @PostMapping("/login/github")
+    public RedirectView githubLogin() {
+        return new RedirectView("/oauth2/authorization/github");
+    }
+
 }
