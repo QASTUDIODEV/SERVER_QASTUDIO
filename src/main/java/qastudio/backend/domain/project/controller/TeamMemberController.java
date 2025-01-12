@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/projects/{projectId}/team-members")
+@RequestMapping("/api/v0/projects")
 public class TeamMemberController {
 
     private final TeamMemberQueryService teamMemberQueryService;
@@ -30,9 +30,10 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @PostMapping("/invite")
-    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.EmailList inviteMembers) {
-        List<TeamMemberResponse.Member> members = teamMemberQueryService.inviteMembers(projectId, inviteMembers);
+    @PostMapping("/team-members/invite")
+    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.EmailList inviteMembers) {
+        // 임시로 getProjectId() 추가 -> 삭제 필요
+        List<TeamMemberResponse.Member> members = teamMemberQueryService.inviteMembers(inviteMembers.getProjectId(), inviteMembers);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
     }
 
