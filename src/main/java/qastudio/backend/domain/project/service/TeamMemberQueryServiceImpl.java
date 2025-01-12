@@ -107,7 +107,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     }
 
     @Override
-    public List<TeamMemberResponse.Member> deleteMembers(Long projectId, TeamMemberRequest.Invite deleteMembers) {
+    public List<TeamMemberResponse.Member> deleteMembers(Long projectId, TeamMemberRequest.Cancel deleteMembers) {
         return List.of();
     }
 

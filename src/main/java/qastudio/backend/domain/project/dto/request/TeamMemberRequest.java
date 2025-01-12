@@ -23,6 +23,13 @@ public class TeamMemberRequest {
     }
 
     @Getter
+    public static class Cancel {
+        // 이메일 리스트
+        @NotEmpty(message = "emailList 는 필수 입력 값입니다.")
+        private List<@Valid MemberEmail> memberEmailList;
+    }
+
+    @Getter
     public static class MemberEmail {
         // 유저 pk
         @NotNull(message = "userId 는 필수 입력 값입니다.")

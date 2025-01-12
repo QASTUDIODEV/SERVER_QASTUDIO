@@ -65,7 +65,7 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @DeleteMapping("/{projectId}")
-    public ApiResponse<TeamMemberResponse.MemberList> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
+    public ApiResponse<TeamMemberResponse.MemberList> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.Cancel inviteMembers) {
         List<TeamMemberResponse.Member> members = teamMemberQueryService.deleteMembers(projectId, inviteMembers);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
     }
