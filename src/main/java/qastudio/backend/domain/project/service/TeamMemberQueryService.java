@@ -12,7 +12,7 @@ public interface TeamMemberQueryService {
 
     List<TeamMemberResponse.Member> getTeamMemberList(Long projectId);
 
-    List<TeamMemberResponse.Member> deleteMembers(Long projectId, TeamMemberRequest.Cancel deleteMembers);
+    void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember);
 
     List<AccountTable> searchMember(Long projectId, String email);
 }

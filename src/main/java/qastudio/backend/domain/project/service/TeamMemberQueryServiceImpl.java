@@ -2,6 +2,7 @@ package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
 import qastudio.backend.domain.project.entity.Project;
@@ -30,6 +31,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     private final ProjectRepository projectRepository;
 
     @Override
+    @Transactional
     public List<TeamMemberResponse.Member> inviteMembers(Long projectId, TeamMemberRequest.Invite inviteMembers) {
 
         // 프로젝트 조회
@@ -107,8 +109,27 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     }
 
     @Override
-    public List<TeamMemberResponse.Member> deleteMembers(Long projectId, TeamMemberRequest.Cancel deleteMembers) {
-        return List.of();
+    @Transactional
+    public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
+
+        // 삭제하고자 하는 유저
+        Long userId = deleteMember.getUserId();
+        String email = deleteMember.getEmail();
+
+        // user의 이메일 정보가 요청을 보낸 이메일과 맞는지 확인
+        boolean match = accountTableRepository.existsByUserIdAndEmail(userId, email);
+        if (!match) {
+            throw new BadRequestException(ErrorStatus.UNMATCHED_USER);
+        }
+
+        // UserProject 조회
+        List<UserProject> userProjects = userProjectRepository.findUserProjectsByProjectId(projectId);
+
+        // 유저 삭제
+        userProjects.stream()
+                .filter(userProject -> userProject.getUser().getId().equals(userId)) // userId가 일치하는 항목 필터링
+                .forEach(userProjectRepository::delete);
+
     }
 
     @Override
