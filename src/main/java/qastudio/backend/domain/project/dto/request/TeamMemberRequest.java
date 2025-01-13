@@ -12,6 +12,9 @@ public class TeamMemberRequest {
 
     @Getter
     public static class EmailList {
+        // project pk
+        @NotNull(message = "projectId는 필수 입력 값입니다.")
+        private Long projectId;
         // 이메일 리스트
         @NotEmpty(message = "emailList 는 필수 입력 값입니다.")
         private List<@Email(message = "이메일 형식에 맞지 않습니다.")
