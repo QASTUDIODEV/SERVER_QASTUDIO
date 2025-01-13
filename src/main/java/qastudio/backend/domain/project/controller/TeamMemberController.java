@@ -32,11 +32,11 @@ public class TeamMemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "존재하지 않는 사용자입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "존재하지 않는 사용자입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER409", description = "이미 프로젝트에 추가된 유저입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER409", description = "이미 프로젝트에 추가된 유저입니다.")
     })
     @PostMapping("/team-members/invite")
-    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<TeamMemberResponse.Member> members = teamMemberQueryService.inviteMembers(projectId, inviteMembers);
+    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
+        List<TeamMemberResponse.Member> members = teamMemberQueryService.inviteMembers(inviteMembers);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
     }
 

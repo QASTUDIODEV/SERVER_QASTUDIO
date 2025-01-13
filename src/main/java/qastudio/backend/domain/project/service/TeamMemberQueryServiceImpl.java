@@ -32,7 +32,9 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
 
     @Override
     @Transactional
-    public List<TeamMemberResponse.Member> inviteMembers(Long projectId, TeamMemberRequest.Invite inviteMembers) {
+    public List<TeamMemberResponse.Member> inviteMembers(TeamMemberRequest.Invite inviteMembers) {
+
+        Long projectId = inviteMembers.getProjectId();
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
