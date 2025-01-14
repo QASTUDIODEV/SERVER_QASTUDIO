@@ -19,6 +19,7 @@ public class TeamMemberConverter {
         List<TeamMemberResponse.UserEmail> userEmails = accounts.stream()
                 .map(account -> TeamMemberResponse.UserEmail.builder()
                         .email(account.getEmail())
+                        .userId(account.getUser().getId())
                         .build())
                 .collect(Collectors.toList());
 

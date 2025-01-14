@@ -61,7 +61,10 @@ public class TeamMemberController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER400", description = "userId와 이메일 정보가 일치하지 않습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "존재하지 않는 사용자입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @DeleteMapping("/{projectId}/team-members")

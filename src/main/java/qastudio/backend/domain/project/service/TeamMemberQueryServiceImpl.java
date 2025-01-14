@@ -136,6 +136,25 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
 
     @Override
     public List<AccountTable> searchMember(Long projectId, String email) {
-        return List.of();
+        // UserProject 조회
+        List<UserProject> userProjects = userProjectRepository.findUserProjectsByProjectId(projectId);
+
+        // 이미 가입된 유저들의 id 리스트
+        List<Long> existingMemberIds = userProjects.stream()
+                .map(userProject -> userProject.getUser().getId())
+                .toList();
+
+        // email에 해당하는 account 조회
+        List<AccountTable> matchingAccounts = accountTableRepository.findAccountsByEmail(email);
+
+        // email에 해당하는 User의 id 리스트
+        List<Long> matchingUserIds = matchingAccounts.stream()
+                .map(accountTable -> accountTable.getUser().getId())
+                .toList();
+
+        // UserProject에 해당하지 않는 User의 account 리스트 리턴
+        return matchingAccounts.stream()
+                .filter(accountTable -> !existingMemberIds.contains(accountTable.getUser().getId()))
+                .toList();
     }
 }

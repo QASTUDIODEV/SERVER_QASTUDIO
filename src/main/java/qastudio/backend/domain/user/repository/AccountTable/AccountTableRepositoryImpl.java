@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.QAccountTable;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
@@ -22,6 +24,14 @@ public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
                                 .and(qAccountTable.email.eq(email)) // 이메일 확인
                 )
                 .fetchFirst() != null;
+    }
+
+    @Override
+    public List<AccountTable> findAccountsByEmail(String email) {
+        return jpaQueryFactory
+                .selectFrom(qAccountTable)
+                .where(qAccountTable.email.startsWithIgnoreCase(email)) // 이메일 검색 조건 (부분 매칭 허용)
+                .fetch();
     }
 
 }
