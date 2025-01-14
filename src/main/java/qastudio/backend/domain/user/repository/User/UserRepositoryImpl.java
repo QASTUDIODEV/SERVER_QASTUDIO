@@ -17,7 +17,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
     private final QAccountTable qAccountTable = QAccountTable.accountTable;
 
     @Override
-    public Optional<User> findByAccountEmail(String email) {
+    public Optional<User> findByEmail(String email) {
         User user = jpaQueryFactory
                 .selectFrom(qUser)
                 .join(qUser.accounts, qAccountTable)

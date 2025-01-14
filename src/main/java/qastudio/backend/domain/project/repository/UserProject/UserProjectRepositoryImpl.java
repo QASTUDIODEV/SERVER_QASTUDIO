@@ -21,7 +21,7 @@ public class UserProjectRepositoryImpl implements UserProjectRepositoryCustom{
     private final QAccountTable qAccountTable = QAccountTable.accountTable;
 
     @Override
-    public boolean existsByUserAndProject(Long userId, Long projectId) {
+    public boolean existsByUserIdAndProjectId(Long userId, Long projectId) {
         return jpaQueryFactory
                 .selectOne()
                 .from(qUserProject)
@@ -33,7 +33,7 @@ public class UserProjectRepositoryImpl implements UserProjectRepositoryCustom{
     }
 
     @Override
-    public List<UserProject> findUserProjectsByProjectId(Long projectId) {
+    public List<UserProject> findByProjectId(Long projectId) {
         return jpaQueryFactory
                 .selectFrom(qUserProject)
                 .where(qUserProject.project.id.eq(projectId))
@@ -41,7 +41,7 @@ public class UserProjectRepositoryImpl implements UserProjectRepositoryCustom{
     }
 
     @Override
-    public List<UserProject> findUserProjectsByUserId(Long userId) {
+    public List<UserProject> findByUserId(Long userId) {
         return jpaQueryFactory
                 .selectFrom(qUserProject)
                 .where(qUserProject.user.id.eq(userId))

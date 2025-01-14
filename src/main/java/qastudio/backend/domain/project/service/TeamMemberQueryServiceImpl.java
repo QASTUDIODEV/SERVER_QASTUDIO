@@ -57,7 +57,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                     }
 
                     // 중복 초대 체크 (기준 확인 필요)
-                    boolean isAlreadyInvited = userProjectRepository.existsByUserAndProject(user.getId(), projectId);
+                    boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(user.getId(), projectId);
                     if (isAlreadyInvited) {
                         throw new TeamMemberException(ErrorStatus.ALREADY_REGISTERED_MEMBER);
                     }
@@ -88,7 +88,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     public List<TeamMemberResponse.Member> getTeamMemberList(Long projectId) {
 
         // UserProject 조회
-        List<UserProject> userProjects = userProjectRepository.findUserProjectsByProjectId(projectId);
+        List<UserProject> userProjects = userProjectRepository.findByProjectId(projectId);
 
         // 유저 정보 반환
         return userProjects.stream()
@@ -125,7 +125,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         }
 
         // UserProject 조회
-        List<UserProject> userProjects = userProjectRepository.findUserProjectsByProjectId(projectId);
+        List<UserProject> userProjects = userProjectRepository.findByProjectId(projectId);
 
         // 유저 삭제
         userProjects.stream()
@@ -137,7 +137,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     @Override
     public List<AccountTable> searchMember(Long projectId, String email) {
         // UserProject 조회
-        List<UserProject> userProjects = userProjectRepository.findUserProjectsByProjectId(projectId);
+        List<UserProject> userProjects = userProjectRepository.findByProjectId(projectId);
 
         // 이미 가입된 유저들의 id 리스트
         List<Long> existingMemberIds = userProjects.stream()
@@ -145,7 +145,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                 .toList();
 
         // email에 해당하는 account 조회
-        List<AccountTable> matchingAccounts = accountTableRepository.findAccountsByEmail(email);
+        List<AccountTable> matchingAccounts = accountTableRepository.findByEmail(email);
 
         // email에 해당하는 User의 id 리스트
         List<Long> matchingUserIds = matchingAccounts.stream()

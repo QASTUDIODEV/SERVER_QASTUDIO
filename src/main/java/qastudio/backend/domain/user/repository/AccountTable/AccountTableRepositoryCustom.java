@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface AccountTableRepositoryCustom {
     boolean existsByUserIdAndEmail(Long userId, String email);
-    List<AccountTable> findAccountsByEmail(String email);
+    List<AccountTable> findByEmail(String email);
 }

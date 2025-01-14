@@ -27,7 +27,7 @@ public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
     }
 
     @Override
-    public List<AccountTable> findAccountsByEmail(String email) {
+    public List<AccountTable> findByEmail(String email) {
         return jpaQueryFactory
                 .selectFrom(qAccountTable)
                 .where(qAccountTable.email.startsWithIgnoreCase(email)) // 이메일 검색 조건 (부분 매칭 허용)

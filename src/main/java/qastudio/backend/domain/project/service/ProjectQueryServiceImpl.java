@@ -29,7 +29,7 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     @Override
     public List<Project> getProjectList(Long userId) {
         // UserProject 리스트
-        List<UserProject> userProjectList = userProjectRepository.findUserProjectsByUserId(userId);
+        List<UserProject> userProjectList = userProjectRepository.findByUserId(userId);
 
         // Project 리스트로 변환
         return userProjectList.stream()
