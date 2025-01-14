@@ -27,4 +27,12 @@ public class PageResponse {
         private List<String> scenarios;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class PageList {
+        List<PageSummary> pageSummaryList;
+    }
+
 }

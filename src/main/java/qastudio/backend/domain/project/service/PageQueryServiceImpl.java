@@ -113,4 +113,50 @@ public class PageQueryServiceImpl implements PageQueryService{
     public PageResponse.PageSummary deletePage(Long pageId) {
         return null;
     }
+
+    @Override
+    public List<PageResponse.PageSummary> getAllPage(Long projectId) {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // 프로젝트에 존재하는 모든 역할 조회
+        List<String> allRoles = characterTableRepository.findAllByProjectId(projectId).stream()
+                .map(CharacterTable::getCharacterName)
+                .toList();
+
+        // 프로젝트에 해당하는 페이지 조회
+        List<Page> pageList = pageRepository.findAllByProjectId(projectId);
+
+        return pageList.stream()
+                .map(page -> {
+                    // 페이지에 접근 가능한 역할 리스트
+                    List<String> hasAccess = pageRoleRepository.findAllByPage(page.getId()).stream()
+                            .map(pageRole -> pageRole.getCharacterTable().getCharacterName())
+                            .toList();
+
+                    // 접근 권한이 없는 역할 리스트
+                    List<String> deniedAccess = allRoles.stream()
+                            .filter(role -> !hasAccess.contains(role))
+                            .toList();
+
+                    // 시나리오 조회
+                    List<PageScenario> pageScenarioList = pageScenarioRepository.findAllByPageId(page.getId());
+                    List<String> pageScenarioStringList = pageScenarioList.stream()
+                            .map(PageScenario::getContent)
+                            .toList();
+
+                    // DTO 변환
+                    return PageResponse.PageSummary.builder()
+                            .pageId(page.getId())
+                            .pageName(page.getPageName())
+                            .pageDescription(page.getPageDescription())
+                            .path(page.getPath())
+                            .hasAccess(hasAccess)
+                            .deniedAccess(deniedAccess)
+                            .scenarios(pageScenarioStringList)
+                            .build();
+                })
+                .toList();
+    }
 }
