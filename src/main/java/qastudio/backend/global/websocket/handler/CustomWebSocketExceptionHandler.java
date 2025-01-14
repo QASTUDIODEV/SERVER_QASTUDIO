@@ -41,7 +41,7 @@ public class CustomWebSocketExceptionHandler extends ExceptionWebSocketHandlerDe
                 e.printStackTrace();
                 String errorMessage = "{\"isSuccess\": \"false\", \"code\": \"500\", \"message\": \"예외적 오류 서버 로그를 확인 해보 세요.\"}";
                 session.sendMessage(new TextMessage(errorMessage));
-                if (!Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+                if (Arrays.asList(environment.getActiveProfiles()).contains("develop") || Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
                     discordClient.sendAlarm(createMessage(e));
                 }
             }
