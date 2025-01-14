@@ -13,6 +13,7 @@ import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.service.ProjectQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
 
@@ -71,8 +72,8 @@ public class ProjectController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
     })
     @GetMapping()
-    public ApiResponse<ProjectResponse.ProjectList> getProjectList() {
-        List<Project> projects = projectQueryService.getProjectList();
+    public ApiResponse<ProjectResponse.ProjectList> getProjectList(@Auth Long userId) {
+        List<Project> projects = projectQueryService.getProjectList(userId);
         return ApiResponse.onSuccess(ProjectConverter.toProjectList(projects));
     }
 
@@ -87,8 +88,6 @@ public class ProjectController {
     })
     @PatchMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
-        System.out.println("Introduce: " + updateIntroduce.getIntroduce());
-
         ProjectResponse.ProjectDetail projectDetail = projectQueryService.updateProjectIntroduction(projectId, updateIntroduce);
         return ApiResponse.onSuccess(projectDetail);
     }
