@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.user.entity.AccountTable;
-import qastudio.backend.domain.user.entity.QAccountTable;
+import static qastudio.backend.domain.user.entity.QAccountTable.accountTable;
 
 import java.util.List;
 
@@ -12,16 +12,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
     private final JPAQueryFactory jpaQueryFactory;
-    private final QAccountTable qAccountTable = QAccountTable.accountTable;
 
     @Override
     public boolean existsByUserIdAndEmail(Long userId, String email) {
         return jpaQueryFactory
                 .selectOne()
-                .from(qAccountTable)
+                .from(accountTable)
                 .where(
-                        qAccountTable.user.id.eq(userId) // userId와 매핑된 AccountTable
-                                .and(qAccountTable.email.eq(email)) // 이메일 확인
+                        accountTable.user.id.eq(userId) // userId와 매핑된 AccountTable
+                                .and(accountTable.email.eq(email)) // 이메일 확인
                 )
                 .fetchFirst() != null;
     }
@@ -29,8 +28,8 @@ public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
     @Override
     public List<AccountTable> findByEmail(String email) {
         return jpaQueryFactory
-                .selectFrom(qAccountTable)
-                .where(qAccountTable.email.startsWithIgnoreCase(email)) // 이메일 검색 조건 (부분 매칭 허용)
+                .selectFrom(accountTable)
+                .where(accountTable.email.startsWithIgnoreCase(email)) // 이메일 검색 조건 (부분 매칭 허용)
                 .fetch();
     }
 

@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.project.entity.Project;
-import qastudio.backend.domain.project.entity.QProject;
+import static qastudio.backend.domain.project.entity.QProject.project;
 
 import java.util.Optional;
 
@@ -12,14 +12,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
-    private final QProject qProject = QProject.project;
 
     @Override
     public Optional<Project> findByProjectId(Long projectId) {
-        Project project = jpaQueryFactory
-                .selectFrom(qProject)
-                .where(qProject.id.eq(projectId))
+        Project resultProject = jpaQueryFactory
+                .selectFrom(project)
+                .where(project.id.eq(projectId))
                 .fetchOne();
-        return Optional.ofNullable(project);
+        return Optional.ofNullable(resultProject);
     }
 }
