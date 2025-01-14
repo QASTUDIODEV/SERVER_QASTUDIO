@@ -56,7 +56,6 @@ public class ProjectController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.")
     })
     @GetMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId) {
@@ -65,7 +64,7 @@ public class ProjectController {
     }
 
     @Operation(
-            summary = "프로젝트 리스트 조회 API",
+            summary = "프로젝트 리스트 조회 API | by 노을",
             description = "사이드바용 프로젝트 리스트를 조회합니다."
     )
     @ApiResponses({
