@@ -5,5 +5,5 @@ import qastudio.backend.domain.project.entity.PageRole;
 import java.util.List;
 
 public interface PageRoleRepositoryCustom {
-    List<PageRole> findAllByPage(Long pageId);
+    List<PageRole> findAllByPageId(Long pageId);
 }

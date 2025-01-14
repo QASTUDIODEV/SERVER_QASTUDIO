@@ -17,7 +17,7 @@ public class PageRoleRepositoryImpl implements PageRoleRepositoryCustom {
     private final QPageRole qPageRole = QPageRole.pageRole;
 
     @Override
-    public List<PageRole> findAllByPage(Long pageId) {
+    public List<PageRole> findAllByPageId(Long pageId) {
         return jpaQueryFactory
                 .selectFrom(qPageRole)
                 .where(qPageRole.page.id.eq(pageId))

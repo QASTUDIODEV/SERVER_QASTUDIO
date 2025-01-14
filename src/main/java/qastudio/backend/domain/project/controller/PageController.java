@@ -64,7 +64,7 @@ public class PageController {
     })
     @DeleteMapping("/{pageId}")
     public ApiResponse<Void>  deletePage(@PathVariable("pageId") Long pageId) {
-        PageResponse.PageSummary deletePage = pageQueryService.deletePage(pageId);
+        pageQueryService.deletePage(pageId);
         return ApiResponse.onSuccess(null);
     }
 }

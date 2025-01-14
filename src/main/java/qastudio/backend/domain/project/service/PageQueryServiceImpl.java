@@ -110,15 +110,26 @@ public class PageQueryServiceImpl implements PageQueryService{
     }
 
     @Override
-    public PageResponse.PageSummary deletePage(Long pageId) {
-        return null;
+    @Transactional
+    public void deletePage(Long pageId) {
+
+        // 페이지 조회
+        Page page = pageRepository.findByPageId(pageId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PAGE_NOT_FOUND));
+
+        // 페이지 권한 조회
+        List<PageRole> pageRoleList = pageRoleRepository.findAllByPageId(pageId);
+        pageRoleRepository.deleteAll(pageRoleList);
+
+        // 페이지 시나리오 조회
+        List<PageScenario> pageScenarioList = pageScenarioRepository.findAllByPageId(pageId);
+        pageScenarioRepository.deleteAll(pageScenarioList);
+
+        pageRepository.delete(page);
     }
 
     @Override
     public List<PageResponse.PageSummary> getAllPage(Long projectId) {
-        // 프로젝트 조회
-        Project project = projectRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         // 프로젝트에 존재하는 모든 역할 조회
         List<String> allRoles = characterTableRepository.findAllByProjectId(projectId).stream()
@@ -131,7 +142,7 @@ public class PageQueryServiceImpl implements PageQueryService{
         return pageList.stream()
                 .map(page -> {
                     // 페이지에 접근 가능한 역할 리스트
-                    List<String> hasAccess = pageRoleRepository.findAllByPage(page.getId()).stream()
+                    List<String> hasAccess = pageRoleRepository.findAllByPageId(page.getId()).stream()
                             .map(pageRole -> pageRole.getCharacterTable().getCharacterName())
                             .toList();
 

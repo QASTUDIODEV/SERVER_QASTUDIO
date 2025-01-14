@@ -10,7 +10,7 @@ import java.util.List;
 public interface PageQueryService {
     PageResponse.PageSummary createPage(Long projectId, PageRequest.createPage createPage);
 
-    PageResponse.PageSummary deletePage(Long pageId);
+    void deletePage(Long pageId);
 
     List<PageResponse.PageSummary> getAllPage(Long projectId);
 }

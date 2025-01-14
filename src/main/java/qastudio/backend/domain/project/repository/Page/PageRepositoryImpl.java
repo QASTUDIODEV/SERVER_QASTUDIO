@@ -7,6 +7,7 @@ import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.QPage;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,5 +21,14 @@ public class PageRepositoryImpl implements PageRepositoryCustom{
                 .selectFrom(qPage)
                 .where(qPage.project.id.eq(projectId))
                 .fetch();
+    }
+
+    @Override
+    public Optional<Page> findByPageId(Long pageId) {
+        Page page =  jpaQueryFactory
+                .selectFrom(qPage)
+                .where(qPage.id.eq(pageId))
+                .fetchOne();
+        return Optional.ofNullable(page);
     }
 }
