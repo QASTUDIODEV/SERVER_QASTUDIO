@@ -6,15 +6,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
-import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
-import qastudio.backend.domain.user.repository.AccountTableRepository;
 import qastudio.backend.domain.user.repository.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -25,10 +22,9 @@ import qastudio.backend.jwt.TokenInfo;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthCommandServiceImpl implements AuthCommandService {
 
-    private final PasswordEncoder passwordEncoder;
-    private final AccountTableRepository accountTableRepository;
+    private final AuthQueryService authQueryService;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -36,8 +32,8 @@ public class AuthServiceImpl implements AuthService {
 
     // Command 메서드
     @Override
-    public void userSignUp(AuthRequest request) {
-        if (existsEmail(request.getEmail())) {
+    public void userSignUp(AuthRequest.localLoginReuqest request) {
+        if (authQueryService.existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
@@ -46,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public TokenInfo localLogin(AuthRequest loginRequest) {
+    public TokenInfo localLogin(AuthRequest.localLoginReuqest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -55,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
 
-            Long userId = findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+            Long userId = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
 
             return jwtTokenProvider.generateToken(
                     userId,
@@ -65,20 +61,5 @@ public class AuthServiceImpl implements AuthService {
         } catch (BadCredentialsException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
-    }
-
-    // Query 메서드
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsEmail(String email) {
-        return accountTableRepository.existsByEmail(email);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Long findUserIdByEmailAndEmailType(String email, EmailType emailType) {
-        AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
-        return account.getUser().getId();
     }
 }

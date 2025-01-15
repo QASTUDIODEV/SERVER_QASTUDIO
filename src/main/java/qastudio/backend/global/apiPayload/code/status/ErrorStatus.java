@@ -25,6 +25,8 @@ public enum ErrorStatus implements BaseErrorCode {
     MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "권한 정보가 없는 토큰입니다. 기본 권한이 필요합니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "존재하지 않는 사용자입니다."),
     ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이미 등록된 이메일입니다."),
+    UNSUPPORTED_SOCIAL_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "AUTH415","지원하지 않는 소셜 로그인 입니다."),
+    ILLEGAL_REGISTRATION_ID(HttpStatus.UNAUTHORIZED, "AUTH422", "유효하지 않은 등록 아이디입니다."),
 
     // 이메일 관련 에러
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 코드 전송을 실패했습니다."),

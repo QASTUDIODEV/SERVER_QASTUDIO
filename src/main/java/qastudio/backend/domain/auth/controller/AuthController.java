@@ -9,7 +9,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
-import qastudio.backend.domain.auth.service.AuthService;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
+import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
@@ -19,7 +20,7 @@ import qastudio.backend.jwt.TokenInfo;
 @RequestMapping("/api/v0/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthCommandService authService;
     private final EmailService emailService;
 
     @Operation(
@@ -41,8 +42,8 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
-        authService.userSignUp(authRequest);
+    public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest.localLoginReuqest AuthRequest) {
+        authService.userSignUp(AuthRequest);
         return ApiResponse.onSuccess(null);
     }
 
@@ -77,8 +78,17 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
-        TokenInfo loginResponse = authService.localLogin(authRequest);
+    public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest.localLoginReuqest AuthRequest) {
+        TokenInfo loginResponse = authService.localLogin(AuthRequest);
+        return ApiResponse.onSuccess(loginResponse);
+    }
+
+
+    @Operation(
+            summary = "로그인 성공 후 토큰 전송 내부 API | by 지지",
+            description = "클라이언트 사용하지 않는 API 입니다.")
+    @GetMapping("/login/success")
+    public ApiResponse<AuthResponse> loginSuccess(@Valid AuthResponse loginResponse) {
         return ApiResponse.onSuccess(loginResponse);
     }
 
