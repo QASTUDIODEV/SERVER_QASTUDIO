@@ -22,28 +22,10 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     private final UserProjectRepository userProjectRepository;
 
     @Override
-    public List<TeamMemberResponse.Member> getTeamMemberList(Long projectId) {
+    public List<UserProject> getTeamMemberList(Long projectId) {
 
         // UserProject 조회
-        List<UserProject> userProjects = userProjectRepository.findByProjectId(projectId);
-
-        // 유저 정보 반환
-        return userProjects.stream()
-                .map(userProject -> {
-                    // User 조회
-                    User user = userProject.getUser();
-
-                    // dto 응답 추가
-                    return TeamMemberResponse.Member.builder()
-                            .userId(user.getId())
-                            .userId(user.getId())
-                            .projectRole(userProject.getRole())
-                            .email(userProject.getUserEmail())
-                            .nickname(user.getNickname())
-                            .profileImage(user.getProfileImage())
-                            .build();
-                })
-                .collect(Collectors.toList());
+        return userProjectRepository.findByProjectId(projectId);
 
     }
 

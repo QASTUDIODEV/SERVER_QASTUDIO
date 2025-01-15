@@ -17,6 +17,7 @@ import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestExcept
 import qastudio.backend.global.apiPayload.code.exception.custom.TeamMemberException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     private final ProjectRepository projectRepository;
 
     @Override
-    public List<TeamMemberResponse.Member> inviteMembers(TeamMemberRequest.Invite inviteMembers) {
+    public List<UserProject> inviteMembers(TeamMemberRequest.Invite inviteMembers) {
 
         Long projectId = inviteMembers.getProjectId();
 
@@ -41,7 +42,6 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         return inviteMembers.getMemberEmailList().stream()
                 .map(memberEmail -> {
-
                     Long userId = memberEmail.getUserId();
                     String email = memberEmail.getEmail();
 
@@ -55,32 +55,22 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
                         throw new BadRequestException(ErrorStatus.UNMATCHED_USER);
                     }
 
-                    // 중복 초대 체크 (기준 확인 필요)
+                    // 중복 초대 체크
                     boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(user.getId(), projectId);
                     if (isAlreadyInvited) {
                         throw new TeamMemberException(ErrorStatus.ALREADY_REGISTERED_MEMBER);
                     }
 
                     // 팀원 초대
-                    UserProject userProject = UserProject.builder()
+                    return UserProject.builder()
                             .user(user)
                             .project(project)
                             .role(Role.MEMBER)
                             .userEmail(email)
                             .build();
-                    userProjectRepository.save(userProject);
-
-                    // dto 응답 추가
-                    return TeamMemberResponse.Member.builder()
-                            .userId(userId)
-                            .projectRole(userProject.getRole())
-                            .email(email)
-                            .nickname(user.getNickname())
-                            .profileImage(user.getProfileImage())
-                            .build();
                 })
+                .map(userProjectRepository::save)
                 .collect(Collectors.toList());
-
     }
 
     @Override
