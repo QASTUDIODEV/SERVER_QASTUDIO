@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
+import qastudio.backend.domain.project.service.TeamMemberCommandService;
 import qastudio.backend.domain.project.service.TeamMemberQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -20,6 +21,7 @@ import java.util.List;
 public class TeamMemberController {
 
     private final TeamMemberQueryService teamMemberQueryService;
+    private final TeamMemberCommandService teamMemberCommandService;
 
     @Operation(
             summary = "팀원 초대 API | by 노을",
@@ -75,7 +77,7 @@ public class TeamMemberController {
     })
     @PostMapping("/team-members/invite")
     public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<TeamMemberResponse.Member> members = teamMemberQueryService.inviteMembers(inviteMembers);
+        List<TeamMemberResponse.Member> members = teamMemberCommandService.inviteMembers(inviteMembers);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(members));
     }
 
@@ -147,7 +149,7 @@ public class TeamMemberController {
     })
     @DeleteMapping("/{projectId}/team-members")
     public ApiResponse<Void> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.MemberEmail inviteMember) {
-        teamMemberQueryService.deleteMembers(projectId, inviteMember);
+        teamMemberCommandService.deleteMembers(projectId, inviteMember);
         return ApiResponse.onSuccess(null);
     }
 

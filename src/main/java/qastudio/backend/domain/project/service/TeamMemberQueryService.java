@@ -8,11 +8,7 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import java.util.List;
 
 public interface TeamMemberQueryService {
-    List<TeamMemberResponse.Member> inviteMembers(TeamMemberRequest.@Valid Invite inviteMembers);
-
     List<TeamMemberResponse.Member> getTeamMemberList(Long projectId);
-
-    void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember);
 
     List<AccountTable> searchMember(Long projectId, String email);
 }
