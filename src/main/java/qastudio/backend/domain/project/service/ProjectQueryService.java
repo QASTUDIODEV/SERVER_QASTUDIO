@@ -12,7 +12,7 @@ public interface ProjectQueryService {
 
     ProjectResponse.ProjectDetail getSummarizedProjectInfo(Long projectId);
 
-    List<Project> getProjectList();
+    List<Project> getProjectList(Long userId);
 
     ProjectResponse.ProjectDetail updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
 

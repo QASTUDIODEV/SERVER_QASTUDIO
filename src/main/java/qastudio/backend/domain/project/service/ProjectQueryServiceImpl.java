@@ -6,12 +6,16 @@ import org.springframework.web.multipart.MultipartFile;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
+import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProjectQueryServiceImpl implements ProjectQueryService {
+    private final UserProjectRepository userProjectRepository;
+
     @Override
     public ProjectResponse.ProjectDetail uploadProjectFile(Long projectId, MultipartFile zipFile) {
         return null;
@@ -23,8 +27,14 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     }
 
     @Override
-    public List<Project> getProjectList() {
-        return null;
+    public List<Project> getProjectList(Long userId) {
+        // UserProject 리스트
+        List<UserProject> userProjectList = userProjectRepository.findByUserId(userId);
+
+        // Project 리스트로 변환
+        return userProjectList.stream()
+                .map(UserProject::getProject) // UserProject에서 Project 객체 가져오기
+                .toList();
     }
 
     @Override
