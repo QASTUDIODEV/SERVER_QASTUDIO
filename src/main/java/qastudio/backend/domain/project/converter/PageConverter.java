@@ -1,7 +1,6 @@
 package qastudio.backend.domain.project.converter;
 
 import qastudio.backend.domain.project.dto.response.PageResponse;
-import qastudio.backend.domain.project.entity.Page;
 
 import java.util.List;
 

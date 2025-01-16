@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.dto.request.PageRequest;
-import qastudio.backend.domain.project.dto.response.PageResponse;
 import qastudio.backend.domain.project.entity.*;
 import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
 import qastudio.backend.domain.project.repository.Page.PageRepository;
@@ -15,7 +14,6 @@ import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestExcept
 import qastudio.backend.global.apiPayload.code.exception.custom.CharacterException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +29,7 @@ public class PageCommandServiceImpl implements PageCommandService{
     private final CharacterTableRepository characterTableRepository;
 
     @Override
-    public PageResponse.PageSummary createPage(Long projectId, PageRequest.createPage createPage) {
+    public void createPage(Long projectId, PageRequest.createPage createPage) {
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
@@ -47,10 +45,6 @@ public class PageCommandServiceImpl implements PageCommandService{
 
         Page createdPage = pageRepository.save(page);
 
-        // PageRole 생성
-        List<Long> allowedCharacterIds = new ArrayList<>();
-        List<String> allowedCharacterNames = new ArrayList<>();
-
         if (createPage.getCharacterIdList() != null && !createPage.getCharacterIdList().isEmpty()) {
             List<PageRole> pageRoles = createPage.getCharacterIdList().stream()
                     .map(characterId -> {
@@ -61,10 +55,6 @@ public class PageCommandServiceImpl implements PageCommandService{
                         if (!Objects.equals(characterTable.getProject().getId(), projectId)) {
                             throw new CharacterException(ErrorStatus.CHARACTER_NOT_IN_PROJECT);
                         }
-
-                        // 권한이 있는 역할 id, name 리스트 저장
-                        allowedCharacterIds.add(characterId);
-                        allowedCharacterNames.add(characterTable.getCharacterName());
 
                         return PageRole.builder()
                                 .characterTable(characterTable)
@@ -87,26 +77,6 @@ public class PageCommandServiceImpl implements PageCommandService{
 
             pageScenarioRepository.saveAll(scenarios);
         }
-
-        // 프로젝트에 속한 모든 권한 조회
-        List<CharacterTable> projectRoles = characterTableRepository.findAllByProjectId(projectId);
-
-        // 접근 권한이 없는 CharacterTable 객체 조회
-        List<String> deniedAccessNames = projectRoles.stream()
-                .filter(characterTable -> !allowedCharacterIds.contains(characterTable.getId()))
-                .map(CharacterTable::getCharacterName)
-                .toList();
-
-        // dto 응답
-        return PageResponse.PageSummary.builder()
-                .pageId(createdPage.getId())
-                .pageName(createdPage.getPageName())
-                .pageDescription(createdPage.getPageDescription())
-                .path(createdPage.getPath())
-                .scenarios(createPage.getScenarioList())
-                .hasAccess(allowedCharacterNames)
-                .deniedAccess(deniedAccessNames)
-                .build();
     }
 
     @Override

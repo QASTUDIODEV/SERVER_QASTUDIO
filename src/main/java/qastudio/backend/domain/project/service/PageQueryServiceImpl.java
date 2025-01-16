@@ -3,7 +3,6 @@ package qastudio.backend.domain.project.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import qastudio.backend.domain.project.dto.request.PageRequest;
 import qastudio.backend.domain.project.dto.response.PageResponse;
 import qastudio.backend.domain.project.entity.*;
 import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
@@ -11,13 +10,8 @@ import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.project.repository.PageRole.PageRoleRepository;
 import qastudio.backend.domain.project.repository.PageSceenario.PageScenarioRepository;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
-import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
-import qastudio.backend.global.apiPayload.code.exception.custom.CharacterException;
-import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
