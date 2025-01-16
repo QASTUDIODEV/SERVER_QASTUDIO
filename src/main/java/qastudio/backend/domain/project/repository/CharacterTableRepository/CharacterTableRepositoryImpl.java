@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.project.entity.CharacterTable;
-import qastudio.backend.domain.project.entity.QCharacterTable;
+import static qastudio.backend.domain.project.entity.QCharacterTable.characterTable;
 
 import java.util.List;
 
@@ -12,13 +12,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CharacterTableRepositoryImpl implements CharacterTableRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
-    private final QCharacterTable qCharacterTable = QCharacterTable.characterTable;
 
     @Override
     public List<CharacterTable> findAllByProjectId(Long projectId) {
         return jpaQueryFactory
-                .selectFrom(qCharacterTable)
-                .where(qCharacterTable.project.id.eq(projectId))
+                .selectFrom(characterTable)
+                .where(characterTable.project.id.eq(projectId))
                 .fetch();
     }
 }

@@ -9,6 +9,7 @@ import qastudio.backend.domain.project.converter.PageConverter;
 import qastudio.backend.domain.project.dto.request.PageRequest;
 import qastudio.backend.domain.project.dto.response.PageResponse;
 import qastudio.backend.domain.project.entity.Page;
+import qastudio.backend.domain.project.service.PageCommandService;
 import qastudio.backend.domain.project.service.PageQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
@@ -20,6 +21,7 @@ import java.util.List;
 public class PageController {
 
     private final PageQueryService pageQueryService;
+    private final PageCommandService pageCommandService;
 
     @Operation(
             summary = "페이지 생성 API",
@@ -34,7 +36,7 @@ public class PageController {
     })
     @PostMapping("/{projectId}")
     public ApiResponse<PageResponse.PageSummary> createPage(@PathVariable("projectId") Long projectId, @RequestBody @Valid PageRequest.createPage createPage) {
-        PageResponse.PageSummary pageSummary = pageQueryService.createPage(projectId, createPage);
+        PageResponse.PageSummary pageSummary = pageCommandService.createPage(projectId, createPage);
         return ApiResponse.onSuccess(pageSummary);
     }
 
@@ -64,7 +66,7 @@ public class PageController {
     })
     @DeleteMapping("/{pageId}")
     public ApiResponse<Void>  deletePage(@PathVariable("pageId") Long pageId) {
-        pageQueryService.deletePage(pageId);
+        pageCommandService.deletePage(pageId);
         return ApiResponse.onSuccess(null);
     }
 }

@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.project.entity.Page;
-import qastudio.backend.domain.project.entity.QPage;
+import static qastudio.backend.domain.project.entity.QPage.page;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,22 +13,21 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PageRepositoryImpl implements PageRepositoryCustom{
     private final JPAQueryFactory jpaQueryFactory;
-    private final QPage qPage = QPage.page;
 
     @Override
     public List<Page> findAllByProjectId(Long projectId) {
         return jpaQueryFactory
-                .selectFrom(qPage)
-                .where(qPage.project.id.eq(projectId))
+                .selectFrom(page)
+                .where(page.project.id.eq(projectId))
                 .fetch();
     }
 
     @Override
     public Optional<Page> findByPageId(Long pageId) {
-        Page page =  jpaQueryFactory
-                .selectFrom(qPage)
-                .where(qPage.id.eq(pageId))
+        Page resultPage =  jpaQueryFactory
+                .selectFrom(page)
+                .where(page.id.eq(pageId))
                 .fetchOne();
-        return Optional.ofNullable(page);
+        return Optional.ofNullable(resultPage);
     }
 }
