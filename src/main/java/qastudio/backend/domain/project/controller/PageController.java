@@ -67,9 +67,9 @@ public class PageController {
                     )),
     })
     @PostMapping("/{projectId}")
-    public ApiResponse<Void> createPage(@PathVariable("projectId") Long projectId, @RequestBody @Valid PageRequest.createPage createPage) {
-        pageCommandService.createPage(projectId, createPage);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<PageResponse.PageSummary> createPage(@PathVariable("projectId") Long projectId, @RequestBody @Valid PageRequest.createPage createPage) {
+        Page page = pageCommandService.createPage(projectId, createPage);
+        return ApiResponse.onSuccess(PageConverter.toPageSummary(page));
     }
 
 
@@ -100,7 +100,7 @@ public class PageController {
     })
     @GetMapping("/{projectId}")
     public ApiResponse<PageResponse.PageList> getAllPage(@PathVariable("projectId") Long projectId) {
-        List<PageResponse.PageSummary> pages = pageQueryService.getAllPage(projectId);
+        List<Page> pages = pageQueryService.getAllPage(projectId);
         return ApiResponse.onSuccess(PageConverter.toPageList(pages));
     }
 

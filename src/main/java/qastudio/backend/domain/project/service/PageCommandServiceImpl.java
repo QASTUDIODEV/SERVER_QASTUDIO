@@ -29,7 +29,7 @@ public class PageCommandServiceImpl implements PageCommandService{
     private final CharacterTableRepository characterTableRepository;
 
     @Override
-    public void createPage(Long projectId, PageRequest.createPage createPage) {
+    public Page createPage(Long projectId, PageRequest.createPage createPage) {
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
@@ -42,9 +42,9 @@ public class PageCommandServiceImpl implements PageCommandService{
                 .path(createPage.getPath())
                 .project(project)
                 .build();
+        Page newPage = pageRepository.save(page);
 
-        Page createdPage = pageRepository.save(page);
-
+        // 페이지 역할 생성
         if (createPage.getCharacterIdList() != null && !createPage.getCharacterIdList().isEmpty()) {
             List<PageRole> pageRoles = createPage.getCharacterIdList().stream()
                     .map(characterId -> {
@@ -58,7 +58,7 @@ public class PageCommandServiceImpl implements PageCommandService{
 
                         return PageRole.builder()
                                 .characterTable(characterTable)
-                                .page(createdPage)
+                                .page(newPage)
                                 .build();
                     })
                     .toList();
@@ -71,12 +71,14 @@ public class PageCommandServiceImpl implements PageCommandService{
             List<PageScenario> scenarios = createPage.getScenarioList().stream()
                     .map(scenarioContent -> PageScenario.builder()
                             .content(scenarioContent)
-                            .page(createdPage)
+                            .page(newPage)
                             .build())
                     .toList();
 
             pageScenarioRepository.saveAll(scenarios);
         }
+
+        return newPage;
     }
 
     @Override
@@ -85,14 +87,6 @@ public class PageCommandServiceImpl implements PageCommandService{
         // 페이지 조회
         Page page = pageRepository.findByPageId(pageId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PAGE_NOT_FOUND));
-
-        // 페이지 권한 조회
-        List<PageRole> pageRoleList = pageRoleRepository.findAllByPageId(pageId);
-        pageRoleRepository.deleteAll(pageRoleList);
-
-        // 페이지 시나리오 조회
-        List<PageScenario> pageScenarioList = pageScenarioRepository.findAllByPageId(pageId);
-        pageScenarioRepository.deleteAll(pageScenarioList);
 
         pageRepository.delete(page);
     }
