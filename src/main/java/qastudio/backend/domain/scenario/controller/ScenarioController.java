@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioDetailResponse;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
+import qastudio.backend.domain.scenario.service.ActionCommandService;
 import qastudio.backend.domain.scenario.service.ScenarioCommandService;
 import qastudio.backend.domain.scenario.service.ScenarioQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -20,9 +21,10 @@ public class ScenarioController {
 
     private final ScenarioCommandService scenarioCommandService;
     private final ScenarioQueryService scenarioQueryService;
+    private final ActionCommandService actionCommandService;
 
     @Operation(
-            summary = "시나리오 생성 API",
+            summary = "시나리오 생성 API | by 준",
             description = "새로운 시나리오를 생성합니다."
     )
     @ApiResponses({
@@ -32,12 +34,18 @@ public class ScenarioController {
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
             @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
-        ScenarioResponse response = scenarioCommandService.createScenario(request);
-        return ApiResponse.onSuccess(response);
+        System.out.println("request = " + request);
+        ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
+        System.out.println("scenarioResponse = " + scenarioResponse);
+        actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
+
+        return ApiResponse.onSuccess(scenarioResponse);
     }
 
+
+
     @Operation(
-            summary = "시나리오 읽기 API",
+            summary = "시나리오 조회 API | by 준",
             description = "특정 시나리오의 정보를 반환하고, 해당 시나리오에 속한 액션 목록을 제공합니다."
     )
     @ApiResponses({

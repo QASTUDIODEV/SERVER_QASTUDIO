@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import qastudio.backend.domain.scenario.dto.Element;
+
 import java.util.List;
 
 @Getter
@@ -17,7 +19,7 @@ public class ScenarioRequest {
     @NoArgsConstructor
     public static class CreateScenarioRequest {
 
-        @Schema(description = "역할 ID", example = "1")
+        @Schema(description = "캐릭터 ID", example = "1")
         @NotNull(message = "캐릭터 ID는 필수 값입니다.")
         private Long characterId;
 
@@ -43,13 +45,28 @@ public class ScenarioRequest {
             @NotEmpty(message = "액션 이름은 필수 값입니다.")
             private String actionName;
 
-            @Schema(description = "액션 종류", example = "click")
-            @NotEmpty(message = "액션 종류는 필수 값입니다.")
-            private String actionType;
-
             @Schema(description = "액션 단계", example = "1")
             @NotNull(message = "액션 단계는 필수 값입니다.")
             private Integer step;
+
+            @Schema(description = "액션 요소 목록", example = """
+                    [
+                        {
+                            "name": "email_input",
+                            "type": "input",
+                            "locator": {
+                                "strategy": "css_selector",
+                                "value": "#email"
+                            },
+                            "action": {
+                                "type": "send_keys",
+                                "value": "testuser@example.com"
+                            }
+                        }
+                    ]
+                    """)
+            @NotNull(message = "액션 요소는 필수 값입니다.")
+            private List<Element> elements;
         }
     }
 }
