@@ -40,13 +40,18 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "프로젝트 별 역할 리스트 조회 API",
+            summary = "프로젝트 별 역할 리스트 조회 API | by 챠리",
             description = "프로젝트 별로 역할 리스트를 조회합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @GetMapping("/{projectId}/detail")
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
-        DetailCharacterList detailCharacters = characterQueryService.getDetailCharacterList(projectId);
-        return ApiResponse.onSuccess(detailCharacters);
+        DetailCharacterList detailCharacterList = characterQueryService.getDetailCharacterList(projectId);
+        return ApiResponse.onSuccess(detailCharacterList);
     }
 
     @Operation(
