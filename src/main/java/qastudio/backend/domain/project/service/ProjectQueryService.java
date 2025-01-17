@@ -8,13 +8,13 @@ import qastudio.backend.domain.project.entity.Project;
 import java.util.List;
 
 public interface ProjectQueryService {
-    ProjectResponse.ProjectDetail uploadProjectFile(Long projectId, MultipartFile zipFile);
+    Project uploadProjectFile(Long projectId, MultipartFile zipFile);
 
-    ProjectResponse.ProjectDetail getSummarizedProjectInfo(Long projectId);
+    Project getSummarizedProjectInfo(Long projectId);
 
     List<Project> getProjectList(Long userId);
 
-    ProjectResponse.ProjectDetail updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
+    Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
 
     ProjectResponse.ProjectDetail createProject(ProjectRequest.CreateProject createProject);
 }

@@ -10,7 +10,7 @@ public class PageResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class PageSummary {
+    public static class PageDetail {
         // 페이지 pk
         private Long pageId;
         // 페이지 이름
@@ -25,6 +25,31 @@ public class PageResponse {
         private List<String> deniedAccess;
         // 시나리오
         private List<String> scenarios;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class PageSummary {
+        // 페이지 pk
+        private Long pageId;
+        // 페이지 이름
+        private String pageName;
+        // 페이지 설명
+        private String pageDescription;
+        // 페이지 경로
+        private String path;
+    }
+
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class PageList {
+        List<PageDetail> pageSummaryList;
     }
 
 }
