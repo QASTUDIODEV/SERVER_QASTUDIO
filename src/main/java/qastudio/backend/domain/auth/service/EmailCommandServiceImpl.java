@@ -21,10 +21,11 @@ import java.util.Random;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class EmailServiceImpl implements EmailService {
+public class EmailCommandServiceImpl implements EmailCommandService {
 
     private final JavaMailSender emailSender;
     private final AccountTableRepository accountTableRepository;
+    private final EmailQueryServiceImpl emailQueryService;
     private final SpringTemplateEngine templateEngine;
     private String randomCode;
 
@@ -70,10 +71,7 @@ public class EmailServiceImpl implements EmailService {
     // 이메일 전송
     public EmailResponse sendEmail(EmailRequest emailRequest) throws BadRequestException {
         // 이메일 중복 검사
-        accountTableRepository.findByEmailAndEmailType(emailRequest.getEmail(), EmailType.LOCAL)
-                .ifPresent(account -> {
-                    throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
-                });
+        emailQueryService.checkEmailDuplication(emailRequest);
 
         try {
             MimeMessage emailForm = createEmailForm(emailRequest.getEmail());
