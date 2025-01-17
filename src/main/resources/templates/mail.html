@@ -2,9 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification Code</title>
+    <style>
+        body {
+            font-family: 'Apple SD Gothic Neo', 'sans-serif';
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .email-container {
+            width: 540px;
+            height: auto;
+            border-top: 4px solid #204B99;
+            margin: 50px auto;
+            padding: 30px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            font-size: 28px;
+            font-weight: 400;
+            margin: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #204B99;
+        }
+        .email-header span {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .email-header .highlight {
+            color: #204B99;
+            font-weight: bold;
+        }
+        .email-body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-top: 30px;
+            color: #555;
+        }
+        .verification-code {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            color: #ffffff;
+            background: #71A0F5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-
+    <div class="email-container">
+        <div class="email-header">
+            <span>QASTUDIO</span>
+            <span class="highlight">Verification Code</span> Notification
+        </div>
+        <div class="email-body">
+            Hello, There!<br />
+            Please enter the verification code below to complete your email verification.
+            <div class="verification-code" th:text="${code}"></div>
+            Thank you.<br />
+            Best regards,<br />
+            QASTUDIO Team
+        </div>
+    </div>
 </body>
 </html>
