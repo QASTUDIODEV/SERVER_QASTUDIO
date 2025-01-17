@@ -42,6 +42,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // 역할 관련 에러
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "존재하지 않는 역할입니다."),
 
+    // 팀원 관련 에러
+    UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "userId와 이메일 정보가 일치하지 않습니다."),
+    ALREADY_REGISTERED_MEMBER(HttpStatus.CONFLICT, "MEMBER409", "이미 프로젝트에 추가된 유저입니다."),
+
     // 페이지 관련 에러
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "존재하지 않는 페이지입니다."),
 

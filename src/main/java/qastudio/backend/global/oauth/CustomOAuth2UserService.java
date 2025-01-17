@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
-import qastudio.backend.domain.user.repository.AccountTableRepository;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 

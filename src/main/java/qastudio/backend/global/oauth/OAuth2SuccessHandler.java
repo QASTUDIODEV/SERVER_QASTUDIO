@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.enums.EmailType;
-import qastudio.backend.domain.user.repository.AccountTableRepository;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 

@@ -12,7 +12,7 @@ import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
-import qastudio.backend.domain.user.repository.UserRepository;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.JwtTokenProvider;
