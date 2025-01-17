@@ -1,10 +1,16 @@
 package qastudio.backend.domain.project.converter;
 
+import java.util.ArrayList;
+import org.springframework.stereotype.Component;
+import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
+import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 import qastudio.backend.domain.project.entity.Project;
 
 import java.util.List;
+import qastudio.backend.domain.project.entity.enums.ViewType;
 
+@Component
 public class ProjectConverter {
 
     public static ProjectResponse.ProjectDetail toProjectDetail(Project project) {
@@ -32,5 +38,24 @@ public class ProjectConverter {
                 .projectList(projectSummaries)
                 .build();
         
+    }
+
+    public Project toEntity(ProjectRequest.CreateProject request, String projectImageUrl) {
+        return Project.builder()
+                .projectName(request.getProjectName())
+                .projectImage(projectImageUrl)
+                .projectUrl(request.getProjectUrl())
+                .viewType(request.getViewType() != null ? request.getViewType() : ViewType.PC)
+                .build();
+    }
+
+    public ProjectCreation toResponse(Project project) {
+        return ProjectCreation.builder()
+                .id(project.getId())
+                .projectName(project.getProjectName())
+                .projectImage(project.getProjectImage())
+                .projectUrl(project.getProjectUrl())
+                .memberEmails(new ArrayList<>()) // 멤버 이메일은 필요에 따라 추가 로직 구현
+                .build();
     }
 }

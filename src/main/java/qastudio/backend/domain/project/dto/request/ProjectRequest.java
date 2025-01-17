@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
+import qastudio.backend.domain.project.entity.enums.ViewType;
 
 public class ProjectRequest {
 
@@ -23,5 +24,6 @@ public class ProjectRequest {
         private String projectName;
         private String projectUrl;
         private List<String> memberEmail;
+        private ViewType viewType = ViewType.PC;
     }
 }
