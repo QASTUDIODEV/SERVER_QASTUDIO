@@ -15,6 +15,4 @@ public interface ProjectQueryService {
     List<Project> getProjectList(Long userId);
 
     Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
-
-    ProjectResponse.ProjectDetail createProject(ProjectRequest.CreateProject createProject);
 }
