@@ -6,6 +6,9 @@ import lombok.*;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -33,4 +36,7 @@ public class Project extends BaseEntity {
     @Column(name = "view_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private ViewType viewType;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CharacterTable> characterTables = new ArrayList<>();
 }

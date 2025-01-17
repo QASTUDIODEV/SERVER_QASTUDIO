@@ -82,8 +82,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://localhost")); // 와일드카드 패턴 사용
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+        configuration.setAllowedOriginPatterns(
+                List.of(
+                    "http://localhost:*",
+                    "http://localhost",
+                    "https://www.qa-studio.com",
+                    "https://back.qa-studio.com"
+                )
+        ); // 와일드카드 패턴 사용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
