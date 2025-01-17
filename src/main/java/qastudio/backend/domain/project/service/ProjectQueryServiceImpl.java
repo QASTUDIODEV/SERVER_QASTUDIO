@@ -22,7 +22,7 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     private final ProjectRepository projectRepository;
 
     @Override
-    public ProjectResponse.ProjectDetail uploadProjectFile(Long projectId, MultipartFile zipFile) {
+    public Project uploadProjectFile(Long projectId, MultipartFile zipFile) {
         return null;
     }
 
@@ -46,7 +46,7 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     }
 
     @Override
-    public ProjectResponse.ProjectDetail updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
+    public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
         return null;
     }
 
