@@ -33,6 +33,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 토큰 관련 에러
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "토큰이 유효하지 않습니다."),
+    MISSING_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN404", "토큰이 제공되지 않았습니다."),
     TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "토큰 처리 중 에러가 발생했습니다."),
 
     // 프로젝트 관련 에러

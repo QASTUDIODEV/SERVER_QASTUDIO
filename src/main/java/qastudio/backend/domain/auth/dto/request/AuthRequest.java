@@ -26,12 +26,12 @@ public class AuthRequest {
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class socialLoginReuqest {
+    public static class socialLoginRequest {
         @NotBlank
         @Enumerated(EnumType.STRING)
         private EmailType emailType;
 
         @NotBlank
-        private String token;
+        private String id;
     }
 }

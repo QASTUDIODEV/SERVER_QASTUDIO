@@ -30,8 +30,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter signUpRequestConverter;
 
-    // Command 메서드
     @Override
+    @Transactional
     public void userSignUp(AuthRequest.localLoginReuqest request) {
         if (authQueryService.existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
@@ -42,6 +42,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     @Override
+    @Transactional
     public TokenInfo localLogin(AuthRequest.localLoginReuqest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(

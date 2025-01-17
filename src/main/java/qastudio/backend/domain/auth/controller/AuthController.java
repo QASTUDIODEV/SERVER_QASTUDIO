@@ -83,13 +83,12 @@ public class AuthController {
         return ApiResponse.onSuccess(loginResponse);
     }
 
-
     @Operation(
             summary = "로그인 성공 후 토큰 전송 내부 API | by 지지",
             description = "클라이언트 사용하지 않는 API 입니다.")
     @GetMapping("/login/success")
-    public ApiResponse<AuthResponse> loginSuccess(@Valid AuthResponse loginResponse) {
-        return ApiResponse.onSuccess(loginResponse);
+    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
+        return ApiResponse.onSuccess(tokenInfo);
     }
 
     @Operation(

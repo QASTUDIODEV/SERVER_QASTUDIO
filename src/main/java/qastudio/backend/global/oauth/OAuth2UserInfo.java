@@ -15,7 +15,6 @@ public class OAuth2UserInfo {
     private final String id;
     private final EmailType emailType;
 
-
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) {
         return switch (registrationId) {
             case "kakao" -> ofKakao(attributes);
@@ -23,9 +22,16 @@ public class OAuth2UserInfo {
         };
     }
 
+    // Kakao 사용자 정보 생성
     private static OAuth2UserInfo ofKakao(Map<String, Object> attributes) {
+        Object idObj = attributes.get("id");
+
+        if (idObj == null) {
+            throw new AuthException(ErrorStatus.UNSUPPORTED_SOCIAL_TYPE);
+        }
+
         return OAuth2UserInfo.builder()
-                .id(String.valueOf(attributes.get("id")))
+                .id(String.valueOf(idObj))
                 .emailType(EmailType.KAKAO)
                 .build();
     }

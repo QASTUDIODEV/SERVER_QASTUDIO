@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
-import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTableRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -19,7 +18,6 @@ import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -33,21 +31,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 유저 정보 가져오기
         Map<String, Object> oAuth2UserAttributes = super.loadUser(userRequest).getAttributes();
 
+        // OAuth2 공급자 ID
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
+
+        // OAuth2UserInfo 생성
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2UserAttributes);
 
-        // 유저가 로그인 한 소셜 로그인 계정 받아오기
+        // 이메일 추출
         String email = extractEmail(registrationId, oAuth2UserAttributes);
 
-        // Custom Principal name 생성
+        // 사용자 고유 식별자
         String userNameAttributeName = registrationId + "_" + oAuth2UserInfo.getId();
 
-        // attribute에 userNameAttributeName 추가
+        // Attributes에 사용자 고유 식별자 추가
         Map<String, Object> updatedAttributes = new HashMap<>(oAuth2UserAttributes);
+        updatedAttributes.put("registrationId", registrationId);
+        updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
-        updatedAttributes.put("email", email); // 이메일 추가
 
-        // 회원가입 및 로그인 진행
         User user = getOrSave(oAuth2UserInfo, email);
 
         return new DefaultOAuth2User(
@@ -58,53 +59,33 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
-        Optional<AccountTable> account = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType());
-        User user;
+        return accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType())
+                .map(AccountTable::getUser)
+                .orElseGet(() -> createUser(oAuth2UserInfo, email));
+    }
 
-        if (account == null) { // 새로운 유저
-            user = User.builder()
-                    .nickname("")
-                    .build();
+    private User createUser(OAuth2UserInfo oAuth2UserInfo, String email) {
+        User user = User.builder()
+                .nickname("")
+                .build();
 
-            AccountTable accountTable = AccountTable.builder()
-                    .emailType(oAuth2UserInfo.getEmailType())
-                    .email(email)
-                    .user(user)
-                    .build();
+        AccountTable accountTable = AccountTable.builder()
+                .email(email)
+                .emailType(oAuth2UserInfo.getEmailType())
+                .user(user)
+                .build();
 
-            user.addAccount(accountTable);
-        } else {
-            user = account.get().getUser();
-        }
+        user.addAccount(accountTable);
         return user;
     }
 
-    @Transactional
-    public void setRefreshToken(String email, EmailType emailType, String refreshToken) {
-        AccountTable accountTable = accountTableRepository.findByEmailAndEmailType(email, emailType)
-                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
-
-        User user = accountTable.getUser();
-
-        user.updateRefreshToken(refreshToken);
-    }
-
     private String extractEmail(String registrationId, Map<String, Object> attributes) {
-        String email = null;
-
-        if ("google".equals(registrationId)) {
-            email = (String) attributes.get("email");
-        } else if ("kakao".equals(registrationId)) {
+        if ("kakao".equals(registrationId)) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            email = (String) kakaoAccount.get("email");
-        } else if ("github".equals(registrationId)) {
-            email = (String) attributes.get("email");
+            return (String) kakaoAccount.get("email");
+        } else if ("google".equals(registrationId) || "github".equals(registrationId)) {
+            return (String) attributes.get("email");
         }
-
-        if (email == null) {
-            throw new IllegalStateException("이메일 정보를 가져올 수 없습니다.");
-        }
-
-        return email;
+        throw new AuthException(ErrorStatus._BAD_REQUEST);
     }
 }

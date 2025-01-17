@@ -7,5 +7,4 @@ public interface AuthCommandService {
 
     void userSignUp(AuthRequest.localLoginReuqest request);
     TokenInfo localLogin(AuthRequest.localLoginReuqest loginRequest);
-
 }
