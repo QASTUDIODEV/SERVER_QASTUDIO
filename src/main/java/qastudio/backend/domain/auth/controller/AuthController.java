@@ -9,7 +9,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
-import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailService;
 import qastudio.backend.global.apiPayload.ApiResponse;
