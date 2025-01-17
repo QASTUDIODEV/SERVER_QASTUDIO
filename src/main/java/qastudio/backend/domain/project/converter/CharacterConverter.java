@@ -8,6 +8,7 @@ import qastudio.backend.domain.project.entity.CharacterTable;
 import java.util.List;
 import java.util.stream.Collectors;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.scenario.entity.Scenario;
 
 @Component
 public class CharacterConverter {
@@ -56,6 +57,32 @@ public class CharacterConverter {
                 .collect(Collectors.toList());
         return CharacterResponse.DetailCharacterList.builder()
                 .detailCharacters(detailCharacters)
+                .build();
+    }
+
+    public CharacterResponse.Scenario toScenario(Scenario scenario) {
+        Optional<UserProject> userProject = scenario.getCharacterTable().getProject().getUserProjects().stream()
+                .filter(up -> up.getProject().getId().equals(scenario.getCharacterTable().getProject().getId()))
+                .findFirst();
+
+        String author = userProject.map(up -> up.getUser().getNickname()).orElse("Unknown");
+
+        return CharacterResponse.Scenario.builder()
+                .scenarioId(scenario.getId())
+                .scenarioName(scenario.getScenarioName())
+                .author(author)
+                .createdAt(scenario.getCreatedAt())
+                .updatedAt(scenario.getUpdatedAt())
+                .build();
+    }
+
+    public CharacterResponse.ScenarioList toScenarioList(List<Scenario> scenarios) {
+        List<CharacterResponse.Scenario> scenarioResponses = scenarios.stream()
+                .map(this::toScenario)
+                .collect(Collectors.toList());
+
+        return CharacterResponse.ScenarioList.builder()
+                .scenarioList(scenarioResponses)
                 .build();
     }
 }

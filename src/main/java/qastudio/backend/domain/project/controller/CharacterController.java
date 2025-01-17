@@ -55,9 +55,14 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할 별 시나리오 리스트 조회 API",
+            summary = "역할 별 시나리오 리스트 조회 API | by 챠리",
             description = "역할 별로 시나리오 리스트를 조회합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "존재하지 않는 역할입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @GetMapping("/{characterId}/scenarios")
     public ApiResponse<CharacterResponse.ScenarioList> getScenarioLost (@PathVariable("characterId") Long characterId) {
         ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);

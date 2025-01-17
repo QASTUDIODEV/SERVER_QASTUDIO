@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
@@ -31,7 +32,10 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     }
 
     @Override
-    public CharacterResponse.ScenarioList getScenarioList(Long characterId) { return null; }
+    public CharacterResponse.ScenarioList getScenarioList(Long characterTableId) {
+        List<Scenario> scenarios = characterRepository.findAllByCharacterTableId(characterTableId);
+        return characterConverter.toScenarioList(scenarios);
+    }
 
     @Override
     public CharacterResponse.CharacterScenario createCharacter(CharacterRequest.CreateCharacter createCharacter) { return null; }
