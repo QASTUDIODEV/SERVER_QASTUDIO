@@ -27,20 +27,11 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
     }
 
     @Override
-    public ProjectResponse.ProjectDetail getSummarizedProjectInfo(Long projectId) {
+    public Project getSummarizedProjectInfo(Long projectId) {
 
         // 프로젝트 조회
-        Project project = projectRepository.findByProjectId(projectId)
+        return projectRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
-
-        return ProjectResponse.ProjectDetail.builder()
-                .projectId(projectId)
-                .projectImage(project.getProjectImage())
-                .projectName(project.getProjectName())
-                .projectUrl(project.getProjectUrl())
-                .introduction(project.getIntroduction())
-                .viewType(project.getViewType())
-                .build();
     }
 
     @Override

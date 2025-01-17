@@ -10,7 +10,7 @@ import java.util.List;
 public interface ProjectQueryService {
     ProjectResponse.ProjectDetail uploadProjectFile(Long projectId, MultipartFile zipFile);
 
-    ProjectResponse.ProjectDetail getSummarizedProjectInfo(Long projectId);
+    Project getSummarizedProjectInfo(Long projectId);
 
     List<Project> getProjectList(Long userId);
 
