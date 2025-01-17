@@ -7,6 +7,17 @@ import java.util.List;
 
 public class ProjectConverter {
 
+    public static ProjectResponse.ProjectDetail toProjectDetail(Project project) {
+        return ProjectResponse.ProjectDetail.builder()
+                .projectId(project.getId())
+                .projectImage(project.getProjectImage())
+                .projectName(project.getProjectName())
+                .projectUrl(project.getProjectUrl())
+                .introduction(project.getIntroduction())
+                .viewType(project.getViewType())
+                .build();
+    }
+
     public static ProjectResponse.ProjectList toProjectList(List<Project> projects) {
 
         List<ProjectResponse.ProjectSummary> projectSummaries = projects.stream()

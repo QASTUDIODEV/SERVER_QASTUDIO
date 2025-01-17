@@ -7,23 +7,31 @@ import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ProjectQueryServiceImpl implements ProjectQueryService {
+
     private final UserProjectRepository userProjectRepository;
+    private final ProjectRepository projectRepository;
 
     @Override
-    public ProjectResponse.ProjectDetail uploadProjectFile(Long projectId, MultipartFile zipFile) {
+    public Project uploadProjectFile(Long projectId, MultipartFile zipFile) {
         return null;
     }
 
     @Override
-    public ProjectResponse.ProjectDetail getSummarizedProjectInfo(Long projectId) {
-        return null;
+    public Project getSummarizedProjectInfo(Long projectId) {
+
+        // 프로젝트 조회
+        return projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
     }
 
     @Override
@@ -33,12 +41,12 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
 
         // Project 리스트로 변환
         return userProjectList.stream()
-                .map(UserProject::getProject) // UserProject에서 Project 객체 가져오기
+                .map(UserProject::getProject)
                 .toList();
     }
 
     @Override
-    public ProjectResponse.ProjectDetail updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
+    public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
         return null;
     }
 

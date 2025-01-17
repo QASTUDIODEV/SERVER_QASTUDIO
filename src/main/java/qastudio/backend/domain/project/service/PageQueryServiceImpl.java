@@ -1,21 +1,26 @@
 package qastudio.backend.domain.project.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.project.dto.request.PageRequest;
-import qastudio.backend.domain.project.dto.response.PageResponse;
+import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.project.entity.*;
+import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
+import qastudio.backend.domain.project.repository.Page.PageRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PageQueryServiceImpl implements PageQueryService{
-    @Override
-    public PageResponse.PageSummary createPage(Long projectId, PageRequest.@Valid createPage createPage) {
-        return null;
-    }
+
+    private final PageRepository pageRepository;
+    private final CharacterTableRepository characterTableRepository;
 
     @Override
-    public PageResponse.PageSummary deletePage(Long pageId) {
-        return null;
+    public List<Page> getAllPage(Long projectId) {
+
+        // 프로젝트에 해당하는 페이지 조회
+        return pageRepository.findAllByProjectId(projectId);
     }
 }
