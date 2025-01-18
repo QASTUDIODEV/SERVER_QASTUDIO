@@ -7,4 +7,6 @@ public interface CharacterCommandService {
     CharacterResponse.CharacterScenario createCharacter(Long projectId, CharacterRequest.CreateCharacter createCharacter);
 
     CharacterResponse.CharacterScenario updateCharacter(Long characterId, CharacterRequest.UpdateCharacter updateCharacter);
+
+    void deleteCharacter(Long characterId);
 }

@@ -101,4 +101,11 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         List<PageRole> updatedPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
         return characterConverter.toCharacterScenarioResponse(characterTable, updatedPageRoles);
     }
+
+    public void deleteCharacter(Long characterId) {
+        CharacterTable characterTable = characterTableRepository.findById(characterId)
+                .orElseThrow(() -> new EntityNotFoundException("역할이 존재하지 않습니다."));
+
+        characterTableRepository.delete(characterTable);
+    }
 }

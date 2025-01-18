@@ -1,8 +1,10 @@
 package qastudio.backend.domain.project.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
+import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
@@ -29,6 +31,9 @@ public class CharacterTable extends BaseEntity {
 
     @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PageRole> pageRoles;
+
+    @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Scenario> scenarios = new ArrayList<>();
 
     public void updateCharacter(String characterName, String characterDescription) {
         this.characterName = characterName;

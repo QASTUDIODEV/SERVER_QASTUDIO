@@ -100,12 +100,17 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할 삭제 API",
-            description = "역할을 삭제합니다."
+            summary = "역할 삭제 API | by 챠리",
+            description = "역할을 삭제합니다. 역할에 종속된 시나리오도 함께 일괄 삭제됩니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "존재하지 않는 역할입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @DeleteMapping("/{characterId}")
     public ApiResponse<Void>  deleteCharacter(@PathVariable("characterId") Long characterId) {
-        CharacterResponse.DetailCharacter deleteCharacter = characterQueryService.deleteCharacter(characterId);
+        characterCommandService.deleteCharacter(characterId);
         return ApiResponse.onSuccess(null);
     }
 }
