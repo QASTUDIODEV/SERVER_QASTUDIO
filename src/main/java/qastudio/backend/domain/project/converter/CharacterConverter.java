@@ -2,11 +2,13 @@ package qastudio.backend.domain.project.converter;
 
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.scenario.entity.Scenario;
 
@@ -83,6 +85,23 @@ public class CharacterConverter {
 
         return CharacterResponse.ScenarioList.builder()
                 .scenarioList(scenarioResponses)
+                .build();
+    }
+
+    public CharacterTable toCharacter(CharacterRequest.CreateCharacter createCharacter, Project project) {
+        return CharacterTable.builder()
+                .characterName(createCharacter.getCharacterName())
+                .characterDescription(createCharacter.getCharacterDescription())
+                .project(project)
+                .build();
+    }
+
+    public CharacterResponse.CharacterScenario toCharacterScenario(CharacterTable characterTable, List<String> accessPages) {
+        return CharacterResponse.CharacterScenario.builder()
+                .characterId(characterTable.getId())
+                .characterName(characterTable.getCharacterName())
+                .characterDescription(characterTable.getCharacterDescription())
+                .accessPage(String.join(", ", accessPages))
                 .build();
     }
 }

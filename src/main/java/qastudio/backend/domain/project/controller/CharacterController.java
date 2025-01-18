@@ -12,6 +12,7 @@ import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterS
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.entity.CharacterTable;
+import qastudio.backend.domain.project.service.CharacterCommandService;
 import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
@@ -23,6 +24,7 @@ import java.util.List;
 public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
+    private final CharacterCommandService characterCommandService;
 
     @Operation(
             summary = "프로젝트 역할 조회 API",
@@ -70,12 +72,16 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할-시나리오 생성 API",
+            summary = "역할-시나리오 생성 API | by 챠리 (ai 연결 필요)",
             description = "역할을 생성하며 ai에게 시나리오 생성을 요청합니다."
     )
-    @PostMapping("")
-    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
-        CharacterScenario characterScenario = characterQueryService.createCharacter(createCharacter);
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @PostMapping("/{projectId}")
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
+        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter);
         return ApiResponse.onSuccess(characterScenario);
     }
 
