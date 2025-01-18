@@ -13,7 +13,6 @@ import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
-import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -35,41 +34,49 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter signUpRequestConverter;
 
     @Override
-    public void userSignUp(AuthRequest request) {
+    public TokenInfo userSignUp(AuthRequest request) {
         if (authQueryService.existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
         User user = signUpRequestConverter.toUser(request);
         userRepository.save(user);
+
+        return authenticateAndGenerateToken(request.getEmail(), request.getPassword());
     }
 
     @Override
     public TokenInfo localLogin(AuthRequest loginRequest) {
         try {
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequest.getEmail());
-
-            // 비밀번호 검증
-            if (!passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
-                throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
-            }
-
-            // 인증 객체 생성
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-
-            // 사용자 ID 조회
-            Long userId = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
-
-            // 토큰 생성 및 반환
-            return jwtTokenProvider.generateToken(userId, authentication, false);
+            // 비밀번호 검증 포함
+            return authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
+    }
+
+    @Override
+    public TokenInfo authenticateAndGenerateToken(String email, String password) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+        // 비밀번호 검증
+        if (password != null && !passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
+        }
+
+        // 인증 객체 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        // 사용자 ID 조회
+        Long userId = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
+
+        // 토큰 생성 및 반환
+        return jwtTokenProvider.generateToken(userId, authentication, false);
     }
 }

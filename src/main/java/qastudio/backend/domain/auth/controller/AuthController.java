@@ -42,8 +42,8 @@ public class AuthController {
     })
     @PostMapping("/sign-up")
     public ApiResponse<TokenInfo> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
-        authCommandService.userSignUp(authRequest);
-        return ApiResponse.onSuccess(null);
+        TokenInfo signUpResponse = authCommandService.userSignUp(authRequest);
+        return ApiResponse.onSuccess(signUpResponse);
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
