@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
@@ -32,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthConverter signUpRequestConverter;
+    private final AuthConverter authConverter;
 
     @Override
     public void userSignUp(AuthRequest request) {
@@ -40,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        var user = signUpRequestConverter.toUser(request);
+        User user = authConverter.toUser(request);
         userRepository.save(user);
     }
 
