@@ -9,7 +9,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
-import qastudio.backend.domain.auth.service.AuthService;
+import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
@@ -19,7 +19,7 @@ import qastudio.backend.jwt.TokenInfo;
 @RequestMapping("/api/v0/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthCommandService authCommandService;
     private final EmailQueryService emailQueryService;
 
     @Operation(
@@ -41,8 +41,8 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
-        authService.userSignUp(authRequest);
+    public ApiResponse<TokenInfo> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
+        authCommandService.userSignUp(authRequest);
         return ApiResponse.onSuccess(null);
     }
 
@@ -78,7 +78,7 @@ public class AuthController {
     })
     @PostMapping("/login/local")
     public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
-        TokenInfo loginResponse = authService.localLogin(authRequest);
+        TokenInfo loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
     }
 
