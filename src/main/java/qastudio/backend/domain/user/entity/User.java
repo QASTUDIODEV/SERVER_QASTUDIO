@@ -45,4 +45,10 @@ public class User extends BaseEntity {
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);
     }
+
+    public void updateUserInfo(String nickname, String profileImage, String bannerImage) {
+        this.nickname = nickname;
+        this.profileImage = profileImage;
+        this.bannerImage = bannerImage;
+    }
 }

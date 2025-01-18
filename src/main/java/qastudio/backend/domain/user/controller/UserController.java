@@ -13,6 +13,7 @@ import qastudio.backend.domain.user.converter.UserConverter;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.service.UserCommandService;
 import qastudio.backend.domain.user.service.UserQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
@@ -25,6 +26,7 @@ import java.util.List;
 public class UserController {
 
     private final UserQueryService userQueryService;
+    private final UserCommandService userCommandService;
 
     @Operation(
             summary = "사용자 정보 조회 API | by 제로",
@@ -42,7 +44,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "사용자 정보 수정 API",
+            summary = "사용자 정보 수정 API | by 제로",
             description = "마이페이지의 사용자 정보를 수정합니다."
     )
     @ApiResponses({
@@ -50,12 +52,11 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PatchMapping("")
-    public ApiResponse<UserResponse.UserInfo> updateUser(
+    public ApiResponse<Void> updateUser(
             @Auth Long userId,
             @RequestBody @Valid UserRequest.UpdateUserInfo updateUserInfo) {
-        User user = userQueryService.getUser(userId);
-        Integer projectCnt = userQueryService.getProjectCount(userId);
-        return ApiResponse.onSuccess(UserConverter.toUserInfo(user, projectCnt));
+        userCommandService.updateProfile(userId, updateUserInfo);
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
