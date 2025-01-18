@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
 import qastudio.backend.domain.scenario.entity.Scenario;
@@ -12,6 +13,7 @@ import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
     private final ScenarioRepository scenarioRepository;
