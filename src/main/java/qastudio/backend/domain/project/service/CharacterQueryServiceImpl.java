@@ -38,9 +38,5 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     }
 
     @Override
-    public CharacterResponse.CharacterScenario updateCharacter(Long characterId,
-                                                               CharacterRequest.UpdateCharacter updateCharacter) { return null; }
-
-    @Override
     public CharacterResponse.DetailCharacter deleteCharacter(Long characterId) { return null; }
 }
