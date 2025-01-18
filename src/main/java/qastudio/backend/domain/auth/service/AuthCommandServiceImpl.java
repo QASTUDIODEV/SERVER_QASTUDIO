@@ -57,6 +57,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
     }
 
+    // 인증 객체 생성 관련해서 수정 예정
     @Override
     public TokenInfo authenticateAndGenerateToken(String email, String password) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);

@@ -39,4 +39,9 @@ public class User extends BaseEntity {
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);
     }
+
+    public void updateProfile(String nickname, String profileImage) {
+        this.nickname = nickname;
+        this.profileImage = profileImage;
+    }
 }

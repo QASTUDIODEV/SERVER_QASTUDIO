@@ -1,9 +1,23 @@
 package qastudio.backend.domain.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 public class UserRequest {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateUserInfo {
+        // 닉네임
+        @NotBlank(message = "nickname 필드는 공백일 수 없습니다.")
+        private String nickname;
+        // 프로필 이미지
+        private String profileImage;
+    }
+
     @Getter
     public static class UpdateUserInfo {
         // 닉네임
