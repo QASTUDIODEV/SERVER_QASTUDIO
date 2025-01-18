@@ -18,6 +18,8 @@ public class OAuth2UserInfo {
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) {
         return switch (registrationId) {
             case "kakao" -> ofKakao(attributes);
+            case "github" -> ofGithub(attributes);
+            case "google" -> ofGoogle(attributes);
             default -> throw new AuthException(ErrorStatus.ILLEGAL_REGISTRATION_ID);
         };
     }
@@ -33,6 +35,36 @@ public class OAuth2UserInfo {
         return OAuth2UserInfo.builder()
                 .id(String.valueOf(idObj))
                 .emailType(EmailType.KAKAO)
+                .build();
+    }
+
+    // Google 사용자 정보 생성
+    private static OAuth2UserInfo ofGoogle(Map<String, Object> attributes) {
+        Object idObj = attributes.get("sub");
+        Object emailObj = attributes.get("email");
+
+        if (idObj == null || emailObj == null) {
+            throw new AuthException(ErrorStatus.UNSUPPORTED_SOCIAL_TYPE);
+        }
+
+        return OAuth2UserInfo.builder()
+                .id(String.valueOf(idObj))
+                .emailType(EmailType.GOOGLE)
+                .build();
+    }
+
+    // GitHub 사용자 정보 생성
+    private static OAuth2UserInfo ofGithub(Map<String, Object> attributes) {
+        Object idObj = attributes.get("id");
+        Object loginObj = attributes.get("login");
+
+        if (idObj == null || loginObj == null) {
+            throw new AuthException(ErrorStatus.UNSUPPORTED_SOCIAL_TYPE);
+        }
+
+        return OAuth2UserInfo.builder()
+                .id(String.valueOf(idObj))
+                .emailType(EmailType.GITHUB)
                 .build();
     }
 }
