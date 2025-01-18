@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/characters")
+@RequestMapping("/api/v0/projects/{projectId}/characters")
 public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
@@ -35,7 +35,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @GetMapping("/{projectId}")
+    @GetMapping("")
     public ApiResponse<CharacterResponse.ProjectCharacterList> getProjectCharacter (@PathVariable("projectId") Long projectId) {
         List<CharacterTable> characters = characterQueryService.getProjectCharacter(projectId);
         return ApiResponse.onSuccess(CharacterConverter.toProjectCharacterList(characters));
@@ -50,7 +50,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @GetMapping("/{projectId}/detail")
+    @GetMapping("/detail")
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
         DetailCharacterList detailCharacterList = characterQueryService.getDetailCharacterList(projectId);
         return ApiResponse.onSuccess(detailCharacterList);
@@ -79,7 +79,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @PostMapping("/{projectId}")
+    @PostMapping("")
     public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
         CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter);
         return ApiResponse.onSuccess(characterScenario);
