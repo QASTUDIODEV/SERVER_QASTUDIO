@@ -12,6 +12,7 @@ import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterS
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.entity.CharacterTable;
+import qastudio.backend.domain.project.service.CharacterCommandService;
 import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
@@ -19,10 +20,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/characters")
+@RequestMapping("/api/v0/projects/{projectId}/characters")
 public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
+    private final CharacterCommandService characterCommandService;
 
     @Operation(
             summary = "프로젝트 역할 조회 API",
@@ -33,26 +35,36 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @GetMapping("/{projectId}")
+    @GetMapping("")
     public ApiResponse<CharacterResponse.ProjectCharacterList> getProjectCharacter (@PathVariable("projectId") Long projectId) {
         List<CharacterTable> characters = characterQueryService.getProjectCharacter(projectId);
         return ApiResponse.onSuccess(CharacterConverter.toProjectCharacterList(characters));
     }
 
     @Operation(
-            summary = "프로젝트 별 역할 리스트 조회 API",
+            summary = "프로젝트 별 역할 리스트 조회 API | by 챠리",
             description = "프로젝트 별로 역할 리스트를 조회합니다."
     )
-    @GetMapping("/{projectId}/detail")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @GetMapping("/detail")
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
-        DetailCharacterList detailCharacters = characterQueryService.getDetailCharacterList(projectId);
-        return ApiResponse.onSuccess(detailCharacters);
+        DetailCharacterList detailCharacterList = characterQueryService.getDetailCharacterList(projectId);
+        return ApiResponse.onSuccess(detailCharacterList);
     }
 
     @Operation(
-            summary = "역할 별 시나리오 리스트 조회 API",
+            summary = "역할 별 시나리오 리스트 조회 API | by 챠리",
             description = "역할 별로 시나리오 리스트를 조회합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "존재하지 않는 역할입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @GetMapping("/{characterId}/scenarios")
     public ApiResponse<CharacterResponse.ScenarioList> getScenarioLost (@PathVariable("characterId") Long characterId) {
         ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
@@ -60,12 +72,16 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할-시나리오 생성 API",
+            summary = "역할-시나리오 생성 API | by 챠리 (ai 연결 필요)",
             description = "역할을 생성하며 ai에게 시나리오 생성을 요청합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @PostMapping("")
-    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
-        CharacterScenario characterScenario = characterQueryService.createCharacter(createCharacter);
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
+        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter);
         return ApiResponse.onSuccess(characterScenario);
     }
 
@@ -73,19 +89,28 @@ public class CharacterController {
             summary = "역할-시나리오 수정 API",
             description = "역할을 수정한 후, ai에게 시나리오 생성을 재요청합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "역할-시나리오 수정 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @PatchMapping("/{characterId}")
     public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (@PathVariable("characterId") Long characterId, @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter) {
-        CharacterScenario characterScenario = characterQueryService.updateCharacter(characterId, updateCharacter);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(characterId, updateCharacter);
         return ApiResponse.onSuccess(characterScenario);
     }
 
     @Operation(
-            summary = "역할 삭제 API",
-            description = "역할을 삭제합니다."
+            summary = "역할 삭제 API | by 챠리",
+            description = "역할을 삭제합니다. 역할에 종속된 시나리오도 함께 일괄 삭제됩니다. 단일 역할을 삭제할 수도 있고, 여러 역할을 한번에 삭제할 수도 있습니다."
     )
-    @DeleteMapping("/{characterId}")
-    public ApiResponse<Void>  deleteCharacter(@PathVariable("characterId") Long characterId) {
-        CharacterResponse.DetailCharacter deleteCharacter = characterQueryService.deleteCharacter(characterId);
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "존재하지 않는 역할입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @DeleteMapping("")
+    public ApiResponse<Void>  deleteCharacters(@RequestBody CharacterRequest.DeleteCharacters deleteCharacters) {
+        characterCommandService.deleteCharacters(deleteCharacters.getCharacterIds());
         return ApiResponse.onSuccess(null);
     }
 }

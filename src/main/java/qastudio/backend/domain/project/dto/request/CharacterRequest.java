@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.Getter;
 
@@ -13,8 +14,8 @@ public class CharacterRequest {
         private String characterName;
         @NotBlank(message = "characterDescription 필드는 필수 입력 값입니다.")
         private String characterDescription;
-        @NotBlank(message = "accessPage 필드는 필수 입력 값입니다.")
-        private List<String> accessPage;
+        @NotEmpty(message = "accessPage 필드는 필수 입력 값입니다.")
+        private List<@NotBlank(message = "accessPage의 각 값은 빈 문자열일 수 없습니다.") String> accessPage;
     }
 
     @Getter
@@ -24,7 +25,13 @@ public class CharacterRequest {
         private String characterName;
         @NotBlank(message = "characterDescription 필드는 필수 입력 값입니다.")
         private String characterDescription;
-        @NotBlank(message = "accessPage 필드는 필수 입력 값입니다.")
-        private List<String> accessPage;
+        @NotEmpty(message = "accessPage 필드는 필수 입력 값입니다.")
+        private List<@NotBlank(message = "accessPage의 각 값은 빈 문자열일 수 없습니다.") String> accessPage;
+    }
+
+    @Getter
+    public static class DeleteCharacters {
+        @NotEmpty(message = "삭제할 역할 ID 리스트가 비어있을 수 없습니다.")
+        private List<Long> characterIds;
     }
 }
