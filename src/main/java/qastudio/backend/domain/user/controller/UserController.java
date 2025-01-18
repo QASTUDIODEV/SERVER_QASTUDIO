@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-import qastudio.backend.domain.user.UserConverter;
+import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.user.converter.UserConverter;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
@@ -15,7 +17,7 @@ import qastudio.backend.domain.user.service.UserQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,7 +59,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "사용자 프로젝트 리스트 조회 API",
+            summary = "사용자 프로젝트 리스트 조회 API | by 제로",
             description = "마이페이지의 프로젝트 리스트를 조회합니다."
     )
     @ApiResponses({
@@ -71,7 +73,7 @@ public class UserController {
     public ApiResponse<UserResponse.UserProjectList> getUserProjectList(
             @Auth Long userId,
             @RequestParam(name = "page", defaultValue = "0") Integer page) {
-        UserResponse.UserProjectList userProjectList = userQueryService.getUserProjectList(userId, page);
-        return ApiResponse.onSuccess(userProjectList);
+        Page<UserProject> userProjectList = userQueryService.getUserProjectList(userId, page);
+        return ApiResponse.onSuccess(UserConverter.toUserProjectList(userProjectList));
     }
 }
