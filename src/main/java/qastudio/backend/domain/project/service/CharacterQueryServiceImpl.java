@@ -36,7 +36,4 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
         List<Scenario> scenarios = characterRepository.findAllByCharacterTableId(characterTableId);
         return characterConverter.toScenarioList(scenarios);
     }
-
-    @Override
-    public CharacterResponse.DetailCharacter deleteCharacter(Long characterId) { return null; }
 }
