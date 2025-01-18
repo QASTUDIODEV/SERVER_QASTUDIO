@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
@@ -35,6 +36,11 @@ public class User extends BaseEntity {
     @Builder.Default
     @JsonIgnore
     private List<AccountTable> accounts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonIgnore
+    private List<UserProject> userProjects = new ArrayList<>();
 
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);

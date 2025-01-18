@@ -11,7 +11,7 @@ public class UserResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class User {
+    public static class UserInfo {
         // 유저 pk
         private Long userId;
         // 닉네임
