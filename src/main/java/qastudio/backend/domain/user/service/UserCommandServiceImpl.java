@@ -8,20 +8,26 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import qastudio.backend.global.s3.service.S3Service;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserCommandServiceImpl implements UserCommandService{
+public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     @Override
     public void createProfile(Long userId, UserRequest.CreateUserInfo userInfo) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
-        user.updateProfile(userInfo.getNickname(), userInfo.getProfileImage());
-    }
+        String profileImageUrl = null;
+        if (userInfo.getProfileImage() != null) {
+            profileImageUrl = s3Service.generateStaticUrl(userInfo.getProfileImage());
+        }
 
+        user.updateProfile(userInfo.getNickname(), profileImageUrl);
+    }
 }
