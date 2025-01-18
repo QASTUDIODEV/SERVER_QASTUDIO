@@ -33,4 +33,16 @@ public class CharacterTableRepositoryImpl implements CharacterTableRepositoryCus
                 .where(scenario.characterTable.id.eq(characterTableId))
                 .fetch();
     }
+
+    @Override
+    public List<CharacterTable> findAllById(List<Long> ids) {
+        QCharacterTable characterTable = QCharacterTable.characterTable;
+
+        return jpaQueryFactory
+                .selectFrom(characterTable)
+                .where(characterTable.id.in(ids))
+                .fetch();
+    }
+
+
 }

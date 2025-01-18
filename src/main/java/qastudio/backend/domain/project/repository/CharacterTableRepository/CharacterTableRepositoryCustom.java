@@ -9,4 +9,6 @@ public interface CharacterTableRepositoryCustom {
     List<CharacterTable> findAllByProjectId(Long projectId);
 
     List<Scenario> findAllByCharacterTableId(Long characterTableId);
+
+    List<CharacterTable> findAllById(List<Long> ids);
 }

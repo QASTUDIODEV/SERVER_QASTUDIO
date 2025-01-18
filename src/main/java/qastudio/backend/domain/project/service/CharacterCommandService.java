@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.service;
 
+import java.util.List;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 
@@ -8,5 +9,5 @@ public interface CharacterCommandService {
 
     CharacterResponse.CharacterScenario updateCharacter(Long characterId, CharacterRequest.UpdateCharacter updateCharacter);
 
-    void deleteCharacter(Long characterId);
+    void deleteCharacters(List<Long> characterIds);
 }
