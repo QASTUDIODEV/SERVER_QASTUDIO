@@ -89,9 +89,13 @@ public class CharacterController {
             summary = "역할-시나리오 수정 API",
             description = "역할을 수정한 후, ai에게 시나리오 생성을 재요청합니다."
     )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "역할-시나리오 수정 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
     @PatchMapping("/{characterId}")
     public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (@PathVariable("characterId") Long characterId, @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter) {
-        CharacterScenario characterScenario = characterQueryService.updateCharacter(characterId, updateCharacter);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(characterId, updateCharacter);
         return ApiResponse.onSuccess(characterScenario);
     }
 

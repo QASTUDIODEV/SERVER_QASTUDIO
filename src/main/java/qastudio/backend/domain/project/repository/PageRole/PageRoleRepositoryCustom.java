@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface PageRoleRepositoryCustom {
     List<PageRole> findAllByPageId(Long pageId);
+
+    List<PageRole> findAllByCharacterId(Long characterId);
 }

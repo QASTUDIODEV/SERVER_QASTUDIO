@@ -88,7 +88,7 @@ public class CharacterResponse {
         private Long characterId;
         private String characterName;
         private String characterDescription;
-        private String accessPage;
+        private List<String> accessPage;
         private Long scenarioId;
         private String scenarioDescription;
     }

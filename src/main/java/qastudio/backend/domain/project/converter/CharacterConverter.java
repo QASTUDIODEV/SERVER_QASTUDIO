@@ -8,6 +8,7 @@ import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import qastudio.backend.domain.project.entity.PageRole;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.scenario.entity.Scenario;
@@ -101,7 +102,20 @@ public class CharacterConverter {
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
                 .characterDescription(characterTable.getCharacterDescription())
-                .accessPage(String.join(", ", accessPages))
+                .accessPage(accessPages)
+                .build();
+    }
+
+    public CharacterResponse.CharacterScenario toCharacterScenarioResponse(CharacterTable character, List<PageRole> pageRoles) {
+        List<String> accessPages = pageRoles.stream()
+                .map(pageRole -> pageRole.getPage().getPath())
+                .collect(Collectors.toList());
+
+        return CharacterResponse.CharacterScenario.builder()
+                .characterId(character.getId())
+                .characterName(character.getCharacterName())
+                .characterDescription(character.getCharacterDescription())
+                .accessPage(accessPages)
                 .build();
     }
 }
