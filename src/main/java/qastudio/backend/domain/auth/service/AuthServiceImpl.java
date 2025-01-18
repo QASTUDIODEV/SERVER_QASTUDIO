@@ -2,10 +2,10 @@ package qastudio.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +16,7 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.JwtTokenProvider;
@@ -30,51 +31,54 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountTableRepository accountTableRepository;
     private final UserRepository userRepository;
-    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthConverter signUpRequestConverter;
+    private final AuthConverter authConverter;
 
-    // Command 메서드
     @Override
     public void userSignUp(AuthRequest request) {
         if (existsEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        User user = signUpRequestConverter.toUser(request);
+        User user = authConverter.toUser(request);
         userRepository.save(user);
     }
 
     @Override
     public TokenInfo localLogin(AuthRequest loginRequest) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(),
-                            loginRequest.getPassword()
-                    )
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequest.getEmail());
+
+            // 비밀번호 검증
+            if (!passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
+                throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
+            }
+
+            // 인증 객체 생성
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
             );
 
+            // 사용자 ID 조회
             Long userId = findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
 
-            return jwtTokenProvider.generateToken(
-                    userId,
-                    authentication,
-                    false // 소셜 로그인 여부
-            );
+            // 토큰 생성 및 반환
+            return jwtTokenProvider.generateToken(userId, authentication, false);
+        } catch (AuthException ex) {
+            throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
     }
 
-    // Query 메서드
-    @Override
     @Transactional(readOnly = true)
     public boolean existsEmail(String email) {
         return accountTableRepository.existsByEmail(email);
     }
 
-    @Override
     @Transactional(readOnly = true)
     public Long findUserIdByEmailAndEmailType(String email, EmailType emailType) {
         AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)

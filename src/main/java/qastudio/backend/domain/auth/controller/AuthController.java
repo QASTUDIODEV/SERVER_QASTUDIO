@@ -10,7 +10,7 @@ import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthService;
-import qastudio.backend.domain.auth.service.EmailService;
+import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -20,7 +20,7 @@ import qastudio.backend.jwt.TokenInfo;
 public class AuthController {
 
     private final AuthService authService;
-    private final EmailService emailService;
+    private final EmailQueryService emailQueryService;
 
     @Operation(
             summary = "User 자체 회원가입 API | by 지지",
@@ -54,7 +54,7 @@ public class AuthController {
     })
     @PostMapping("/sign-up/email")
     public ApiResponse<EmailResponse> mailConfirm(@RequestBody @Valid EmailRequest emailRequest){
-        EmailResponse emailResponse = emailService.sendEmail(emailRequest);
+        EmailResponse emailResponse = emailQueryService.sendEmail(emailRequest);
         return ApiResponse.onSuccess(emailResponse);
     }
 
