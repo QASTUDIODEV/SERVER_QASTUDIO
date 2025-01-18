@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface PageRepositoryCustom {
     List<Page> findAllByProjectId(Long projectId);
     Optional<Page> findByPageId(Long pageId);
+    List<Page> findAllByPathIn(List<String> paths);
 }
