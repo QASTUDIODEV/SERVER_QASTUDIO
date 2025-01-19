@@ -14,6 +14,7 @@ import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.service.UserCommandService;
+import qastudio.backend.domain.user.service.UserCommandService;
 import qastudio.backend.domain.user.service.UserQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
@@ -27,6 +28,20 @@ public class UserController {
 
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
+
+    @Operation(
+            summary = "사용자 프로필 설정 API | by 지지",
+            description = "사용자 닉네임, 프로필 이미지 설정합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
+    })
+    @PostMapping("/profile")
+    public ApiResponse<Void> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
+        userCommandService.createProfile(userId, updateUserInfo);
+        return ApiResponse.onSuccess(null);
+    }
 
     @Operation(
             summary = "사용자 정보 조회 API | by 제로",
