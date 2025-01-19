@@ -1,10 +1,10 @@
 package qastudio.backend.domain.user.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.user.dto.request.UserRequest;
+import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -29,5 +29,25 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         user.updateProfile(userInfo.getNickname(), profileImageUrl);
+    }
+
+    @Override
+    public User updateProfile(Long userId, UserRequest.UpdateUserInfo userInfo) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        String profileImageUrl = null;
+        if (userInfo.getProfileImage() != null) {
+            profileImageUrl = s3Service.generateStaticUrl(userInfo.getProfileImage());
+        }
+
+        String bannerImageUrl = null;
+        if (userInfo.getBannerImage() != null) {
+            bannerImageUrl = s3Service.generateStaticUrl(userInfo.getBannerImage());
+        }
+
+        user.updateUserInfo(userInfo.getNickname(), profileImageUrl, bannerImageUrl);
+
+        return user;
     }
 }
