@@ -7,9 +7,6 @@ import qastudio.backend.domain.auth.dto.response.EmailResponse;
 
 import java.io.UnsupportedEncodingException;
 
-public interface EmailService {
-    void createCode();
-    MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException;
-    EmailResponse sendEmail(EmailRequest emailRequest);
-    String setContext(String code);
+public interface EmailCommandService {
+
 }

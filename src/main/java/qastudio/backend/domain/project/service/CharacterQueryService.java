@@ -12,11 +12,4 @@ public interface CharacterQueryService {
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
 
     CharacterResponse.ScenarioList getScenarioList(Long characterId);
-
-    CharacterResponse.CharacterScenario createCharacter(CharacterRequest.CreateCharacter createCharacter);
-
-    CharacterResponse.CharacterScenario updateCharacter(Long characterId,
-                                                        CharacterRequest.UpdateCharacter updateCharacter);
-
-    CharacterResponse.DetailCharacter deleteCharacter(Long characterId);
 }

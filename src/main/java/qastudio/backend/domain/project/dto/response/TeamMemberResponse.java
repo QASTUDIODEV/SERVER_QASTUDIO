@@ -13,6 +13,7 @@ public class TeamMemberResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class UserEmail {
         // 유저 이메일
+        private Long userId;
         private String email;
     }
 

@@ -13,6 +13,7 @@ import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.service.ProjectQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
 
@@ -45,34 +46,42 @@ public class ProjectController {
     })
     @PostMapping(value = "/upload/{projectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<ProjectResponse.ProjectDetail> uploadProjectFile(@PathVariable("projectId") Long projectId, @RequestParam("zipFile") MultipartFile zipFile) {
-        ProjectResponse.ProjectDetail projectDetail = projectQueryService.uploadProjectFile(projectId, zipFile);
-        return ApiResponse.onSuccess(projectDetail);
+        Project project = projectQueryService.uploadProjectFile(projectId, zipFile);
+        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
     @Operation(
-            summary = "프로젝트 요약 정보 조회 API",
+            summary = "프로젝트 요약 정보 조회 API | by 노을",
             description = "프로젝트의 요약 정보를 조회합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                    name = "PROJECT404",
+                                    summary = "존재하지 않는 프로젝트입니다.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                            )
+                    )),
     })
     @GetMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId) {
-        ProjectResponse.ProjectDetail projectDetail = projectQueryService.getSummarizedProjectInfo(projectId);
-        return ApiResponse.onSuccess(projectDetail);
+        Project project = projectQueryService.getSummarizedProjectInfo(projectId);
+        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
     @Operation(
-            summary = "프로젝트 리스트 조회 API",
+            summary = "프로젝트 리스트 조회 API | by 노을",
             description = "사이드바용 프로젝트 리스트를 조회합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
     })
     @GetMapping()
-    public ApiResponse<ProjectResponse.ProjectList> getProjectList() {
-        List<Project> projects = projectQueryService.getProjectList();
+    public ApiResponse<ProjectResponse.ProjectList> getProjectList(@Auth Long userId) {
+        List<Project> projects = projectQueryService.getProjectList(userId);
         return ApiResponse.onSuccess(ProjectConverter.toProjectList(projects));
     }
 
@@ -87,10 +96,8 @@ public class ProjectController {
     })
     @PatchMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
-        System.out.println("Introduce: " + updateIntroduce.getIntroduce());
-
-        ProjectResponse.ProjectDetail projectDetail = projectQueryService.updateProjectIntroduction(projectId, updateIntroduce);
-        return ApiResponse.onSuccess(projectDetail);
+        Project project = projectQueryService.updateProjectIntroduction(projectId, updateIntroduce);
+        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
 }

@@ -69,4 +69,10 @@ public class ScenarioRequest {
             private List<Element> elements;
         }
     }
+
+    @Getter
+    public static class DeleteScenarios {
+        @NotEmpty(message = "삭제할 시나리오 ID 리스트가 비어있을 수 없습니다.")
+        private List<Long> scenarioIds;
+    }
 }

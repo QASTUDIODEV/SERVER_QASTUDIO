@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -28,4 +31,11 @@ public class Page extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
+
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PageRole> pageRoles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PageScenario> pageScenarios = new ArrayList<>();
+
 }

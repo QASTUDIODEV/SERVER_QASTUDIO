@@ -1,14 +1,33 @@
 package qastudio.backend.domain.project.converter;
 
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class TeamMemberConverter {
 
-    public static TeamMemberResponse.MemberList toMemberList(List<TeamMemberResponse.Member> members) {
+    public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects) {
+
+        List<TeamMemberResponse.Member> members = userProjects.stream()
+                .map(userProject -> {
+                    User user = userProject.getUser();
+
+                    // dto 응답 추가
+                    return TeamMemberResponse.Member.builder()
+                            .userId(user.getId())
+                            .userId(user.getId())
+                            .projectRole(userProject.getRole())
+                            .email(userProject.getUserEmail())
+                            .nickname(user.getNickname())
+                            .profileImage(user.getProfileImage())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
         return TeamMemberResponse.MemberList.builder()
                     .members(members)
                     .build();
@@ -19,6 +38,7 @@ public class TeamMemberConverter {
         List<TeamMemberResponse.UserEmail> userEmails = accounts.stream()
                 .map(account -> TeamMemberResponse.UserEmail.builder()
                         .email(account.getEmail())
+                        .userId(account.getUser().getId())
                         .build())
                 .collect(Collectors.toList());
 
