@@ -63,7 +63,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
         // 비밀번호 검증
-        if (password != null && !passwordEncoder.matches(password, userDetails.getPassword())) {
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
 
