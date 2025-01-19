@@ -33,13 +33,9 @@ public class User extends BaseEntity {
     private String bannerImage;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    @JsonIgnore
     private List<AccountTable> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    @JsonIgnore
     private List<UserProject> userProjects = new ArrayList<>();
 
     public void addAccount(AccountTable accountTable) {
