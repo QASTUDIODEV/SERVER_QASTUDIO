@@ -18,7 +18,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final S3Service s3Service;
 
     @Override
-    public void updateProfile(Long userId, UserRequest.UpdateUserInfo userInfo) {
+    public User updateProfile(Long userId, UserRequest.UpdateUserInfo userInfo) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
@@ -33,5 +33,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         user.updateUserInfo(userInfo.getNickname(), profileImageUrl, bannerImageUrl);
+
+        return user;
     }
 }

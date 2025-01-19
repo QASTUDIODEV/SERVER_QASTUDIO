@@ -52,11 +52,12 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PatchMapping("")
-    public ApiResponse<Void> updateUser(
+    public ApiResponse<UserResponse.UserInfo> updateUser(
             @Auth Long userId,
             @RequestBody @Valid UserRequest.UpdateUserInfo updateUserInfo) {
-        userCommandService.updateProfile(userId, updateUserInfo);
-        return ApiResponse.onSuccess(null);
+        User updatedUser = userCommandService.updateProfile(userId, updateUserInfo);
+        Integer projectCnt = userQueryService.getProjectCount(userId);
+        return ApiResponse.onSuccess(UserConverter.toUserInfo(updatedUser, projectCnt));
     }
 
     @Operation(
