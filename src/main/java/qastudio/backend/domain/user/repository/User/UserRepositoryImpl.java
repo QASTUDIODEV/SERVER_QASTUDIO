@@ -1,6 +1,8 @@
 package qastudio.backend.domain.user.repository.User;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -56,18 +58,22 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
 
     @Override
     public Page<UserProject> findAllByUser(User user, PageRequest pageRequest) {
-        // 조건문 생성
         BooleanExpression condition = userProject.user.eq(user);
 
-        // 페이징 처리된 데이터 조회
+        Expression<LocalDate> lastModifiedDateExpression = JPAExpressions
+                .select(test.testDate.max())
+                .from(test)
+                .where(test.project.eq(userProject.project));
+
         List<UserProject> userProjects = jpaQueryFactory
-                .selectFrom(userProject)
+                .select(userProject)
+                .from(userProject)
                 .where(condition)
+                .orderBy(com.querydsl.core.types.dsl.Expressions.asComparable(lastModifiedDateExpression).desc()) // 정렬
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
 
-        // 총 개수 조회
         long totalCount = jpaQueryFactory
                 .select(userProject.count())
                 .from(userProject)
@@ -76,4 +82,5 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
 
         return new PageImpl<>(userProjects, pageRequest, totalCount);
     }
+
 }
