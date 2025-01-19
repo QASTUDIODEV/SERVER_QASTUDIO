@@ -38,6 +38,7 @@ public class UserConverter {
         return UserResponse.UserProject.builder()
                 .projectId(userProject.getProject().getId())
                 .projectName(userProject.getProject().getProjectName())
+                .projectImage(userProject.getProject().getProjectImage())
                 .participant(participantCnt)
                 .lastModifiedDate(lastModifiedDate)
                 .build();

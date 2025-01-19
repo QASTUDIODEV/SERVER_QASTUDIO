@@ -37,6 +37,8 @@ public class UserResponse {
         private Long projectId;
         // 프로젝트 이름
         private String projectName;
+        // 프로젝트 대표 이미지
+        private String projectImage;
         // 참여자 수
         private Integer participant;
         // 마지막 수정일자
