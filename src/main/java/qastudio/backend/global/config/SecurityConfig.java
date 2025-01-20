@@ -47,6 +47,8 @@ public class SecurityConfig {
                                 "/api/v0/auth/sign-up",   // 회원가입 경로 허용
                                 "/api/v0/auth/sign-up/email", // 이메일 인증 경로 허용
                                 "/api/v0/auth/login/local", // 로컬 로그인 경로 허용
+                                "/api/v0/auth/update/password", // 비밀번호 변경 경로 허용
+                                "/api/v0/auth/update/password/email", // 비밀번호 변경시, 이메일 찾기 경로 허용
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",

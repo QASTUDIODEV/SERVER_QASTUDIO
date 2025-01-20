@@ -34,8 +34,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter signUpRequestConverter;
 
     @Override
-    public TokenInfo userSignUp(AuthRequest request) {
-        if (authQueryService.existsEmail(request.getEmail())) {
+    public TokenInfo userSignUp(AuthRequest.localRequest request) {
+        if (authQueryService.isEmailExists(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
@@ -46,7 +46,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     @Override
-    public TokenInfo localLogin(AuthRequest loginRequest) {
+    public TokenInfo localLogin(AuthRequest.localRequest loginRequest) {
         try {
             // 비밀번호 검증 포함
             return authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());

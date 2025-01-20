@@ -10,6 +10,7 @@ import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
+import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
@@ -23,7 +24,7 @@ public class AuthController {
     private final EmailQueryService emailQueryService;
 
     @Operation(
-            summary = "User 자체 회원가입 API | by 지지",
+            summary = "자체 회원가입 API | by 지지",
             description = "사용자가 자체 회원가입을 합니다."
     )
     @ApiResponses({
@@ -41,25 +42,45 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<TokenInfo> UserSignUp(@RequestBody @Valid AuthRequest authRequest) {
+    public ApiResponse<TokenInfo> singUpLocal(@RequestBody @Valid AuthRequest.localRequest authRequest) {
         TokenInfo signUpResponse = authCommandService.userSignUp(authRequest);
         return ApiResponse.onSuccess(signUpResponse);
     }
 
-    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "회원가입 이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "EMAIL400", description = "이메일 인증 코드 전송을 실패했습니다.")
     })
     @PostMapping("/sign-up/email")
-    public ApiResponse<EmailResponse> mailConfirm(@RequestBody @Valid EmailRequest emailRequest){
-        EmailResponse emailResponse = emailQueryService.sendEmail(emailRequest);
+    public ApiResponse<EmailResponse> sendSignEmail(@RequestBody @Valid EmailRequest emailRequest){
+        EmailResponse emailResponse = emailQueryService.sendSignEmail(emailRequest);
         return ApiResponse.onSuccess(emailResponse);
     }
 
     @Operation(
-            summary = "User 자체 로그인 API | by 지지",
+            summary = "비밀번호 변경 이메일 인증번호 전송 API | by 지지",
+            description = "사용자의 계정(이메일)이 존재하는 지 확인 후, 해당 이메일로 인증번호를 전송합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "AUTH404",
+                    description = "존재하지 않는 사용자입니다."
+            )
+    })
+    @PostMapping("/update/password/email")
+    public ApiResponse<EmailResponse> sendPasswordEmail(@RequestBody @Valid EmailRequest emailRequest) {
+        EmailResponse emailResponse = emailQueryService.sendPasswordEmail(emailRequest);
+        return ApiResponse.onSuccess(emailResponse);
+    }
+
+    @Operation(
+            summary = "자체 로그인 API | by 지지",
             description = "사용자가 자체 로그인을 합니다."
     )
     @ApiResponses({
@@ -77,7 +98,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest authRequest) {
+    public ApiResponse<TokenInfo> loginLocal(@RequestBody @Valid AuthRequest.localRequest authRequest) {
         TokenInfo loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
     }
