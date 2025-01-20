@@ -2,6 +2,7 @@ package qastudio.backend.global.oauth;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 @Builder
 @Getter
+@Slf4j
 public class OAuth2UserInfo {
 
     private final String id;
@@ -18,8 +20,8 @@ public class OAuth2UserInfo {
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) {
         return switch (registrationId) {
             case "kakao" -> ofKakao(attributes);
-            case "github" -> ofGithub(attributes);
             case "google" -> ofGoogle(attributes);
+            case "github" -> ofGithub(attributes);
             default -> throw new AuthException(ErrorStatus.ILLEGAL_REGISTRATION_ID);
         };
     }
@@ -46,6 +48,8 @@ public class OAuth2UserInfo {
         if (idObj == null || emailObj == null) {
             throw new AuthException(ErrorStatus.UNSUPPORTED_SOCIAL_TYPE);
         }
+
+        log.info("Google OAuth2 login successful: id = {}, email = {}", idObj, emailObj);
 
         return OAuth2UserInfo.builder()
                 .id(String.valueOf(idObj))
