@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/lib/**",
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/api/v0/auth/sign-up",   // 회원가입 경로 허용
                                 "/api/v0/auth/sign-up/email", // 이메일 인증 경로 허용

@@ -1,9 +1,9 @@
 package qastudio.backend.domain.project.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.project.entity.enums.ViewType;
+import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.util.ArrayList;
@@ -39,4 +39,10 @@ public class Project extends BaseEntity {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CharacterTable> characterTables = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserProject> userProjects = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Test> tests = new ArrayList<>();
 }

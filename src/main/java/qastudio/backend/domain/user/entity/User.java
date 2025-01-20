@@ -1,11 +1,11 @@
 package qastudio.backend.domain.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import qastudio.backend.domain.user.entity.enums.Role;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.util.ArrayList;
@@ -36,21 +36,12 @@ public class User extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column
-    private String refreshToken;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @JsonIgnore
     private List<AccountTable> accounts = new ArrayList<>();
 
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public void addAccount(AccountTable accountTable) {
-        this.accounts.add(accountTable);
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserProject> userProjects = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -85,5 +76,20 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void addAccount(AccountTable accountTable) {
+        this.accounts.add(accountTable);
+    }
+
+    public void updateProfile(String nickname, String profileImage) {
+        this.nickname = nickname;
+        this.profileImage = profileImage;
+    }
+
+    public void updateUserInfo(String nickname, String profileImage, String bannerImage) {
+        this.nickname = nickname;
+        this.profileImage = profileImage;
+        this.bannerImage = bannerImage;
     }
 }

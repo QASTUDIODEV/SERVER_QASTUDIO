@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import java.util.Collections;
@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     public UserDetails loadUserByEmailAndType(String email, EmailType emailType) {
         AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
 
         return new org.springframework.security.core.userdetails.User(
                 account.getEmail(),

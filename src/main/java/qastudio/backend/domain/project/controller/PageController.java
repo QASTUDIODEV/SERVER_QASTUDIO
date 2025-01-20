@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/pages")
+@RequestMapping("/api/v0/projects")
 public class PageController {
 
     private final PageQueryService pageQueryService;
@@ -66,7 +66,7 @@ public class PageController {
                             )
                     )),
     })
-    @PostMapping("/{projectId}")
+    @PostMapping("/{projectId}/pages")
     public ApiResponse<PageResponse.PageSummary> createPage(@PathVariable("projectId") Long projectId, @RequestBody @Valid PageRequest.createPage createPage) {
         Page page = pageCommandService.createPage(projectId, createPage);
         return ApiResponse.onSuccess(PageConverter.toPageSummary(page));
@@ -98,7 +98,7 @@ public class PageController {
                             )
                     )),
     })
-    @GetMapping("/{projectId}")
+    @GetMapping("/{projectId}/pages")
     public ApiResponse<PageResponse.PageList> getAllPage(@PathVariable("projectId") Long projectId) {
         List<Page> pages = pageQueryService.getAllPage(projectId);
         return ApiResponse.onSuccess(PageConverter.toPageList(pages));
@@ -129,7 +129,7 @@ public class PageController {
                             )
                     )),
     })
-    @DeleteMapping("/{pageId}")
+    @DeleteMapping("/pages/{pageId}")
     public ApiResponse<Void>  deletePage(@PathVariable("pageId") Long pageId) {
         pageCommandService.deletePage(pageId);
         return ApiResponse.onSuccess(null);

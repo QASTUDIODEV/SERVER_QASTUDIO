@@ -10,7 +10,7 @@ import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
-import qastudio.backend.domain.auth.service.EmailService;
+import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -19,8 +19,8 @@ import qastudio.backend.jwt.TokenInfo;
 @RequestMapping("/api/v0/auth")
 public class AuthController {
 
-    private final AuthCommandService authService;
-    private final EmailService emailService;
+    private final AuthCommandService authCommandService;
+    private final EmailQueryService emailQueryService;
 
     @Operation(
             summary = "User 자체 회원가입 API | by 지지",
@@ -41,8 +41,8 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest.localLoginReuqest AuthRequest) {
-        authService.userSignUp(AuthRequest);
+    public ApiResponse<Void> UserSignUp(@RequestBody @Valid AuthRequest.localLoginReuqest authRequest) {
+        authCommandService.userSignUp(authRequest);
         return ApiResponse.onSuccess(null);
     }
 
@@ -54,7 +54,7 @@ public class AuthController {
     })
     @PostMapping("/sign-up/email")
     public ApiResponse<EmailResponse> mailConfirm(@RequestBody @Valid EmailRequest emailRequest){
-        EmailResponse emailResponse = emailService.sendEmail(emailRequest);
+        EmailResponse emailResponse = emailQueryService.sendEmail(emailRequest);
         return ApiResponse.onSuccess(emailResponse);
     }
 
@@ -77,17 +77,9 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest.localLoginReuqest AuthRequest) {
-        TokenInfo loginResponse = authService.localLogin(AuthRequest);
+    public ApiResponse<TokenInfo> LocalLogin(@RequestBody @Valid AuthRequest.localLoginReuqest authRequest) {
+        TokenInfo loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
-    }
-
-    @Operation(
-            summary = "로그인 성공 후 토큰 전송 내부 API | by 지지",
-            description = "클라이언트 사용하지 않는 API 입니다.")
-    @GetMapping("/login/success")
-    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
-        return ApiResponse.onSuccess(tokenInfo);
     }
 
     @Operation(

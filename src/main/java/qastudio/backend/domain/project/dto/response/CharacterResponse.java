@@ -84,11 +84,11 @@ public class CharacterResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class CharacterScenario {
-        // 역할 생성 시에 받는 시나리오
+        // 역할 생성/수정 시에 받는 시나리오
         private Long characterId;
         private String characterName;
         private String characterDescription;
-        private String accessPage;
+        private List<String> accessPage;
         private Long scenarioId;
         private String scenarioDescription;
     }
