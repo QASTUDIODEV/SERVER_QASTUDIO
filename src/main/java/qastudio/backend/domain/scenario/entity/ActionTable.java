@@ -16,13 +16,21 @@ public class ActionTable extends BaseEntity {
     @Column(name = "action_table_id")
     private Long id;
 
-    @Column(nullable = false, name = "scenario_name")
+    @Column(nullable = false, name = "action_name")
     private String actionName;
 
     @Column(nullable = false)
     private Integer step;
 
+    @Lob
+    @Column(nullable = false, name = "action_elements", columnDefinition = "TEXT")
+    private String actionElements;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "scenario_id")
     private Scenario scenario;
+
+    public void setActionElements(String actionElements) {
+        this.actionElements = actionElements;
+    }
 }

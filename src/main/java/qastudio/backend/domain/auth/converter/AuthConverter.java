@@ -14,7 +14,7 @@ public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
 
-    public User toUser(AuthRequest request) {
+    public User toUser(AuthRequest.LocalRequest request) {
         User user = User.builder()
                 .nickname("") // 기본 닉네임
                 .profileImage("") // 기본 프로필 이미지
@@ -32,4 +32,5 @@ public class AuthConverter {
 
         return user;
     }
+
 }

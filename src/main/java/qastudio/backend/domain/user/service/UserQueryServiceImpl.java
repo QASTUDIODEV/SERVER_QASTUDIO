@@ -1,25 +1,49 @@
 package qastudio.backend.domain.user.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserQueryServiceImpl implements UserQueryService {
+    private final UserRepository userRepository;
+
     @Override
-    public UserResponse.User getUser(Long userId)  {
-        return null;
+    public User getUser(Long userId)  {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
     };
 
     @Override
-    public UserResponse.User updateUser(Long userId, UserRequest.UpdateUserInfo updateUserInfo) {
+    public Integer getProjectCount(Long userId) {
+        return userRepository.countProjectsByUserId(userId);
+    }
+
+    @Override
+    public User updateUser(Long userId, UserRequest.UpdateUserInfo updateUserInfo) {
         return null;
     }
 
     @Override
-    public UserResponse.UserProjectList getUserProjectList(Long userId, Integer page) {
-        return null;
+    public Page<UserProject> getUserProjectList(Long userId, Integer page) {
+        User user = userRepository.findByUserId(userId).get();
+
+        Page<UserProject> UserProjectPage = userRepository.findAllByUser(user, PageRequest.of(page, 7));
+
+        return UserProjectPage;
     };
 }
