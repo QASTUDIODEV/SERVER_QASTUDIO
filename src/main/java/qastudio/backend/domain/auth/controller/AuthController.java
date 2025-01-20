@@ -10,7 +10,6 @@ import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
-import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.TokenInfo;
@@ -42,7 +41,7 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<TokenInfo> singUpLocal(@RequestBody @Valid AuthRequest.localRequest authRequest) {
+    public ApiResponse<TokenInfo> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
         TokenInfo signUpResponse = authCommandService.userSignUp(authRequest);
         return ApiResponse.onSuccess(signUpResponse);
     }
@@ -57,6 +56,26 @@ public class AuthController {
     public ApiResponse<EmailResponse> sendSignEmail(@RequestBody @Valid EmailRequest emailRequest){
         EmailResponse emailResponse = emailQueryService.sendSignEmail(emailRequest);
         return ApiResponse.onSuccess(emailResponse);
+    }
+
+    @Operation(
+            summary = "비밀번호 변경 API | by 지지",
+            description = "사용자가 자체 로그인 계정의 비밀번호를 변경합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "AUTH404",
+                    description = "존재하지 않는 사용자입니다."
+            )
+    })
+    @PostMapping("/update/password")
+    public ApiResponse<Void> updatePassword(@RequestBody @Valid AuthRequest.ChangePasswordRequest changePasswordRequest) {
+        authCommandService.changePassword(changePasswordRequest);
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
@@ -98,7 +117,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<TokenInfo> loginLocal(@RequestBody @Valid AuthRequest.localRequest authRequest) {
+    public ApiResponse<TokenInfo> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
         TokenInfo loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
     }

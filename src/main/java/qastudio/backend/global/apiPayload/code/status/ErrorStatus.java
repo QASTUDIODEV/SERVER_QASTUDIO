@@ -25,6 +25,7 @@ public enum ErrorStatus implements BaseErrorCode {
     MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "The token lacks authority information. Basic authority is required."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "User not found."),
     ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "Email already registered."),
+    PASSWORD_ALREADY_USED(HttpStatus.CONFLICT, "AUTH410", "Password already in use."),
 
     // 이메일 관련 에러
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 코드 전송을 실패했습니다."),
