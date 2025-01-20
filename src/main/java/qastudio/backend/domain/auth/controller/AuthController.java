@@ -29,11 +29,11 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "회원가입에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH409",
-                    description = "이미 등록된 이메일입니다."
+                    description = "Email already registered."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
@@ -46,7 +46,7 @@ public class AuthController {
         return ApiResponse.onSuccess(signUpResponse);
     }
 
-    @Operation(summary = "회원가입 이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "자체 회원가입 이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
@@ -69,7 +69,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH404",
-                    description = "존재하지 않는 사용자입니다."
+                    description = "User not found."
             )
     })
     @PostMapping("/update/password")
@@ -89,7 +89,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH404",
-                    description = "존재하지 않는 사용자입니다."
+                    description = "User not found."
             )
     })
     @PostMapping("/update/password/email")
@@ -105,15 +105,15 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "로그인에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH401",
-                    description = "비밀번호가 잘못되었습니다."
+                    description = "Incorrect password."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH404",
-                    description = "존재하지 않는 사용자입니다."
+                    description = "User not found."
             )
     })
     @PostMapping("/login/local")
