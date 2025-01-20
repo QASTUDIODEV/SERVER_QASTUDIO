@@ -14,7 +14,7 @@ public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
 
-    public User toUser(AuthRequest.localLoginReuqest request) {
+    public User toUser(AuthRequest.LocalRequest request) {
         User user = User.builder()
                 .nickname("") // 기본 닉네임
                 .build();
@@ -30,4 +30,5 @@ public class AuthConverter {
 
         return user;
     }
+
 }

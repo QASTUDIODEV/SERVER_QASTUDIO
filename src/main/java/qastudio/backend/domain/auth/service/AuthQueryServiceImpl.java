@@ -19,11 +19,6 @@ public class AuthQueryServiceImpl implements AuthQueryService {
     private final AccountTableRepository accountTableRepository;
 
     @Override
-    public boolean existsEmail(String email) {
-        return accountTableRepository.existsByEmail(email);
-    }
-
-    @Override
     public Long findUserIdByEmailAndEmailType(String email, EmailType emailType) {
         AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));

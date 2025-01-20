@@ -54,6 +54,8 @@ public class SecurityConfig {
                                 "/api/v0/auth/login/google",
                                 "/api/v0/auth/login/github",
                                 "/api/v0/auth/login/success", // 로그인 성공 경로 허용
+                                "/api/v0/auth/update/password", // 비밀번호 변경 경로 허용
+                                "/api/v0/auth/update/password/email", // 비밀번호 변경시, 이메일 찾기 경로 허용
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",
