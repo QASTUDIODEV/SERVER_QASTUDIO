@@ -49,7 +49,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
 
-        User user = getOrSave(oAuth2UserInfo, email);
+        getOrSave(oAuth2UserInfo, email);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
