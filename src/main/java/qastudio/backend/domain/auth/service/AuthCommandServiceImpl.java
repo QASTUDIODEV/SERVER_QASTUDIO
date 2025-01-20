@@ -40,7 +40,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     @Override
     public TokenInfo userSignUp(AuthRequest.LocalRequest request) {
-        if (authQueryService.isEmailExists(request.getEmail())) {
+        if (accountTableRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 

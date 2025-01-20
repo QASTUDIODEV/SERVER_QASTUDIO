@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
@@ -18,11 +17,6 @@ import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 public class AuthQueryServiceImpl implements AuthQueryService {
 
     private final AccountTableRepository accountTableRepository;
-
-    @Override
-    public boolean isEmailExists(String email) {
-        return accountTableRepository.existsByEmail(email);
-    }
 
     @Override
     public Long findUserIdByEmailAndEmailType(String email, EmailType emailType) {
