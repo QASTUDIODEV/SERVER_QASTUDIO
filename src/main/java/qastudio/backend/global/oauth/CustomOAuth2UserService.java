@@ -19,13 +19,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Transactional
 @RequiredArgsConstructor
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final AccountTableRepository accountTableRepository;
 
-    @Transactional
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         // 유저 정보 가져오기
