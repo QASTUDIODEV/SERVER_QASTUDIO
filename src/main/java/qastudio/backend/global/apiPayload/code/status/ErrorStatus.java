@@ -20,11 +20,12 @@ public enum ErrorStatus implements BaseErrorCode {
     TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트"),
 
     // Auth 관련 에러
-    INVALID_USER_ID_FORMAT(HttpStatus.BAD_REQUEST, "AUTH400", "유효하지 않은 사용자 ID 형식입니다."),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401", "비밀번호가 잘못되었습니다."),
-    MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "권한 정보가 없는 토큰입니다. 기본 권한이 필요합니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "존재하지 않는 사용자입니다."),
-    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이미 등록된 이메일입니다."),
+    INVALID_USER_ID_FORMAT(HttpStatus.BAD_REQUEST, "AUTH400", "Invalid user ID format."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401", "Incorrect password."),
+    MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "The token lacks authority information. Basic authority is required."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "User not found."),
+    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "Email already registered."),
+    PASSWORD_ALREADY_USED(HttpStatus.CONFLICT, "AUTH410", "Password already in use."),
 
     // 이메일 관련 에러
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 코드 전송을 실패했습니다."),

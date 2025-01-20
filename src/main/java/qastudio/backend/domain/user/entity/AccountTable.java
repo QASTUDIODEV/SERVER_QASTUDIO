@@ -30,4 +30,8 @@ public class AccountTable extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
+
+    public void updatePassword(String changePassword) {
+        this.password = changePassword;
+    }
 }
