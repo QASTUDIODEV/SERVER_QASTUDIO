@@ -29,15 +29,15 @@ public class AuthController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
-                    description = "회원가입에 성공했습니다."
+                    description = "성공했습니다."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "AUTH409",
-                    description = "이미 등록된 이메일입니다."
+                    description = "Email already registered."
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
     @PostMapping("/sign-up")
@@ -141,7 +141,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
     @GetMapping("/login/kakao")
@@ -160,7 +160,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
     @GetMapping("/login/google")
@@ -180,7 +180,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
     @GetMapping("/login/github")
