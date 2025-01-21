@@ -3,6 +3,7 @@ package qastudio.backend.domain.project.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.multipart.MultipartFile;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
+import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 import qastudio.backend.domain.project.entity.Project;
 
 public interface ProjectCommandService {
@@ -10,4 +11,5 @@ public interface ProjectCommandService {
 
     Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
 
+    ProjectCreation createProject(ProjectRequest.CreateProject createProject);
 }

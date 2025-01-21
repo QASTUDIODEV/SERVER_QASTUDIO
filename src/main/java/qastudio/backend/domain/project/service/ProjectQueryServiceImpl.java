@@ -3,8 +3,6 @@ package qastudio.backend.domain.project.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import qastudio.backend.domain.project.dto.request.ProjectRequest;
-import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
@@ -12,8 +10,6 @@ import qastudio.backend.domain.project.repository.UserProject.UserProjectReposit
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -42,10 +38,5 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
         return userProjectList.stream()
                 .map(UserProject::getProject)
                 .toList();
-    }
-
-    @Override
-    public ProjectResponse.ProjectDetail createProject(ProjectRequest.CreateProject createProject){
-        return null;
     }
 }

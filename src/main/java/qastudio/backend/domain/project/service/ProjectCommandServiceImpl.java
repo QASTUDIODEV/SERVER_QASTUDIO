@@ -12,9 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.PageScenario;
+import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.project.repository.PageSceenario.PageScenarioRepository;
@@ -40,6 +42,8 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     String baseUrl;
     @Value("${ai.project-information}")
     String projectInformationUrl;
+    private final ProjectConverter projectConverter;
+    private final TeamMemberCommandService teamMemberCommandService;
 
     @Override
     public Project uploadProjectFile(Long userId, Long projectId, MultipartFile zipFile, String token) throws JsonProcessingException {
@@ -143,6 +147,12 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
         } catch (IOException e) {
             throw new RuntimeException("파일 처리 중 오류 발생", e);
         }
+    }
+
+    public ProjectCreation createProject(ProjectRequest.CreateProject createProject) {
+        Project newProject = projectConverter.toProject(createProject);
+        Project savedProject = projectRepository.save(newProject);
+        return projectConverter.toProjectCreationResponse(savedProject);
     }
 
     @Override
