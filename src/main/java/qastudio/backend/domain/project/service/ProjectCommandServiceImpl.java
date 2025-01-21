@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.PageScenario;
 import qastudio.backend.domain.project.entity.Project;
@@ -45,8 +46,6 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
 
         // ai 서버에 프로젝트 정보 요청
         String response = getResponse(userId, projectId, zipFile, token);
-        // 응답 값 확인
-        System.out.println(response);
 
         // 프로젝트 정보 수정
         Project project = projectRepository.findByProjectId(projectId)
@@ -67,11 +66,6 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
             String projectViewType = projectData.path("view_type").asText();
             String projectDevelopmentSkill = projectData.path("development_skill").asText();
 
-            System.out.println(projectDevelopmentSkill);
-            System.out.println(projectData);
-            System.out.println(projectViewType);
-
-            // !! - projectDevelopmentSkill 처리해야 함
             project.updateProjectInfo(assistantId, projectDescription, projectViewType, projectDevelopmentSkill);
             projectRepository.save(project);
 
@@ -149,5 +143,18 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
         } catch (IOException e) {
             throw new RuntimeException("파일 처리 중 오류 발생", e);
         }
+    }
+
+    @Override
+    public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // introduction 수정
+        project.updateIntroduction(updateIntroduce.getIntroduce());
+
+        projectRepository.save(project);
+        return project;
     }
 }

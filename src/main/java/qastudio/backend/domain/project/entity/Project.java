@@ -64,4 +64,8 @@ public class Project extends BaseEntity {
             throw new RuntimeException("유효하지 않은 ViewType 값: " + viewType, e);
         }
     }
+
+    public void updateIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
 }

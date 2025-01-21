@@ -114,7 +114,7 @@ public class ProjectController {
     })
     @PatchMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
-        Project project = projectQueryService.updateProjectIntroduction(projectId, updateIntroduce);
+        Project project = projectCommandService.updateProjectIntroduction(projectId, updateIntroduce);
         return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
