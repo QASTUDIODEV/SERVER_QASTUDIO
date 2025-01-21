@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.dto.response;
 
 import lombok.*;
+import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 
 import java.util.List;
@@ -46,6 +47,10 @@ public class ProjectResponse {
         private String introduction;
         // 프로젝트 분류
         private ViewType viewType;
+        // 프로젝트 스택
+        private ProjectStack developmentSkill;
+        // assistant_id
+        protected String assistantId;
     }
 
     @Getter

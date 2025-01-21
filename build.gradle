@@ -67,6 +67,9 @@ dependencies {
 
 	// web socket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// WebFlux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 sourceSets {
