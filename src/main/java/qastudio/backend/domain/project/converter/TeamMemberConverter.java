@@ -10,6 +10,26 @@ import java.util.stream.Collectors;
 
 public class TeamMemberConverter {
 
+    public static TeamMemberResponse.UserEmailList toUserEmailListFromUserProjects(List<UserProject> userProjects) {
+
+        List<TeamMemberResponse.UserEmail> members = userProjects.stream()
+                .map(userProject -> {
+                    User user = userProject.getUser();
+
+                    // dto 응답 추가
+                    return TeamMemberResponse.UserEmail.builder()
+                            .userId(user.getId())
+                            .email(userProject.getUserEmail())
+                            .build();
+                })
+                .toList();
+
+        return TeamMemberResponse.UserEmailList.builder()
+                .userEmails(members)
+                .build();
+
+    }
+
     public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects) {
 
         List<TeamMemberResponse.Member> members = userProjects.stream()
@@ -18,7 +38,6 @@ public class TeamMemberConverter {
 
                     // dto 응답 추가
                     return TeamMemberResponse.Member.builder()
-                            .userId(user.getId())
                             .userId(user.getId())
                             .projectRole(userProject.getRole())
                             .email(userProject.getUserEmail())
@@ -33,7 +52,7 @@ public class TeamMemberConverter {
                     .build();
     }
 
-    public static TeamMemberResponse.UserEmailList toUserEmailList(List<AccountTable> accounts) {
+    public static TeamMemberResponse.UserEmailList toUserEmailListFromAccounts(List<AccountTable> accounts) {
 
         List<TeamMemberResponse.UserEmail> userEmails = accounts.stream()
                 .map(account -> TeamMemberResponse.UserEmail.builder()

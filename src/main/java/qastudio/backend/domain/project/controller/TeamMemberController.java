@@ -12,7 +12,6 @@ import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.service.TeamMemberCommandService;
 import qastudio.backend.domain.project.service.TeamMemberQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
-import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import java.util.List;
@@ -85,7 +84,7 @@ public class TeamMemberController {
 
     @Operation(
             summary = "프로젝트에 가입된 팀원 조회 API | by 노을",
-            description = "프로젝트에 가입된 팀원 정보를 초대합니다."
+            description = "프로젝트에 가입된 팀원 정보를 조회합니다. LEADER, MEMBER 모두 조회하며 사용자의 프로필, 닉네임 등 상세 정보를 확인할 수 있습니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -103,6 +102,28 @@ public class TeamMemberController {
     public ApiResponse<TeamMemberResponse.MemberList> getTeamMemberList(@PathVariable("projectId") Long projectId) {
         List<UserProject> userProjects = teamMemberQueryService.getTeamMemberList(projectId);
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
+    }
+
+    @Operation(
+            summary = "프로젝트 팀원 초대 시 현재 가입된 팀원의 이메일 조회 API | by 노을",
+            description = "프로젝트 팀원 초대 시 현재 가입된 팀원의 이메일을 조회하기 위해 사용합니다. LEADER는 조회하지 않으며, 이메일과 userId만 응답합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                    name = "PROJECT404",
+                                    summary = "존재하지 않는 프로젝트입니다.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                            )
+                    )),
+    })
+    @GetMapping("/{projectId}/team-members/email")
+    public ApiResponse<TeamMemberResponse.UserEmailList> getTeamMemberExceptLeader(@PathVariable("projectId") Long projectId) {
+        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
+        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromUserProjects(userProjects));
     }
 
     // EmailList
@@ -183,7 +204,7 @@ public class TeamMemberController {
     @GetMapping("/{projectId}/team-members/search")
     public ApiResponse<TeamMemberResponse.UserEmailList> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
         List<AccountTable> accountTables = teamMemberQueryService.searchMember(projectId, email);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailList(accountTables));
+        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromAccounts(accountTables));
     }
 
 }
