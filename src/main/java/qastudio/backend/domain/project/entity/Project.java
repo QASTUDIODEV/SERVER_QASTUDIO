@@ -2,6 +2,7 @@ package qastudio.backend.domain.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.global.comon.domain.BaseEntity;
@@ -41,7 +42,7 @@ public class Project extends BaseEntity {
     private String assistantId;
 
     @Column(name = "development_skill")
-    private String developmentSkill;
+    private ProjectStack developmentSkill;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CharacterTable> characterTables = new ArrayList<>();
@@ -55,7 +56,13 @@ public class Project extends BaseEntity {
     public void updateProjectInfo(String assistantId, String introduction, String viewType, String developmentSkill) {
         this.assistantId = assistantId;
         this.introduction = introduction;
-        this.developmentSkill = developmentSkill;
+
+        try {
+            // 대소문자 확인
+            this.developmentSkill = ProjectStack.valueOf(developmentSkill.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("유효하지 않은 ProjectStack 값: " + developmentSkill, e);
+        }
 
         try {
             // 대소문자 확인
