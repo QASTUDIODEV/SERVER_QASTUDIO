@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
@@ -39,6 +40,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProjectCommandServiceImpl implements ProjectCommandService{
 
     private final PageRepository pageRepository;
@@ -56,13 +58,13 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
 
     @Override
     public Project uploadProjectFile(Long userId, Long projectId, MultipartFile zipFile, String token) throws JsonProcessingException {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         // ai 서버에 프로젝트 정보 요청
         String response = getResponse(userId, projectId, zipFile, token);
-
-        // 프로젝트 정보 수정
-        Project project = projectRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+        log.info(response);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
