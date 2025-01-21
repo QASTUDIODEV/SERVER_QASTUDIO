@@ -16,13 +16,14 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
 
     private final ProjectRepository projectRepository;
     private final ProjectConverter projectConverter;
+    private final TeamMemberCommandService teamMemberCommandService;
 
     @Override
-    public ProjectCreation createProject(ProjectRequest.CreateProject createProject, String projectImageUrl) {
-        Project project = projectConverter.toEntity(createProject, projectImageUrl);
+    public ProjectCreation createProject(ProjectRequest.CreateProject createProject) {
+        Project newProject = projectConverter.toProject(createProject);
 
-        Project savedProject = projectRepository.save(project);
+        Project savedProject = projectRepository.save(newProject);
 
-        return projectConverter.toResponse(savedProject);
+        return projectConverter.toProjectCreationResponse(savedProject);
     }
 }

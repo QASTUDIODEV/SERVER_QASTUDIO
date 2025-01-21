@@ -22,6 +22,7 @@ public class ProjectRequest {
         private String projectImage;
         @NotBlank(message = "projectName 은 필수 입력 값입니다.")
         private String projectName;
+        @NotBlank(message = "projectUrl 은 필수 입력 값입니다.")
         private String projectUrl;
         private List<String> memberEmail;
         private ViewType viewType = ViewType.PC;

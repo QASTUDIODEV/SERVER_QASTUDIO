@@ -6,12 +6,20 @@ import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 import qastudio.backend.domain.project.entity.Project;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import qastudio.backend.domain.project.entity.enums.ViewType;
+import qastudio.backend.global.s3.service.S3Service;
 
 @Component
 public class ProjectConverter {
+
+    private final S3Service s3Service;
+
+    public ProjectConverter(S3Service s3Service) {
+        this.s3Service = s3Service;
+    }
 
     public static ProjectResponse.ProjectDetail toProjectDetail(Project project) {
         return ProjectResponse.ProjectDetail.builder()
@@ -40,21 +48,27 @@ public class ProjectConverter {
         
     }
 
-    public Project toEntity(ProjectRequest.CreateProject request, String projectImageUrl) {
+    public Project toProject(ProjectRequest.CreateProject request) {
+        String staticUrl = null;
+
+        if (StringUtils.hasText(request.getProjectImage())) {
+            staticUrl = s3Service.generateStaticUrl(request.getProjectImage());
+        }
+
         return Project.builder()
                 .projectName(request.getProjectName())
-                .projectImage(projectImageUrl)
+                .projectImage(staticUrl)
                 .projectUrl(request.getProjectUrl())
                 .viewType(request.getViewType() != null ? request.getViewType() : ViewType.PC)
                 .build();
     }
 
-    public ProjectCreation toResponse(Project project) {
+    public ProjectCreation toProjectCreationResponse(Project newProject) {
         return ProjectCreation.builder()
-                .id(project.getId())
-                .projectName(project.getProjectName())
-                .projectImage(project.getProjectImage())
-                .projectUrl(project.getProjectUrl())
+                .projectId(newProject.getId())
+                .projectName(newProject.getProjectName())
+                .projectImage(newProject.getProjectImage())
+                .projectUrl(newProject.getProjectUrl())
                 .memberEmails(new ArrayList<>()) // 멤버 이메일은 필요에 따라 추가 로직 구현
                 .build();
     }

@@ -31,8 +31,8 @@ public class ProjectController {
     private final S3Service s3Service;
 
     @Operation(
-            summary = "프로젝트 생성 API",
-            description = "새로운 프로젝트를 생성합니다."
+            summary = "프로젝트 생성 API | by 챠리 (팀원 초대 미완)",
+            description = "새로운 프로젝트를 생성합니다. 프로젝트 이미지는 presigned/upload로 업로드 후, response.result의 keyName만 projectImage로 주세요"
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "프로젝트 생성 성공입니다."),
@@ -40,17 +40,7 @@ public class ProjectController {
     })
     @PostMapping(value = "")
     public ApiResponse<ProjectResponse.ProjectCreation> createProject(@RequestBody @Valid ProjectRequest.CreateProject createProject){
-        // 프로젝트 생성 (파일은 Presigned URL을 통해 업로드)
-        String projectImageUrl = null;
-
-        // Presigned URL을 클라이언트에게 제공
-        if (createProject.getProjectImage() != null && !createProject.getProjectImage().isBlank()) {
-            AwsDTO.PresignedUploadRequest presignedUploadRequest = new AwsDTO.PresignedUploadRequest();
-            AwsDTO.PresignedUrlUploadResponse presignedUrlResponse = s3Service.getPresignedUrlToUpload(presignedUploadRequest);
-            System.out.println("Generated Presigned URL Length: " + presignedUrlResponse.getUrl());
-            projectImageUrl = presignedUrlResponse.getUrl();  // URL을 클라이언트에 전달
-        }
-        ProjectResponse.ProjectCreation projectCreation = projectCommandService.createProject(createProject, projectImageUrl);
+        ProjectResponse.ProjectCreation projectCreation = projectCommandService.createProject(createProject);
         return ApiResponse.onSuccess(projectCreation);
     }
 

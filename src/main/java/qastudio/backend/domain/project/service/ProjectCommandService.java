@@ -4,5 +4,5 @@ import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 
 public interface ProjectCommandService {
-    ProjectCreation createProject(ProjectRequest.CreateProject createProject, String projectImageUrl);
+    ProjectCreation createProject(ProjectRequest.CreateProject createProject);
 }
