@@ -3,6 +3,8 @@ package qastudio.backend.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.user.converter.UserConverter;
+import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.repository.User.UserRepository;
@@ -16,10 +18,11 @@ import qastudio.backend.global.s3.service.S3Service;
 public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
+    private final UserConverter userConverter;
     private final S3Service s3Service;
 
     @Override
-    public void createProfile(Long userId, UserRequest.CreateUserInfo userInfo) {
+    public UserResponse.UserProfile createProfile(Long userId, UserRequest.CreateUserInfo userInfo) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
@@ -29,6 +32,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         user.updateProfile(userInfo.getNickname(), profileImageUrl);
+
+        return userConverter.toUserProfile(user);
     }
 
     @Override

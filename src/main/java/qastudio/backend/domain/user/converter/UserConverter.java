@@ -1,6 +1,8 @@
 package qastudio.backend.domain.user.converter;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
@@ -11,7 +13,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
+@RequiredArgsConstructor
 public class UserConverter {
+
+    public static UserResponse.UserProfile toUserProfile(User user) {
+        return UserResponse.UserProfile.builder()
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .build();
+    }
 
     public static UserResponse.UserInfo toUserInfo(User user, Integer projectCnt) {
         return UserResponse.UserInfo.builder()

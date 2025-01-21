@@ -1,16 +1,17 @@
 package qastudio.backend.domain.auth.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import qastudio.backend.jwt.TokenInfo;
 
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AuthResponse {
-    @NotBlank
-    private String accessToken;
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class LoginResponse {
+        private String nickname;
+        private String profileImage;
 
-    @NotBlank
-    private String refreshToken;
+        private TokenInfo token;
+    }
 }

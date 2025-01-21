@@ -38,9 +38,9 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PostMapping("/profile")
-    public ApiResponse<Void> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
-        userCommandService.createProfile(userId, updateUserInfo);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<UserResponse.UserProfile> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
+        UserResponse.UserProfile userProfile = userCommandService.createProfile(userId, updateUserInfo);
+        return ApiResponse.onSuccess(userProfile);
     }
 
     @Operation(

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
@@ -41,9 +42,9 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<TokenInfo> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
-        TokenInfo signUpResponse = authCommandService.userSignUp(authRequest);
-        return ApiResponse.onSuccess(signUpResponse);
+    public ApiResponse< AuthResponse.LoginResponse> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
+        AuthResponse.LoginResponse loginResponse = authCommandService.userSignUp(authRequest);
+        return ApiResponse.onSuccess(loginResponse);
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
@@ -117,8 +118,8 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<TokenInfo> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
-        TokenInfo loginResponse = authCommandService.localLogin(authRequest);
+    public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
+        AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
     }
 
