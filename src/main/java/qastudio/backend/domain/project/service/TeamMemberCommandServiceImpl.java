@@ -32,15 +32,13 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     private final ProjectRepository projectRepository;
 
     @Override
-    public List<UserProject> inviteMembers(TeamMemberRequest.Invite inviteMembers) {
-
-        Long projectId = inviteMembers.getProjectId();
+    public List<UserProject> inviteMembers(Long projectId, List<TeamMemberRequest.MemberEmail> memberEmailList) {
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
-        return inviteMembers.getMemberEmailList().stream()
+        return memberEmailList.stream()
                 .map(memberEmail -> {
                     Long userId = memberEmail.getUserId();
                     String email = memberEmail.getEmail();

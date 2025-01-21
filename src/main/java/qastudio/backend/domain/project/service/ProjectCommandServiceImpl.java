@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
+import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.PageScenario;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
@@ -43,14 +44,15 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     private final PageRepository pageRepository;
     private final ProjectRepository projectRepository;
     private final PageScenarioRepository pageScenarioRepository;
+    private final TeamMemberCommandService teamMemberCommandService;
+    private final ProjectConverter projectConverter;
+    private final UserRepository userRepository;
+    private final UserProjectRepository userProjectRepository;
 
     @Value("${ai.base-url}")
     String baseUrl;
     @Value("${ai.project-information}")
     String projectInformationUrl;
-    private final ProjectConverter projectConverter;
-    private final UserRepository userRepository;
-    private final UserProjectRepository userProjectRepository;
 
     @Override
     public Project uploadProjectFile(Long userId, Long projectId, MultipartFile zipFile, String token) throws JsonProcessingException {
@@ -157,15 +159,21 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     }
 
     public ProjectCreation createProject(Long userId, ProjectRequest.CreateProject createProject) {
+        // 프로젝트 저장
         Project newProject = projectConverter.toProject(createProject);
         Project savedProject = projectRepository.save(newProject);
 
+        // 유저 조회
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
+        // 프로젝트 생성자 (Leader) 설정
         UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(null).build();
-
         userProjectRepository.save(userProject);
+
+        // 팀원 초대
+        List<TeamMemberRequest.MemberEmail> memberEmailList = createProject.getMemberEmailList();
+        teamMemberCommandService.inviteMembers(newProject.getId(), memberEmailList);
 
         return projectConverter.toProjectCreationResponse(userProject, savedProject);
     }
