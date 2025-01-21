@@ -4,13 +4,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
-import qastudio.backend.domain.project.entity.CharacterTable;
+import qastudio.backend.domain.project.entity.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import qastudio.backend.domain.project.entity.PageRole;
-import qastudio.backend.domain.project.entity.Project;
-import qastudio.backend.domain.project.entity.UserProject;
+
 import qastudio.backend.domain.scenario.entity.Scenario;
 
 @Component
@@ -116,6 +114,16 @@ public class CharacterConverter {
                 .characterName(character.getCharacterName())
                 .characterDescription(character.getCharacterDescription())
                 .accessPage(accessPages)
+                .build();
+    }
+
+    public static CharacterResponse.ProjectPath toProjectPath(List<Page> pages) {
+        List<String> paths = pages.stream()
+                .map(Page::getPath)
+                .toList();
+
+        return CharacterResponse.ProjectPath.builder()
+                .projectPaths(paths)
                 .build();
     }
 }
