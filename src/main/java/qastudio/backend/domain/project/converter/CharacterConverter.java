@@ -118,8 +118,13 @@ public class CharacterConverter {
     }
 
     public static CharacterResponse.ProjectPathList toProjectPathList(List<Page> pages) {
-        List<String> paths = pages.stream()
-                .map(Page::getPath)
+        List<CharacterResponse.PageInfo> paths = pages.stream()
+                .map(page -> {
+                    return CharacterResponse.PageInfo.builder()
+                            .pageId(page.getId())
+                            .path(page.getPath())
+                            .build();
+                })
                 .toList();
 
         return CharacterResponse.ProjectPathList.builder()

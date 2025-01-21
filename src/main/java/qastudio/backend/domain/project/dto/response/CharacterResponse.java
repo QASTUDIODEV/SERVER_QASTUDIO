@@ -97,7 +97,16 @@ public class CharacterResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class PageInfo {
+        private Long pageId;
+        private String path;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ProjectPathList {
-        private List<String> projectPaths;
+        private List<PageInfo> projectPaths;
     }
 }
