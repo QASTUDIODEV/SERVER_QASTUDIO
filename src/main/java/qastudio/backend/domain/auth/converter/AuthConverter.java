@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
+import qastudio.backend.jwt.TokenInfo;
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +33,16 @@ public class AuthConverter {
         user.addAccount(accountTable);
 
         return user;
+    }
+
+    public AuthResponse.LoginResponse toLoginResponse(TokenInfo tokenInfo, User user) {
+        AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder()
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .token(tokenInfo)
+                .build();
+
+        return loginResponse;
     }
 
 }
