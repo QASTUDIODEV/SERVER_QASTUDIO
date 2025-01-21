@@ -117,12 +117,12 @@ public class CharacterConverter {
                 .build();
     }
 
-    public static CharacterResponse.ProjectPath toProjectPath(List<Page> pages) {
+    public static CharacterResponse.ProjectPathList toProjectPathList(List<Page> pages) {
         List<String> paths = pages.stream()
                 .map(Page::getPath)
                 .toList();
 
-        return CharacterResponse.ProjectPath.builder()
+        return CharacterResponse.ProjectPathList.builder()
                 .projectPaths(paths)
                 .build();
     }

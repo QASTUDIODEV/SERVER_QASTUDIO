@@ -10,6 +10,4 @@ public interface CharacterCommandService {
     CharacterResponse.CharacterScenario updateCharacter(Long characterId, CharacterRequest.UpdateCharacter updateCharacter);
 
     void deleteCharacters(List<Long> characterIds);
-
-    CharacterResponse.ProjectPath getProjectPath(Long projectId);
 }

@@ -116,11 +116,4 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
         characterTableRepository.deleteAll(charactersToDelete);
     }
-
-    @Override
-    public CharacterResponse.ProjectPath getProjectPath(Long projectId) {
-        // 페이지 조회
-        List<Page> pages = pageRepository.findAllByProjectId(projectId);
-        return CharacterConverter.toProjectPath(pages);
-    }
 }

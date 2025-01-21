@@ -97,7 +97,7 @@ public class CharacterResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class ProjectPath {
+    public static class ProjectPathList {
         private List<String> projectPaths;
     }
 }
