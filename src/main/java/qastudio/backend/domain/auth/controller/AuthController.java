@@ -144,7 +144,7 @@ public class AuthController {
                     description = "잘못된 요청입니다."
             )
     })
-    @PostMapping("/login/kakao")
+    @GetMapping("/login/kakao")
     public RedirectView kakaoLogin() {
         return new RedirectView("/oauth2/authorization/kakao");
     }
@@ -163,7 +163,7 @@ public class AuthController {
                     description = "잘못된 요청입니다."
             )
     })
-    @PostMapping("/login/google")
+    @GetMapping("/login/google")
     public RedirectView googleLogin() {
         return new RedirectView("/oauth2/authorization/google");
     }
@@ -183,7 +183,7 @@ public class AuthController {
                     description = "잘못된 요청입니다."
             )
     })
-    @PostMapping("/login/github")
+    @GetMapping("/login/github")
     public RedirectView githubLogin() {
         return new RedirectView("/oauth2/authorization/github");
     }
