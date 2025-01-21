@@ -48,4 +48,15 @@ public class ProjectResponse {
         private ViewType viewType;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ProjectCreation {
+        private Long projectId;
+        private String projectName;
+        private String projectImage;
+        private String projectUrl;
+        private List<String> memberEmails;
+    }
 }
