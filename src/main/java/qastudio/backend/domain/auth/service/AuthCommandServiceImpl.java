@@ -23,6 +23,7 @@ import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -41,12 +42,15 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     @Override
     public  AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
-        if (accountTableRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
-        }
+        List<AccountTable> accountTables = accountTableRepository.findByEmail(request.getEmail());
 
-        User user = authConverter.toUser(request);
-        userRepository.save(user);
+        if (accountTables.isEmpty()) {
+            User user = authConverter.toUser(request);
+            userRepository.save(user);
+        } else {
+            User user = accountTables.get(0).getUser();
+            authConverter.toAccountTable(request.getEmail(), request.getPassword(), user);
+        }
 
         return authenticateAndGenerateToken(request.getEmail(), request.getPassword());
     }

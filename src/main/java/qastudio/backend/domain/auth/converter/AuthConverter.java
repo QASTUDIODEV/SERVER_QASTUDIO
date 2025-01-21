@@ -8,6 +8,7 @@ import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.jwt.TokenInfo;
 
 @Component
@@ -15,6 +16,7 @@ import qastudio.backend.jwt.TokenInfo;
 public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
+    private final AccountTableRepository accountTableRepository;
 
     public User toUser(AuthRequest.LocalRequest request) {
         User user = User.builder()
@@ -31,6 +33,21 @@ public class AuthConverter {
         user.addAccount(accountTable);
 
         return user;
+    }
+
+    public AccountTable toAccountTable(String email, String password, User user) {
+        AccountTable accountTable = AccountTable.builder()
+                .emailType(EmailType.LOCAL)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .user(user)
+                .build();
+
+        accountTableRepository.save(accountTable);
+
+        user.addAccount(accountTable);
+
+        return accountTable;
     }
 
     public AuthResponse.LoginResponse toLoginResponse(TokenInfo tokenInfo, User user) {
