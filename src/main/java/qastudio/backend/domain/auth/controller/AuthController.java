@@ -38,7 +38,7 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
     @PostMapping("/sign-up")
@@ -47,7 +47,7 @@ public class AuthController {
         return ApiResponse.onSuccess(loginResponse);
     }
 
-    @Operation(summary = "자체 회원가입 이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
@@ -124,7 +124,15 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Kakao Web 소셜 로그인 용 API",
+            summary = "로그인 성공 후 토큰 전송 내부 API (백엔드 전용) | by 지지",
+            description = "클라이언트 사용하지 않는 API 입니다.")
+    @GetMapping("/login/success")
+    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
+        return ApiResponse.onSuccess(tokenInfo);
+    }
+
+    @Operation(
+            summary = "Kakao Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 카카오 소셜 로그인을 합니다."
     )
     @ApiResponses({
@@ -134,16 +142,16 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
-    @PostMapping("/login/kakao")
+    @GetMapping("/login/kakao")
     public RedirectView kakaoLogin() {
         return new RedirectView("/oauth2/authorization/kakao");
     }
 
     @Operation(
-            summary = "Google Web 소셜 로그인 용 API",
+            summary = "Google Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 구글 소셜 로그인을 합니다."
     )
     @ApiResponses({
@@ -153,17 +161,17 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
-    @PostMapping("/login/google")
+    @GetMapping("/login/google")
     public RedirectView googleLogin() {
         return new RedirectView("/oauth2/authorization/google");
     }
 
 
     @Operation(
-            summary = "Github Web 소셜 로그인 용 API",
+            summary = "Github Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 github 소셜 로그인을 합니다."
     )
     @ApiResponses({
@@ -173,10 +181,10 @@ public class AuthController {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON400",
-                    description = "잘못된 요청입니다."
+                    description = "Invalid request."
             )
     })
-    @PostMapping("/login/github")
+    @GetMapping("/login/github")
     public RedirectView githubLogin() {
         return new RedirectView("/oauth2/authorization/github");
     }

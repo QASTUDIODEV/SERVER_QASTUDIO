@@ -1,6 +1,5 @@
 package qastudio.backend.domain.auth.dto.response;
 
-
 import lombok.*;
 import qastudio.backend.jwt.TokenInfo;
 

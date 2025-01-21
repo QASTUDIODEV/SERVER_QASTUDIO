@@ -104,3 +104,4 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         accountTableRepository.save(account);
     }
 }
+

@@ -42,14 +42,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * 인증 필터 제외 경로
-     */
+    // 인증 필터 제외 경로
     private boolean isExcluded(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.startsWith("/swagger-ui") || // Swagger 관련 경로 제외
+        return uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/v3/api-docs") ||
                 uri.startsWith("/api/v0/auth") || // 모든 인증 관련 경로 제외
+                uri.startsWith("/oauth2") ||      // OAuth2 로그인 요청 경로 추가
                 uri.startsWith("/css") ||
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||
@@ -58,9 +57,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 uri.equals("/health");
     }
 
-    /**
-     * JWT 토큰 인증 처리
-     */
+    // JWT 토큰 인증 처리
     private void processTokenAuthentication(HttpServletRequest request) {
         String token = getToken(request);
 
@@ -78,9 +75,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         throw new TokenException(ErrorStatus.INVALID_TOKEN);
     }
 
-    /**
-     * Authorization 헤더에서 토큰 추출
-     */
+    // Authorization 헤더에서 토큰 추출
     private String getToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
