@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public class ProjectRequest {
     @Getter
     public static class CreateProject {
         // 프로젝트 생성
+        @NotNull(message = "userId 은 필수 입력 값입니다.")
+        private Long userId;
         private String projectImage;
         @NotBlank(message = "projectName 은 필수 입력 값입니다.")
         private String projectName;

@@ -17,7 +17,6 @@ import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
-import qastudio.backend.global.s3.dto.AwsDTO;
 import qastudio.backend.global.s3.service.S3Service;
 
 
@@ -39,8 +38,8 @@ public class ProjectController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @PostMapping(value = "")
-    public ApiResponse<ProjectResponse.ProjectCreation> createProject(@RequestBody @Valid ProjectRequest.CreateProject createProject){
-        ProjectResponse.ProjectCreation projectCreation = projectCommandService.createProject(createProject);
+    public ApiResponse<ProjectResponse.ProjectCreation> createProject(@Auth Long userId, @RequestBody @Valid ProjectRequest.CreateProject createProject){
+        ProjectResponse.ProjectCreation projectCreation = projectCommandService.createProject(userId, createProject);
         return ApiResponse.onSuccess(projectCreation);
     }
 

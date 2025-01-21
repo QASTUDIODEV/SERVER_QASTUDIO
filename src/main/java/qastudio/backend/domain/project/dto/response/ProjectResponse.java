@@ -53,6 +53,7 @@ public class ProjectResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ProjectCreation {
+        private Long userId;
         private Long projectId;
         private String projectName;
         private String projectImage;
