@@ -8,8 +8,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,11 +32,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors->cors.configurationSource(corsConfigurationSource()))
-                // CSRF 설정: JWT 기반 인증을 사용할 때는 비활성화 권장
-                .csrf(csrf -> csrf.disable())
-
-                // 인증 및 인가 설정
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 (JWT 기반 인증 시)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/css/**",
@@ -56,26 +51,14 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-
-                // 세션 관리: JWT 사용 시 세션 비활성화
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-
-                // 기본 로그인 폼 비활성화
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())
-
-                // HTTP 기본 인증 비활성화
                 .httpBasic(httpBasic -> httpBasic.disable())
-
-
-                // oauth2 설정
                 .oauth2Login(oauth ->
-                        // OAuth2 로그인 성공 이후 사용자 정보를 가져올 때의 설정을 담당
                         oauth.userInfoEndpoint(c -> c.userService(customOAuth2UserService))
-                                // 로그인 성공 시 핸들러
                                 .successHandler(oAuth2SuccessHandler)
                 )
-
-                // JWT 필터 추가: UsernamePasswordAuthenticationFilter 앞에 실행
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -87,21 +70,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(
                 List.of(
-                    "http://localhost:*",
-                    "http://localhost",
-                    "https://www.qa-studio.com",
-                    "https://back.qa-studio.com"
+                        "http://localhost:*",
+                        "http://localhost",
+                        "https://www.qa-studio.com",
+                        "https://back.qa-studio.com"
                 )
-        ); // 와일드카드 패턴 사용
+        );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -110,5 +88,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

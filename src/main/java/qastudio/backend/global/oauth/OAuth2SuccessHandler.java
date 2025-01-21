@@ -1,5 +1,6 @@
 package qastudio.backend.global.oauth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,9 +12,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import qastudio.backend.domain.auth.converter.AuthConverter;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
+import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -26,7 +31,9 @@ import java.util.Optional;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
     private final AccountTableRepository accountTableRepository;
+    private final AuthConverter authConverter;
     private static final String URI = "/api/v0/auth/login/success";
 
     @Override
@@ -59,19 +66,17 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // 생성된 유저 정보 가져오기
         AccountTable account = accountOptional.get();
-        Long userId = account.getUser().getId();
+        User user = account.getUser();
 
         // accessToken, refreshToken 발급
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(userId, authentication, true);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, true);
 
-        // 토큰 전달 Redirect URL
-        String redirectUrl = UriComponentsBuilder.fromUriString(URI)
-                .queryParam("type", "Bearer")
-                .queryParam("accessToken", tokenInfo.getAccessToken())
-                .queryParam("refreshToken", tokenInfo.getRefreshToken())
-                .build()
-                .toUriString();
+        AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, user);
+        ApiResponse<AuthResponse.LoginResponse> apiResponse = ApiResponse.onSuccess(loginResponse);
 
-        response.sendRedirect(redirectUrl);
+        // JSON 응답 전송
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }
