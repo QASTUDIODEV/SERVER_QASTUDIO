@@ -11,11 +11,14 @@ import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
+import qastudio.backend.domain.project.service.ProjectCommandService;
 import qastudio.backend.domain.project.service.ProjectQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
+import qastudio.backend.global.s3.dto.AwsDTO;
+import qastudio.backend.global.s3.service.S3Service;
 
 
 @RestController
@@ -24,15 +27,21 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectQueryService projectQueryService;
+    private final ProjectCommandService projectCommandService;
+    private final S3Service s3Service;
 
     @Operation(
-            summary = "프로젝트 생성 API",
-            description = "새로운 프로젝트를 생성합니다."
+            summary = "프로젝트 생성 API | by 챠리 (팀원 초대 미완)",
+            description = "새로운 프로젝트를 생성합니다. 프로젝트 이미지는 presigned/upload로 업로드 후, response.result의 keyName만 projectImage로 주세요"
     )
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<ProjectResponse.ProjectDetail> createProject(@RequestBody @Valid ProjectRequest.CreateProject createProject){
-        ProjectResponse.ProjectDetail projectDetail = projectQueryService.createProject(createProject);
-        return ApiResponse.onSuccess(projectDetail);
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "프로젝트 생성 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @PostMapping(value = "")
+    public ApiResponse<ProjectResponse.ProjectCreation> createProject(@RequestBody @Valid ProjectRequest.CreateProject createProject){
+        ProjectResponse.ProjectCreation projectCreation = projectCommandService.createProject(createProject);
+        return ApiResponse.onSuccess(projectCreation);
     }
 
     @Operation(
