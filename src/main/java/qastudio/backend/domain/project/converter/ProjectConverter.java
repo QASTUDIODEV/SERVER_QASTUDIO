@@ -29,6 +29,8 @@ public class ProjectConverter {
                 .projectUrl(project.getProjectUrl())
                 .introduction(project.getIntroduction())
                 .viewType(project.getViewType())
+                .assistantId(project.getAssistantId())
+                .developmentSkill(project.getDevelopmentSkill())
                 .build();
     }
 
