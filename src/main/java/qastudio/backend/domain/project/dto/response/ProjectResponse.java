@@ -46,6 +46,10 @@ public class ProjectResponse {
         private String introduction;
         // 프로젝트 분류
         private ViewType viewType;
+        // 프로젝트 스택
+        private String developmentSkill;
+        // assistant_id
+        protected String assistantId;
     }
 
 }

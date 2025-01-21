@@ -1,8 +1,15 @@
 package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
@@ -12,19 +19,18 @@ import qastudio.backend.domain.project.repository.UserProject.UserProjectReposit
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProjectQueryServiceImpl implements ProjectQueryService {
 
     private final UserProjectRepository userProjectRepository;
     private final ProjectRepository projectRepository;
 
-    @Override
-    public Project uploadProjectFile(Long projectId, MultipartFile zipFile) {
-        return null;
-    }
 
     @Override
     public Project getSummarizedProjectInfo(Long projectId) {

@@ -37,6 +37,12 @@ public class Project extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ViewType viewType;
 
+    @Column(name = "assistant_id")
+    private String assistantId;
+
+    @Column(name = "development_skill")
+    private String developmentSkill;
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CharacterTable> characterTables = new ArrayList<>();
 
@@ -45,4 +51,17 @@ public class Project extends BaseEntity {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Test> tests = new ArrayList<>();
+
+    public void updateProjectInfo(String assistantId, String introduction, String viewType, String developmentSkill) {
+        this.assistantId = assistantId;
+        this.introduction = introduction;
+        this.developmentSkill = developmentSkill;
+
+        try {
+            // 대소문자 확인
+            this.viewType = ViewType.valueOf(viewType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("유효하지 않은 ViewType 값: " + viewType, e);
+        }
+    }
 }

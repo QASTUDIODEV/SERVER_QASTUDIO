@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -11,8 +12,11 @@ import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.entity.Project;
+import qastudio.backend.domain.project.service.ProjectCommandService;
 import qastudio.backend.domain.project.service.ProjectQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
@@ -24,6 +28,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectQueryService projectQueryService;
+    private final ProjectCommandService projectCommandService;
 
     @Operation(
             summary = "프로젝트 생성 API",
@@ -45,8 +50,21 @@ public class ProjectController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @PostMapping(value = "/upload/{projectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<ProjectResponse.ProjectDetail> uploadProjectFile(@PathVariable("projectId") Long projectId, @RequestParam("zipFile") MultipartFile zipFile) {
-        Project project = projectQueryService.uploadProjectFile(projectId, zipFile);
+    public ApiResponse<ProjectResponse.ProjectDetail> uploadProjectFile(
+            @Auth Long userId,
+            @PathVariable("projectId") Long projectId,
+            @RequestParam("zipFile") MultipartFile zipFile,
+            @RequestHeader("Authorization") String authorizationHeader ) throws JsonProcessingException {
+
+        // 헤더에서 토큰 값 추출
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else {
+            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
+        }
+
+        Project project = projectCommandService.uploadProjectFile(userId, projectId, zipFile, token);
         return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
