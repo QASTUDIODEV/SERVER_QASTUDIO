@@ -14,6 +14,7 @@ import java.util.Map;
 @Slf4j
 public class OAuth2UserInfo {
 
+    // 사용자 id, 소셜 타입
     private final String id;
     private final EmailType emailType;
 
@@ -48,8 +49,6 @@ public class OAuth2UserInfo {
         if (idObj == null || emailObj == null) {
             throw new AuthException(ErrorStatus.UNSUPPORTED_SOCIAL_TYPE);
         }
-
-        log.info("Google OAuth2 login successful: id = {}, email = {}", idObj, emailObj);
 
         return OAuth2UserInfo.builder()
                 .id(String.valueOf(idObj))

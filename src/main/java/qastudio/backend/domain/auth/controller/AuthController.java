@@ -23,7 +23,7 @@ public class AuthController {
     private final EmailQueryService emailQueryService;
 
     @Operation(
-            summary = "User 자체 회원가입 API | by 지지",
+            summary = "자체 회원가입 API | by 지지",
             description = "사용자가 자체 회원가입을 합니다."
     )
     @ApiResponses({
@@ -150,7 +150,7 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Google Web 소셜 로그인 용 API",
+            summary = "Google Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 구글 소셜 로그인을 합니다."
     )
     @ApiResponses({
@@ -170,7 +170,7 @@ public class AuthController {
 
 
     @Operation(
-            summary = "Github Web 소셜 로그인 용 API",
+            summary = "Github Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 github 소셜 로그인을 합니다."
     )
     @ApiResponses({

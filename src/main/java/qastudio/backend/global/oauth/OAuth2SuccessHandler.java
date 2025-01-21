@@ -33,20 +33,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        log.info("OAuth2 authentication success triggered.");
 
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
-
-        log.info("Principal attributes: {}", principal.getAttributes());
 
         // 소셜 로그인 시 필요한 사용자 정보
         String email = (String) principal.getAttributes().get("email");
         String registrationId = (String) principal.getAttributes().get("registrationId");
 
-        log.info("Extracted email: {}, registrationId: {}", email, registrationId);
-
         if (email == null || registrationId == null) {
-            log.error("Missing email or registrationId in OAuth2 attributes.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "email 또는 registrationId가 null입니다.");
             return;
         }
@@ -55,25 +49,20 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        log.info("User info extracted - EmailType: {}", emailType);
-
-        log.info("Fetching user with email: {} and emailType: {}", email, emailType);
+        // 사용자 정보 확인
         Optional<AccountTable> accountOptional = accountTableRepository.findByEmailAndEmailType(email, emailType);
 
         if (accountOptional.isEmpty()) {
-            log.error("User not found for email: {}, emailType: {}", email, emailType);
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
             return;
         }
 
+        // 생성된 유저 정보 가져오기
         AccountTable account = accountOptional.get();
         Long userId = account.getUser().getId();
 
-        log.info("User found with ID: {}", userId);
-
         // accessToken, refreshToken 발급
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(userId, authentication, true);
-        log.info("Generated tokens - AccessToken: {}, RefreshToken: {}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
 
         // 토큰 전달 Redirect URL
         String redirectUrl = UriComponentsBuilder.fromUriString(URI)
@@ -82,8 +71,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .queryParam("refreshToken", tokenInfo.getRefreshToken())
                 .build()
                 .toUriString();
-
-        log.info("Redirecting to: {}", redirectUrl);
 
         response.sendRedirect(redirectUrl);
     }
