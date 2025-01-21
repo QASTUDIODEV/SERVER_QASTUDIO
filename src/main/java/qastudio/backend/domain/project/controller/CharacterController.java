@@ -139,7 +139,7 @@ public class CharacterController {
                             )
                     )),
     })
-    @GetMapping("/path")
+    @GetMapping("/paths")
     public ApiResponse<CharacterResponse.ProjectPath>  getProjectPath(@PathVariable("projectId") Long projectId) {
         CharacterResponse.ProjectPath projectPath = characterCommandService.getProjectPath(projectId);
         return ApiResponse.onSuccess(projectPath);
