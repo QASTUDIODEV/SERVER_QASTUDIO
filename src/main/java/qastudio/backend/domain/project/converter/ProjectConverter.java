@@ -9,6 +9,7 @@ import qastudio.backend.domain.project.entity.Project;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 import qastudio.backend.global.s3.service.S3Service;
 
@@ -65,8 +66,9 @@ public class ProjectConverter {
                 .build();
     }
 
-    public ProjectCreation toProjectCreationResponse(Project newProject) {
+    public ProjectCreation toProjectCreationResponse(UserProject userproject, Project newProject) {
         return ProjectCreation.builder()
+                .userId(userproject.getUser().getId())
                 .projectId(newProject.getId())
                 .projectName(newProject.getProjectName())
                 .projectImage(newProject.getProjectImage())
