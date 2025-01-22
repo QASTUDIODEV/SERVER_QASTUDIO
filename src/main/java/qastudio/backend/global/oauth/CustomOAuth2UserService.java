@@ -61,7 +61,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
 
-        getOrSave(oAuth2UserInfo, email);
+        User user = getOrSave(oAuth2UserInfo, email);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
@@ -71,14 +71,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     // 사용자 조회 또는 저장
+    // 이메일로 사용자 조회 후 없으면 회원가입
     private User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
-        return accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType())
-                .map(AccountTable::getUser)
-                .orElseGet(() -> createUser(oAuth2UserInfo, email));
+        List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
+
+        if (existingAccounts.isEmpty()) {
+            return createNewUser(email, oAuth2UserInfo);
+        } else {
+            return linkSocialAccount(existingAccounts.get(0).getUser(), email, oAuth2UserInfo);
+        }
     }
 
-    // 사용자 생성
-    private User createUser(OAuth2UserInfo oAuth2UserInfo, String email) {
+    // 새로운 사용자 및 계정 생성
+    private User createNewUser(String email, OAuth2UserInfo oAuth2UserInfo) {
         User user = User.builder()
                 .nickname("")
                 .build();
@@ -92,8 +97,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .build();
 
         user.addAccount(accountTable);
-
         accountTableRepository.save(accountTable);
+
+        log.info("New user created with email: {}", email);
+        return user;
+    }
+
+    // 기존 사용자에 소셜 계정 추가
+    private User linkSocialAccount(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
+        // 해당 소셜 로그인 계정이 이미 존재하는지 확인
+        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType()).isPresent();
+
+        if (!accountExists) {
+            AccountTable newAccount = AccountTable.builder()
+                    .email(email)
+                    .emailType(oAuth2UserInfo.getEmailType())
+                    .user(user)
+                    .build();
+
+            user.addAccount(newAccount);
+            accountTableRepository.save(newAccount);
+        }
 
         return user;
     }
