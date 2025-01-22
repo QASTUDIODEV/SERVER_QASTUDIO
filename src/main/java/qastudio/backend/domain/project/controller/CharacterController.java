@@ -113,4 +113,35 @@ public class CharacterController {
         characterCommandService.deleteCharacters(deleteCharacters.getCharacterIds());
         return ApiResponse.onSuccess(null);
     }
+
+    @Operation(
+            summary = "프로젝트에 해당하는 모든 경로 조회 API | by 노을",
+            description = "역할을 생성할 때 프로젝트에 해당하는 모든 path를 조회합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                    name = "PROJECT404",
+                                    summary = "존재하지 않는 프로젝트입니다.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                            )
+                    )),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                    name = "COMMON400",
+                                    summary = "잘못된 요청입니다.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                            )
+                    )),
+    })
+    @GetMapping("/paths")
+    public ApiResponse<CharacterResponse.ProjectPathList>  getProjectPaths(@PathVariable("projectId") Long projectId) {
+        CharacterResponse.ProjectPathList projectPath = characterQueryService.getProjectPaths(projectId);
+        return ApiResponse.onSuccess(projectPath);
+    }
 }
