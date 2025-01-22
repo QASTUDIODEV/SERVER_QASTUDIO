@@ -1,7 +1,9 @@
 package qastudio.backend.domain.project.converter;
 
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
+import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.project.entity.enums.Role;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 
@@ -63,6 +65,15 @@ public class TeamMemberConverter {
 
         return TeamMemberResponse.UserEmailList.builder()
                 .userEmails(userEmails)
+                .build();
+    }
+
+    public static UserProject toUserProject(User user, Project project, Role role, String email) {
+        return UserProject.builder()
+                .user(user)
+                .project(project)
+                .role(role)
+                .userEmail(email)
                 .build();
     }
 }

@@ -78,7 +78,7 @@ public class TeamMemberController {
     })
     @PostMapping("/team-members/invite")
     public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers);
+        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
     }
 

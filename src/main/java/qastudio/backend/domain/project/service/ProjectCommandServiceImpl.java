@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import qastudio.backend.domain.project.converter.ProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
+import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.PageScenario;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
@@ -38,29 +40,31 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProjectCommandServiceImpl implements ProjectCommandService{
 
     private final PageRepository pageRepository;
     private final ProjectRepository projectRepository;
     private final PageScenarioRepository pageScenarioRepository;
+    private final TeamMemberCommandService teamMemberCommandService;
+    private final ProjectConverter projectConverter;
+    private final UserRepository userRepository;
+    private final UserProjectRepository userProjectRepository;
 
     @Value("${ai.base-url}")
     String baseUrl;
     @Value("${ai.project-information}")
     String projectInformationUrl;
-    private final ProjectConverter projectConverter;
-    private final UserRepository userRepository;
-    private final UserProjectRepository userProjectRepository;
 
     @Override
     public Project uploadProjectFile(Long userId, Long projectId, MultipartFile zipFile, String token) throws JsonProcessingException {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         // ai 서버에 프로젝트 정보 요청
         String response = getResponse(userId, projectId, zipFile, token);
-
-        // 프로젝트 정보 수정
-        Project project = projectRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+        log.info(response);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -157,15 +161,21 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     }
 
     public ProjectCreation createProject(Long userId, ProjectRequest.CreateProject createProject) {
+        // 프로젝트 저장
         Project newProject = projectConverter.toProject(createProject);
         Project savedProject = projectRepository.save(newProject);
 
+        // 유저 조회
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
+        // 프로젝트 생성자 (Leader) 설정
         UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(null).build();
-
         userProjectRepository.save(userProject);
+
+        // 팀원 초대
+        List<TeamMemberRequest.MemberEmail> memberEmailList = createProject.getMemberEmailList();
+        teamMemberCommandService.inviteMembers(newProject.getId(), memberEmailList);
 
         return projectConverter.toProjectCreationResponse(userProject, savedProject);
     }
