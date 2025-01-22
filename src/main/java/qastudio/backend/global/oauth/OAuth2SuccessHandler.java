@@ -30,7 +30,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccountTableRepository accountTableRepository;
 
     // 추후 수정할 예정입니다.
-    private static final String FRONTEND_URL = "http://localhost:3000/login/success";
+    private static final String FRONTEND_URL = "http://localhost:5173/login/success";
 
     @Override
     @Transactional
