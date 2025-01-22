@@ -1,7 +1,7 @@
 package qastudio.backend.global.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -12,13 +12,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import qastudio.backend.domain.auth.converter.AuthConverter;
-import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.user.entity.AccountTable;
-import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -31,10 +27,10 @@ import java.util.Optional;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
     private final AccountTableRepository accountTableRepository;
-    private final AuthConverter authConverter;
-    private static final String URI = "/api/v0/auth/login/success";
+
+    // 추후 수정할 예정입니다.
+    private static final String FRONTEND_URL = "http://localhost:3000/login/success";
 
     @Override
     @Transactional
@@ -42,8 +38,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException, ServletException {
 
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
-
-        // 소셜 로그인 시 필요한 사용자 정보
         String email = (String) principal.getAttributes().get("email");
         String registrationId = (String) principal.getAttributes().get("registrationId");
 
@@ -52,31 +46,39 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // OAuth2UserInfo 생성
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        // 사용자 정보 확인
         Optional<AccountTable> accountOptional = accountTableRepository.findByEmailAndEmailType(email, emailType);
-
         if (accountOptional.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
             return;
         }
 
-        // 생성된 유저 정보 가져오기
         AccountTable account = accountOptional.get();
-        User user = account.getUser();
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(account.getUser().getId(), authentication, true);
 
-        // accessToken, refreshToken 발급
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, true);
+        // Access Token 쿠키 설정
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
+        accessTokenCookie.setHttpOnly(false);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
+        response.addCookie(accessTokenCookie);
 
-        AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, user);
-        ApiResponse<AuthResponse.LoginResponse> apiResponse = ApiResponse.onSuccess(loginResponse);
+        // Refresh Token 쿠키 설정
+        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
+        response.addCookie(refreshTokenCookie);
 
-        // JSON 응답 전송
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
+                .queryParam("nickname", account.getUser().getNickname())
+                .build()
+                .toUriString();
+
+        response.sendRedirect(redirectUrl);
     }
 }

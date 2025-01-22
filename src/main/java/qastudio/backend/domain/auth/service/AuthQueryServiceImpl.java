@@ -1,5 +1,7 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,5 +26,17 @@ public class AuthQueryServiceImpl implements AuthQueryService {
         AccountTable account = accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
         return account.getUser();
+    }
+
+    @Override
+    public String getCookieValue(HttpServletRequest request, String name) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(name)) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
