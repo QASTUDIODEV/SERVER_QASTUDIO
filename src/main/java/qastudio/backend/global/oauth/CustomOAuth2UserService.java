@@ -99,7 +99,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.addAccount(accountTable);
         accountTableRepository.save(accountTable);
 
-        log.info("New user created with email: {}", email);
         return user;
     }
 
