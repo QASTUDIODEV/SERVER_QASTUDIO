@@ -61,7 +61,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // Access Token 쿠키 설정
         Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
         accessTokenCookie.setHttpOnly(false);
-        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
         response.addCookie(accessTokenCookie);
@@ -69,7 +69,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // Refresh Token 쿠키 설정
         Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
         refreshTokenCookie.setHttpOnly(false);
-        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
         response.addCookie(refreshTokenCookie);
