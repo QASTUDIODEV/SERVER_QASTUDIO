@@ -24,4 +24,7 @@ public class Error extends BaseEntity {
 
     @Column(name = "error_image")
     private String errorImage;
+
+    @OneToOne(mappedBy = "error", fetch = FetchType.LAZY)
+    private Test test;
 }
