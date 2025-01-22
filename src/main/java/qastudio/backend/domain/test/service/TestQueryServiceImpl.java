@@ -32,62 +32,55 @@ public class TestQueryServiceImpl implements TestQueryService{
     }
 
     // 전체 테스트 수
+    @Override
     public Long getTotalTests(Long projectId) {
         return testRepository.countByTestDateAndState(projectId, null, null);
     }
 
     // 성공 테스트 수
+    @Override
     public Long getTotalSuccessTests(Long projectId) {
         return testRepository.countByTestDateAndState(projectId, null, State.SUCCESS);
     }
 
     // 실패 테스트 수
+    @Override
     public Long getTotalFailTests(Long projectId) {
         return testRepository.countByTestDateAndState(projectId, null, State.FAIL);
     }
 
     // 전날 대비 성공률
+    @Override
     public Double getSuccessRate(Long projectId) {
-        Long todayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), null);
-        Long todaySuccessTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), State.SUCCESS);
-
-        Long yesterdayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), null);
-        Long yesterdaySuccessTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), State.SUCCESS);
-
-        if (todayTests == 0) {
-            return 0.0; // 오늘 테스트가 없으면 성공 비율은 0
-        }
-
-        if (yesterdayTests == 0) {
-            return 0.0; // 어제 테스트가 없으면 성공 비율은 0
-        }
-
-        Double todaySuccessRate = (double) todaySuccessTests / todayTests * 100;
-        Double yesterdaySuccessRate = (double) yesterdaySuccessTests / yesterdayTests * 100;
-
-        return Math.round((todaySuccessRate - yesterdaySuccessRate) * 10) / 10.0;
+        return calculateRate(projectId, State.SUCCESS);
     }
 
     // 전날 대비 실패율
+    @Override
     public Double getFailRate(Long projectId) {
+        return calculateRate(projectId, State.FAIL);
+    }
+
+    private Double calculateRate(Long projectId, State state) {
         Long todayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), null);
-        Long todayFailTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), State.FAIL);
+        Long todayStateTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), state);
 
         Long yesterdayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), null);
-        Long yesterdayFailTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), State.FAIL);
+        Long yesterdayStateTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), state);
 
-        if (todayTests == 0) {
-            return 0.0; // 오늘 테스트가 없으면 실패 비율은 0
+        if (todayTests == 0 || yesterdayTests == 0) {
+            return 0.0;
         }
 
-        if (yesterdayTests == 0) {
-            return 0.0; // 어제 테스트가 없으면 실패 비율은 0
+        Double todayRate = (double) todayStateTests / todayTests * 100;
+        Double yesterdayRate = (double) yesterdayStateTests / yesterdayTests * 100;
+
+        if (yesterdayRate == 0) {
+            return 0.0;
         }
 
-        Double todayFailRate = (double) todayFailTests / todayTests * 100;
-        Double yesterdayFailRate = (double) yesterdayFailTests / yesterdayTests * 100;
-
-        return Math.round((todayFailRate - yesterdayFailRate) * 10) / 10.0;
+        Double rateChange = ((todayRate - yesterdayRate) / yesterdayRate) * 100;
+        return Math.round(rateChange * 10) / 10.0;
     }
 
     @Override
