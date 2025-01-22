@@ -24,7 +24,7 @@ public class TestController {
 
     @Operation(
             summary = "테스트 리스트 조회 API",
-            description = "테스트 리스트를 조회합니다."
+            description = "테스트 리스트를 조회하고, 테스트 이름을 기준으로 검색합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -32,6 +32,7 @@ public class TestController {
     })
     @Parameters({
             @Parameter(name = "page", description = "페이지 번호, 0번이 1 페이지입니다."),
+            @Parameter(name = "testName", description = "검색할 테스트 이름"),
             @Parameter(name = "date", description = "날짜별 정렬"),
             @Parameter(name = "pageName", description = "페이지별 정렬"),
             @Parameter(name = "state", description = "성취 여부별 정렬")
@@ -40,10 +41,11 @@ public class TestController {
     public ApiResponse<TestResponse.TestList> getTestList(
             @PathVariable("projectId") Long projectId,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "testName", required = false) String testName,
             @RequestParam(name = "date", required = false) LocalDate date,
             @RequestParam(name = "pageName", required = false) String pageName,
             @RequestParam(name = "state", required = false) State state) {
-        TestResponse.TestList testList = testQueryService.getTestList(projectId, page, date, pageName, state);
+        TestResponse.TestList testList = testQueryService.getTestList(projectId, page, testName, date, pageName, state);
         return ApiResponse.onSuccess(testList);
     }
 
@@ -64,33 +66,5 @@ public class TestController {
         Double successRate = testQueryService.getSuccessRate(projectId);
         Double failRate = testQueryService.getFailRate(projectId);
         return ApiResponse.onSuccess(TestConverter.toTestStatistics(testStatistics, totalTestCnt, totalSuccessTestCnt,totalFailTestCnt, successRate, failRate));
-    }
-
-    @Operation(
-            summary = "테스트 검색 API",
-            description = "테스트를 Name(테스트 이름) 기준으로 검색합니다."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "TEST404", description = "존재하지 않는 테스트입니다.")
-    })
-    @Parameters({
-            @Parameter(name = "testName", description = "검색할 테스트 이름"),
-            @Parameter(name = "page", description = "페이지 번호, 0번이 1 페이지입니다."),
-            @Parameter(name = "date", description = "날짜별 정렬"),
-            @Parameter(name = "pageName", description = "페이지별 정렬"),
-            @Parameter(name = "state", description = "성취 여부별 정렬")
-    })
-    @GetMapping("/search")
-    public ApiResponse<TestResponse.TestList> searchTestsByTestName(
-            @PathVariable("projectId") Long projectId,
-            @RequestParam(name = "testName", required = false) String testName,
-            @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "date", required = false) LocalDate date,
-            @RequestParam(name = "pageName", required = false) String pageName,
-            @RequestParam(name = "state", required = false) State state) {
-        TestResponse.TestList testList = testQueryService.searchTestsByTestName(projectId, testName, page, date, pageName, state);
-        return ApiResponse.onSuccess(testList);
     }
 }

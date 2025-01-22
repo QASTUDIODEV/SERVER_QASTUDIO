@@ -21,7 +21,7 @@ public class TestQueryServiceImpl implements TestQueryService{
     private final TestRepository testRepository;
 
     @Override
-    public TestResponse.TestList getTestList(Long projectId, Integer page, LocalDate date, String pageName, State state) {
+    public TestResponse.TestList getTestList(Long projectId, Integer page, String testName, LocalDate date, String pageName, State state) {
         return null;
     };
 
@@ -82,9 +82,4 @@ public class TestQueryServiceImpl implements TestQueryService{
         Double rateChange = ((todayRate - yesterdayRate) / yesterdayRate) * 100;
         return Math.round(rateChange * 10) / 10.0;
     }
-
-    @Override
-    public TestResponse.TestList searchTestsByTestName(Long projectId, String testName, Integer page, LocalDate date, String pageName, State state) {
-        return null;
-    };
 }
