@@ -33,9 +33,13 @@ public enum ErrorStatus implements BaseErrorCode {
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "Failed to send email verification code."),
 
     // Token-related errors
+    NULL_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN400", "The token is null."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "The token is invalid."),
     MISSING_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN404", "Token was not provided."),
     TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "An error occurred while processing the token."),
+
+    // Cookie-related errors
+    MISSING_COOKIES(HttpStatus.UNAUTHORIZED, "COOKIE404", "No cookies found. Please login via social login."),
 
     // Project-related errors
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "The project does not exist."),

@@ -1,6 +1,7 @@
 package qastudio.backend.global.oauth;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -27,6 +28,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AccountTableRepository accountTableRepository;
+
+    // 추후 수정할 예정입니다.
     private static final String FRONTEND_URL = "http://localhost:3000/login/success";
 
     @Override
@@ -47,7 +50,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
         Optional<AccountTable> accountOptional = accountTableRepository.findByEmailAndEmailType(email, emailType);
-
         if (accountOptional.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
             return;
@@ -56,10 +58,24 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         AccountTable account = accountOptional.get();
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(account.getUser().getId(), authentication, true);
 
+        // Access Token 쿠키 설정
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
+        accessTokenCookie.setHttpOnly(false);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 30);   // 30분 윶;
+        response.addCookie(accessTokenCookie);
+
+        // Refresh Token 쿠키 설정
+        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
+        response.addCookie(refreshTokenCookie);
+
         String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
                 .queryParam("nickname", account.getUser().getNickname())
-                .queryParam("accessToken", tokenInfo.getAccessToken())
-                .queryParam("refreshToken", tokenInfo.getRefreshToken())
                 .build()
                 .toUriString();
 

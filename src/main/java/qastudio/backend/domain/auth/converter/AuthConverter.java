@@ -1,13 +1,18 @@
 package qastudio.backend.domain.auth.converter;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.response.AuthResponse;
+import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
+import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.TokenInfo;
 
 @Component
@@ -15,6 +20,7 @@ import qastudio.backend.jwt.TokenInfo;
 public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
+    private final AuthQueryService authQueryService;
 
     public User toUser(AuthRequest.LocalRequest request) {
         User user = User.builder()
@@ -41,6 +47,21 @@ public class AuthConverter {
                 .build();
 
         return loginResponse;
+    }
+
+    public TokenInfo toTokenInfo(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        String accessToken = authQueryService.getCookieValue(request, "accessToken");
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if (accessToken == null || refreshToken == null) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
 }

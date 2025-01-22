@@ -2,10 +2,12 @@ package qastudio.backend.domain.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.AuthResponse;
@@ -22,6 +24,7 @@ public class AuthController {
 
     private final AuthCommandService authCommandService;
     private final EmailQueryService emailQueryService;
+    private final AuthConverter authConverter;
 
     @Operation(
             summary = "자체 회원가입 API | by 지지",
@@ -124,10 +127,12 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "로그인 성공 후 토큰 전송 내부 API (백엔드 확인용) | by 지지",
-            description = "클라이언트 사용하지 않는 API 입니다.")
+            summary = "소셜 로그인 후 토큰 확인 용 API | by 지지",
+            description = "소셜 로그인 후 토큰 확인할 수 있습니다. "
+    )
     @GetMapping("/login/success")
-    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
+    public ApiResponse<TokenInfo> checkCookies(HttpServletRequest request) {
+        TokenInfo tokenInfo = authConverter.toTokenInfo(request);
         return ApiResponse.onSuccess(tokenInfo);
     }
 
