@@ -63,7 +63,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         accessTokenCookie.setHttpOnly(false);
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 30);   // 30분 윶;
+        accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
         response.addCookie(accessTokenCookie);
 
         // Refresh Token 쿠키 설정
