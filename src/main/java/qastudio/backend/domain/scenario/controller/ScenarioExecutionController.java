@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.scenario.dto.request.EnvironmentRequest;
+import qastudio.backend.domain.scenario.dto.request.ScenarioExecutionRequest;
 import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
 import qastudio.backend.domain.scenario.service.ScenarioExecutionService;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -27,7 +28,7 @@ public class ScenarioExecutionController {
     @PostMapping("/{scenarioId}/execute")
     public ApiResponse<ExecutionResultResponse> executeScenario(
             @PathVariable Long scenarioId,
-            @RequestBody @Valid EnvironmentRequest request) {
+            @RequestBody @Valid ScenarioExecutionRequest request) {
         ExecutionResultResponse result = scenarioExecutionService.executeScenario(scenarioId, request);
         return ApiResponse.onSuccess(result);
     }

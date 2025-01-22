@@ -5,16 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotEmpty;
-import java.util.Map;
 
 @Getter
 @NoArgsConstructor
 public class EnvironmentRequest {
 
-    @Schema(description = "HTTP Headers", example = "{ \"Authorization\": \"Bearer token\" }")
-    private Map<String, String> headers;
+    @Schema(description = "WebSocket 세션 ID", example = "user123")
+    @NotEmpty(message = "세션 ID는 필수입니다.")
+    private String sessionId;
 
-    @Schema(description = "Content Type", example = "application/json")
-    @NotEmpty(message = "Content Type은 필수 값입니다.")
-    private String contentType;
+    @Schema(description = "테스트 대상 URL", example = "https://www.wikipedia.org")
+    @NotEmpty(message = "URL은 필수입니다.")
+    private String targetUrl;
 }

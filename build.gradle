@@ -67,6 +67,10 @@ dependencies {
 
 	// web socket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// selenium
+	implementation("org.seleniumhq.selenium:selenium-java:4.15.0")
+	implementation 'org.jsoup:jsoup:1.16.2'
 }
 
 sourceSets {

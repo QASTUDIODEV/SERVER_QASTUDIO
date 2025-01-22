@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Transactional
 public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
     private final ScenarioRepository scenarioRepository;
