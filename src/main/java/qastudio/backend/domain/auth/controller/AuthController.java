@@ -124,14 +124,6 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "로그인 성공 후 토큰 전송 내부 API (백엔드 전용) | by 지지",
-            description = "클라이언트 사용하지 않는 API 입니다.")
-    @GetMapping("/login/success")
-    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
-        return ApiResponse.onSuccess(tokenInfo);
-    }
-
-    @Operation(
             summary = "Kakao Web 소셜 로그인 용 API | by 지지",
             description = "사용자가 카카오 소셜 로그인을 합니다."
     )
