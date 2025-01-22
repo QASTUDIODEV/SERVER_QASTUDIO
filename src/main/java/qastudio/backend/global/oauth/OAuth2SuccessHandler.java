@@ -13,13 +13,13 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import qastudio.backend.domain.user.entity.AccountTable;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AccountTableRepository accountTableRepository;
+    private final AuthUserService authUserService;
 
     // 추후 수정할 예정입니다.
     private static final String FRONTEND_URL = "http://localhost:5173/login/success";
@@ -49,33 +50,39 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        Optional<AccountTable> accountOptional = accountTableRepository.findByEmailAndEmailType(email, emailType);
-        if (accountOptional.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
-            return;
+        User currentUser = authUserService.getAuthenticatedUser();
+
+        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, emailType).isPresent();
+
+        if (!accountExists) {
+            AccountTable newAccount = AccountTable.builder()
+                    .email(email)
+                    .emailType(emailType)
+                    .user(currentUser)
+                    .build();
+
+            currentUser.addAccount(newAccount);
+            accountTableRepository.save(newAccount);
         }
 
-        AccountTable account = accountOptional.get();
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(account.getUser().getId(), authentication, true);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        // Access Token 쿠키 설정
         Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
         accessTokenCookie.setHttpOnly(false);
-        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setSecure(false);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
+        accessTokenCookie.setMaxAge(60 * 30);
         response.addCookie(accessTokenCookie);
 
-        // Refresh Token 쿠키 설정
         Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
         refreshTokenCookie.setHttpOnly(false);
-        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(refreshTokenCookie);
 
         String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
-                .queryParam("nickname", account.getUser().getNickname())
+                .queryParam("nickname", currentUser.getNickname())
                 .build()
                 .toUriString();
 
