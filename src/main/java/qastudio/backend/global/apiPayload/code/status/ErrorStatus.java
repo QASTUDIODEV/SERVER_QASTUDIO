@@ -54,6 +54,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // Test-related errors
     TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "The test does not exist."),
 
+    // Error-related errors
+    ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),
+
     ;
 
     private final HttpStatus httpStatus;
