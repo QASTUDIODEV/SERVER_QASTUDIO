@@ -8,4 +8,5 @@ public interface UserProjectRepositoryCustom {
     boolean existsByUserIdAndProjectId(Long userId, Long projectId);
     List<UserProject> findByProjectId(Long projectId);
     List<UserProject> findByUserId(Long userId);
+    List<UserProject> findByProjectIdExcludingLeader(Long projectId);
 }

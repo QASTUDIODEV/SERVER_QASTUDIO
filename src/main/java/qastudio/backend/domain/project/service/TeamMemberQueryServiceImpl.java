@@ -23,7 +23,6 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
 
     @Override
     public List<UserProject> getTeamMemberList(Long projectId) {
-
         // UserProject 조회
         return userProjectRepository.findByProjectId(projectId);
 
@@ -52,4 +51,9 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                 .filter(accountTable -> !existingMemberIds.contains(accountTable.getUser().getId()))
                 .toList();
     }
+
+    @Override
+    public List<UserProject> getTeamMemberExceptLeader(Long projectId) {
+        // UserProject 조회
+        return userProjectRepository.findByProjectIdExcludingLeader(projectId);    }
 }

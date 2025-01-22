@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import static qastudio.backend.domain.project.entity.QProject.project;
 import static qastudio.backend.domain.project.entity.QUserProject.userProject;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.project.entity.enums.Role;
+
 import static qastudio.backend.domain.user.entity.QAccountTable.accountTable;
 import static qastudio.backend.domain.user.entity.QUser.user;
 
@@ -33,6 +35,15 @@ public class UserProjectRepositoryImpl implements UserProjectRepositoryCustom{
         return jpaQueryFactory
                 .selectFrom(userProject)
                 .where(userProject.project.id.eq(projectId))
+                .fetch();
+    }
+
+    @Override
+    public List<UserProject> findByProjectIdExcludingLeader(Long projectId) {
+        return jpaQueryFactory
+                .selectFrom(userProject)
+                .where(userProject.project.id.eq(projectId)
+                        .and(userProject.role.ne(Role.LEADER)))
                 .fetch();
     }
 
