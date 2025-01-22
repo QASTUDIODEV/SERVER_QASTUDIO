@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
@@ -36,10 +37,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final AccountTableRepository accountTableRepository;
     private final UserRepository userRepository;
+    private final AuthQueryService authQueryService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-
         // 유저 정보 가져오기
         Map<String, Object> oAuth2UserAttributes = super.loadUser(userRequest).getAttributes();
 
@@ -61,7 +62,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
 
-        User user = getOrSave(oAuth2UserInfo, email);
+        // 로그인된 사용자 확인
+        User currentUser = getCurrentAuthenticatedUser();
+
+        User user;
+        if (currentUser != null) {
+            // 로그인된 상태면 현재 사용자에 계정 추가
+            user = linkSocialAccount(currentUser, email, oAuth2UserInfo);
+        } else {
+            // 로그인되지 않은 상태면 기존 로직 수행 (이메일 기준 회원 조회 및 추가)
+            user = getOrSave(oAuth2UserInfo, email);
+        }
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
@@ -70,8 +81,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         );
     }
 
-    // 사용자 조회 또는 저장
-    // 이메일로 사용자 조회 후 없으면 회원가입
+    // 기존 계정 검색 및 저장
     private User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
         List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
 
@@ -82,7 +92,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
-    // 새로운 사용자 및 계정 생성
+    // 로그인된 사용자 기준으로 계정 추가
+    private User linkSocialAccount(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
+        // 해당 소셜 로그인 계정이 이미 존재하는지 확인
+        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType()).isPresent();
+
+        if (!accountExists) {
+            AccountTable newAccount = AccountTable.builder()
+                    .email(email)
+                    .emailType(oAuth2UserInfo.getEmailType())
+                    .user(user)
+                    .build();
+
+            user.addAccount(newAccount);
+            accountTableRepository.save(newAccount);
+        }
+
+        return user;
+    }
+
+    // 새 사용자 및 계정 생성
     private User createNewUser(String email, OAuth2UserInfo oAuth2UserInfo) {
         User user = User.builder()
                 .nickname("")
@@ -102,28 +131,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return user;
     }
 
-    // 기존 사용자에 소셜 계정 추가
-    private User linkSocialAccount(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
-        // 해당 소셜 로그인 계정이 이미 존재하는지 확인
-        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType()).isPresent();
-
-        if (!accountExists) {
-            AccountTable newAccount = AccountTable.builder()
-                    .email(email)
-                    .emailType(oAuth2UserInfo.getEmailType())
-                    .user(user)
-                    .build();
-
-            user.addAccount(newAccount);
-            accountTableRepository.save(newAccount);
-        }
-
-        return user;
+    // 현재 로그인된 사용자 가져오기 (없으면 null 반환)
+    private User getCurrentAuthenticatedUser() {
+        return authQueryService.getAuthenticatedUserIfPresent().orElse(null);
     }
 
     // 이메일 추출
     private String extractEmail(String registrationId, Map<String, Object> attributes, OAuth2UserRequest userRequest) {
-
         if ("kakao".equals(registrationId)) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
             if (kakaoAccount != null) {
@@ -138,11 +152,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
             return email;
         }
-
         throw new AuthException(ErrorStatus._BAD_REQUEST);
     }
 
-    // GitHub API를 통해 이메일 가져오기
+    // GitHub 이메일 가져오기
     private String fetchGitHubEmail(OAuth2UserRequest userRequest) {
         try {
             // OAuth2UserRequest에서 액세스 토큰 가져오기

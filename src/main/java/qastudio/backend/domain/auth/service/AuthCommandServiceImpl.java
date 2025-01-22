@@ -45,7 +45,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         List<AccountTable> accountTables = accountTableRepository.findByEmail(request.getEmail());
 
         if (accountTables.isEmpty()) {
-            User user = authConverter.toUser(request);
+            User user = authConverter.toUserAccountTable(request);
             userRepository.save(user);
         } else {
             User user = accountTables.get(0).getUser();
@@ -106,6 +106,15 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         account.updatePassword(encodedNewPassword);
 
         accountTableRepository.save(account);
+    }
+
+    @Override
+    public User getOrCreateUser(String email, EmailType emailType) {
+        Optional<AccountTable> existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType);
+        return existingAccount.map(AccountTable::getUser).orElseGet(() -> {
+            User newUser = authConverter.toUser();
+            return newUser;
+        });
     }
 }
 
