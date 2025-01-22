@@ -120,7 +120,7 @@ public class TeamMemberController {
                             )
                     )),
     })
-    @GetMapping("/{projectId}/team-members/email")
+    @GetMapping("/{projectId}/team-members/emails")
     public ApiResponse<TeamMemberResponse.UserEmailList> getTeamMemberExceptLeader(@PathVariable("projectId") Long projectId) {
         List<UserProject> userProjects = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
         return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromUserProjects(userProjects));
