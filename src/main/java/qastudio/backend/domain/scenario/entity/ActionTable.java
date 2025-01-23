@@ -28,5 +28,4 @@ public class ActionTable extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "scenario_id")
     private Scenario scenario;
-
 }
