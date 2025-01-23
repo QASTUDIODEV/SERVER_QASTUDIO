@@ -43,7 +43,7 @@ public class ScenarioRequest {
 
             @Schema(description = "액션 이름", example = "Click Login Button")
             @NotEmpty(message = "액션 이름은 필수 값입니다.")
-            private String actionName;
+            private String actionDdescription;
 
             @Schema(description = "액션 단계", example = "1")
             @NotNull(message = "액션 단계는 필수 값입니다.")

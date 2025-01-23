@@ -9,6 +9,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import qastudio.backend.global.apiPayload.code.exception.discord.DiscordClient;
 import qastudio.backend.global.websocket.handler.CustomWebSocketExceptionHandler;
+import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 
 @Configuration
 @EnableWebSocket
@@ -17,10 +18,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final DiscordClient discordClient;
     private final Environment environment;
+    private final SeleniumWebSocketHandler seleniumWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new CustomWebSocketExceptionHandler(new TextWebSocketHandler(), discordClient, environment), "/connect")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(seleniumWebSocketHandler, "/ws/selenium")
                 .setAllowedOrigins("*");
     }
 }
