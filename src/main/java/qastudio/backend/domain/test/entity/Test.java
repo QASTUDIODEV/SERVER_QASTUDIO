@@ -2,6 +2,7 @@ package qastudio.backend.domain.test.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.user.entity.User;
@@ -37,8 +38,14 @@ public class Test extends BaseEntity {
     @Column(nullable = false)
     private Double time;
 
-    @Column(columnDefinition = "TEXT", nullable = false, name = "record_json")
-    private String recordJson;
+    @Column(columnDefinition = "TEXT", nullable = false, name = "scenario_record")
+    private String scenarioRecord;
+
+    @Column(nullable = false, name = "total_action_count")
+    private Integer totalActionCount;
+
+    @Column(nullable = false, name = "execution_action_count")
+    private Integer executionActionCount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
@@ -47,6 +54,10 @@ public class Test extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "page_id")
+    private Page page;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "error_id")

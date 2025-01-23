@@ -15,18 +15,20 @@ public class TestResponse {
         private Long projectId;
         // 프로젝트 이름
         private String projectName;
+        // 프로젝트 대표 이미지
+        private String projectImage;
         // 총 성공 횟수
-        private Integer totalSuccessCnt;
+        private Long totalSuccessCnt;
         // 전날 대비 성공률
         private Double successRate;
         // 총 실패 횟수
-        private Integer totalFailCnt;
+        private Long totalFailCnt;
         // 전날 대비 실패율
         private Double failRate;
         // 프로젝트 참여자 수
         private Integer participant;
         // 전체 테스트 횟수
-        private Integer totalTestCnt;
+        private Long totalTestCnt;
     }
 
     @Getter

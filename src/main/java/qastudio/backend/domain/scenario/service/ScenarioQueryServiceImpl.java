@@ -31,9 +31,9 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
 
         List<ActionTable> actions = actionRepository.findByScenarioId(scenarioId);
         List<ActionDetail> actionDetails = actions.stream().map(action -> {
-            List<ScenarioDetailResponse.Element> elements = convertJsonToElements(action.getActionElements());
+            List<ScenarioDetailResponse.Element> elements = convertJsonToElements(action.getActionType());
             return new ActionDetail(
-                    action.getActionName(),
+                    action.getActionDescription(),
                     action.getStep(),
                     elements
             );
