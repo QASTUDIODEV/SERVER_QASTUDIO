@@ -8,7 +8,10 @@ import qastudio.backend.domain.scenario.dto.request.EnvironmentRequest;
 import qastudio.backend.domain.scenario.dto.request.ScenarioExecutionRequest;
 import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
 import qastudio.backend.domain.scenario.service.ScenarioExecutionService;
+import qastudio.backend.domain.scenario.service.ScenarioQueryService;
+import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
+import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -18,7 +21,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v0/scenarios")
 public class ScenarioExecutionController {
 
-    private final ScenarioExecutionService scenarioExecutionService;
+    private final SeleniumExecutionService seleniumExecutionService;
+    private final ScenarioQueryService scenarioQueryService;
 
     @Operation(summary = "시나리오 실행 API", description = "시나리오를 실행하고 결과를 반환합니다.")
     @ApiResponses({
@@ -30,7 +34,9 @@ public class ScenarioExecutionController {
     public ApiResponse<SeleniumExecutionResponse> executeScenario(
             @PathVariable Long scenarioId,
             @RequestBody @Valid ScenarioExecutionRequest request) {
-        SeleniumExecutionResponse response = scenarioExecutionService.executeScenario(request);
+        SeleniumExecutionRequest executionRequest = scenarioQueryService.getExecutionRequestByScenarioId(scenarioId);
+        SeleniumExecutionResponse response = seleniumExecutionService.executeTest("session-id", executionRequest);
+
         return ApiResponse.onSuccess(response);
     }
 }

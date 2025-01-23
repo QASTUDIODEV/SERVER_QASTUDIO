@@ -27,7 +27,13 @@ public class SeleniumExecutionRequest {
     @Schema(description = "실행할 액션 목록")
     @NotNull(message = "액션 리스트는 필수 값입니다.")
     private List<Action> actions;
-
+    public SeleniumExecutionRequest(String targetUrl, Long userId, Long projectId, Long pageId, List<Action> actions) {
+        this.targetUrl = targetUrl;
+        this.userId = userId;
+        this.projectId = projectId;
+        this.pageId = pageId;
+        this.actions = actions;
+    }
     @Getter
     @NoArgsConstructor
     public static class Action {
@@ -42,6 +48,12 @@ public class SeleniumExecutionRequest {
         @Schema(description = "실행할 요소")
         @NotNull(message = "요소 정보는 필수 값입니다.")
         private Element element;
+
+        public Action(String actionName, Integer step, Element element) {
+            this.actionName = actionName;
+            this.step = step;
+            this.element = element;
+        }
     }
 
     @Getter
@@ -60,6 +72,13 @@ public class SeleniumExecutionRequest {
         @Schema(description = "실행할 액션 정보")
         @NotNull(message = "액션 정보는 필수 값입니다.")
         private ActionDetail action;
+
+        public Element(String name, String type, Locator locator, ActionDetail action) {
+            this.name = name;
+            this.type = type;
+            this.locator = locator;
+            this.action = action;
+        }
     }
 
     @Getter

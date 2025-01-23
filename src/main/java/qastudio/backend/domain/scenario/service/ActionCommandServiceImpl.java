@@ -1,43 +1,82 @@
 package qastudio.backend.domain.scenario.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.scenario.converter.ActionConverter;
 import qastudio.backend.domain.scenario.dto.request.ActionUpdateRequest;
+import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ActionResponse;
 import qastudio.backend.domain.scenario.entity.ActionTable;
+import qastudio.backend.domain.scenario.entity.Feature;
+import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.scenario.repository.ActionTableRepository;
-import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
-import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.scenario.repository.FeatureRepository;
+import qastudio.backend.domain.scenario.repository.ScenarioRepository;
+import qastudio.backend.domain.scenario.service.ActionCommandService;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
 public class ActionCommandServiceImpl implements ActionCommandService {
 
-    private final ActionTableRepository actionRepository;
-    private final ActionConverter actionConverter;
+    private final ActionTableRepository actionTableRepository;
+    private final FeatureRepository featureRepository;
+    private final ScenarioRepository scenarioRepository;
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public void createActionsForScenario(Long scenarioId, List<ScenarioRequest.CreateScenarioRequest.Action> actions) {
-        for (ScenarioRequest.CreateScenarioRequest.Action action : actions) {
-            System.out.println(action);
+    public void createActionsForScenario(Long scenarioId, List<ScenarioRequest.ActionRequest> actions) {
+        // 시나리오 조회
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Scenario not found"));
+
+        for (ScenarioRequest.ActionRequest actionReq : actions) {  // 변경된 부분
+            // ActionTable 저장
+            ActionTable action = ActionTable.builder()
+                    .actionDescription(actionReq.getActionDescription())
+                    .step(actionReq.getStep())
+                    .actionType(actionReq.getActionType())
+                    .scenario(scenario)
+                    .build();
+            actionTableRepository.save(action);
+
+            // JSON 데이터를 String으로 변환하여 Feature 저장
+            String featureJson;
+            try {
+                featureJson = objectMapper.writeValueAsString(Map.of(
+                        "locator", actionReq.getLocator(),
+                        "action", actionReq.getAction()
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize JSON", e);
+            }
+
+            User user = userRepository.findById(scenario.getCharacterTable().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+            Feature feature = Feature.builder()
+                    .featureJson(featureJson)
+                    .user(user)
+                    .action(action)
+                    .build();
+            featureRepository.save(feature);
         }
-        List<ActionTable> actionEntities = actions.stream()
-                .map(action -> actionConverter.toEntity(action, scenarioId))
-                .toList();
-        actionRepository.saveAll(actionEntities);
     }
-
-
 
     @Override
     public ActionResponse updateAction(Long actionId, ActionUpdateRequest request) {
-        ActionTable action = actionRepository.findById(actionId)
+        ActionTable action = actionTableRepository.findById(actionId)
                 .orElseThrow(() -> new RuntimeException("Action not found"));
-        actionRepository.save(action);
+        actionTableRepository.save(action);
         return null;
     }
 }

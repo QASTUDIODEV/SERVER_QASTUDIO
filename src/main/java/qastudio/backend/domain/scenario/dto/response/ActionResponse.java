@@ -5,23 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Map;
+
 @Getter
 @Builder
 @AllArgsConstructor
 public class ActionResponse {
-
-    @Schema(description = "액션 ID", example = "1")
-    private Long id;
-
-    @Schema(description = "선택 방법", example = "css_selector")
-    private String locatorType;
-
-    @Schema(description = "요소 값", example = "#email")
-    private String locatorValue;
-
-    @Schema(description = "행동 종류", example = "send_keys")
+    private String actionDescription;
+    private Integer step;
     private String actionType;
-
-    @Schema(description = "행동 값", example = "testuser@example.com")
-    private String actionValue;
+    private Map<String, Object> locator;
+    private Map<String, Object> action;
 }

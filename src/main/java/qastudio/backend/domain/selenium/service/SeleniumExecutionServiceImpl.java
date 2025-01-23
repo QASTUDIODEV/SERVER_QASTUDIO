@@ -37,7 +37,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
         try {
             driver.get(request.getTargetUrl());
-            executionLogs.add("🌍 URL 접근: " + request.getTargetUrl());
+            executionLogs.add("URL 접근: " + request.getTargetUrl());
 
             int totalActions = request.getActions().size();
             int executedActions = 0;
