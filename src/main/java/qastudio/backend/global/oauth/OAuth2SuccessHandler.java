@@ -75,6 +75,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .queryParam("accessToken", tokenInfo.getAccessToken())
                 .queryParam("refreshToken", tokenInfo.getRefreshToken())
                 .queryParam("nickname", currentUser.getNickname())
+                .queryParam("profileImage", currentUser.getProfileImage())
+                .queryParam("email", email)
                 .build()
                 .toUriString();
 
