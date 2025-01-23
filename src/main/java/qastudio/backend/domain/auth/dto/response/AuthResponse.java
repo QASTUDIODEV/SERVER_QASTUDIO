@@ -14,4 +14,14 @@ public class AuthResponse {
 
         private TokenInfo token;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class SocialLoginResponse {
+        private String nickname;
+        private String accessToken;
+        private String refreshToken;
+    }
 }

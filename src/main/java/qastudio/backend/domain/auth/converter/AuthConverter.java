@@ -72,20 +72,4 @@ public class AuthConverter {
 
         return loginResponse;
     }
-
-    public TokenInfo toTokenInfo(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            throw new TokenException(ErrorStatus.NULL_TOKEN);
-        }
-
-        String accessToken = authQueryService.getCookieValue(request, "accessToken");
-        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
-
-        if (accessToken == null || refreshToken == null) {
-            throw new TokenException(ErrorStatus.NULL_TOKEN);
-        }
-
-        return new TokenInfo("Bearer", accessToken, refreshToken);
-    }
-
 }

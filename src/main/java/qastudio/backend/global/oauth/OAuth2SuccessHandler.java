@@ -36,7 +36,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AuthQueryService authQueryService;
 
     // 추후 수정할 예정입니다.
-    private static final String FRONTEND_URL = "http://localhost:5173/login/success";
+    private static final String FRONTEND_URL = "http://localhost:3000/login/success";
 
     @Override
     @Transactional
@@ -72,21 +72,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
-        accessTokenCookie.setHttpOnly(false);
-        accessTokenCookie.setSecure(false);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 30);
-        response.addCookie(accessTokenCookie);
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(false);
-        refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
-        response.addCookie(refreshTokenCookie);
-
         String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
+                .queryParam("accessToken", tokenInfo.getAccessToken())
+                .queryParam("refreshToken", tokenInfo.getRefreshToken())
                 .queryParam("nickname", currentUser.getNickname())
                 .build()
                 .toUriString();
