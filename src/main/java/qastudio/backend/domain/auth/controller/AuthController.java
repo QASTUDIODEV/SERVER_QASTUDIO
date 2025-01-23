@@ -2,7 +2,6 @@ package qastudio.backend.domain.auth.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +14,6 @@ import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
-import qastudio.backend.jwt.TokenInfo;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +22,6 @@ public class AuthController {
 
     private final AuthCommandService authCommandService;
     private final EmailQueryService emailQueryService;
-    private final AuthConverter authConverter;
 
     @Operation(
             summary = "자체 회원가입 API | by 지지",
@@ -124,16 +121,6 @@ public class AuthController {
     public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
         AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
-    }
-
-    @Operation(
-            summary = "소셜 로그인 후 토큰 확인 용 API | by 지지",
-            description = "소셜 로그인 후 토큰 확인할 수 있습니다. "
-    )
-    @GetMapping("/login/success")
-    public ApiResponse<TokenInfo> checkCookies(HttpServletRequest request) {
-        TokenInfo tokenInfo = authConverter.toTokenInfo(request);
-        return ApiResponse.onSuccess(tokenInfo);
     }
 
     @Operation(

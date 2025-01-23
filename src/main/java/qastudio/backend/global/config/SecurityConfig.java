@@ -76,6 +76,7 @@ public class SecurityConfig {
                 List.of(
                         "http://localhost:*",
                         "http://localhost",
+                        "http://localhost:5173",
                         "https://www.qa-studio.com",
                         "https://back.qa-studio.com"
                 )
