@@ -9,3 +9,4 @@ import java.util.Optional;
 public interface AccountTableRepository extends JpaRepository<AccountTable, Long>, AccountTableRepositoryCustom {
     Optional<AccountTable> findByEmailAndEmailType(String email, EmailType emailType);
 }
+
