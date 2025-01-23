@@ -5,5 +5,5 @@ import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 
 public interface SeleniumExecutionService {
-    SeleniumExecutionResponse executeTest(SeleniumExecutionRequest request);
+    SeleniumExecutionResponse executeTest(String sessionId, SeleniumExecutionRequest request);
 }
