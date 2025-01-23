@@ -15,6 +15,15 @@ public class SeleniumExecutionRequest {
     @NotEmpty(message = "URL은 필수입니다.")
     private String targetUrl;
 
+    @NotNull(message = "사용자 ID는 필수입니다.")
+    private Long userId;
+
+    @NotNull(message = "프로젝트 ID는 필수입니다.")
+    private Long projectId;
+
+    @NotNull(message = "페이지 ID는 필수입니다.")
+    private Long pageId;
+
     @Schema(description = "실행할 액션 목록")
     @NotNull(message = "액션 리스트는 필수 값입니다.")
     private List<Action> actions;

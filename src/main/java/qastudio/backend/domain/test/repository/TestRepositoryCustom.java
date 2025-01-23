@@ -1,5 +1,6 @@
 package qastudio.backend.domain.test.repository;
 
+import qastudio.backend.domain.test.dto.request.TestRequest;
 import qastudio.backend.domain.test.entity.enums.State;
 
 import java.time.LocalDate;
