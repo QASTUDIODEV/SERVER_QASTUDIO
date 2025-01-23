@@ -16,6 +16,7 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepositoryCustom;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -41,18 +42,26 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter authConverter;
 
     @Override
-    public  AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
-        List<AccountTable> accountTables = accountTableRepository.findByEmail(request.getEmail());
+    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
+        String email = request.getEmail();
+        EmailType emailType = EmailType.LOCAL;
 
-        if (accountTables.isEmpty()) {
-            User user = authConverter.toUserAccountTable(request);
-            userRepository.save(user);
-        } else {
-            User user = accountTables.get(0).getUser();
-            authConverter.toAccountTable(request.getEmail(), request.getPassword(), user);
+        List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+
+        if (accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType))) {
+            throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        return authenticateAndGenerateToken(request.getEmail(), request.getPassword());
+        User user;
+        if (accountTables.isEmpty()) {
+            user = authConverter.toUserAccountTable(request);
+            userRepository.save(user);
+        } else {
+            user = accountTables.get(0).getUser();
+            authConverter.toAccountTable(email, request.getPassword(), user);
+        }
+
+        return authenticateAndGenerateToken(email, request.getPassword());
     }
 
     @Override
