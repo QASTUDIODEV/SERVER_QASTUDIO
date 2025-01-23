@@ -1,8 +1,14 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 
+import java.util.Optional;
+
 public interface AuthQueryService {
-    boolean existsEmail(String email);
-    Long findUserIdByEmailAndEmailType(String email, EmailType emailType);
+    User findUserIdByEmailAndEmailType(String email, EmailType emailType);
+    String getCookieValue(HttpServletRequest request, String name);
+    Optional<User> getAuthenticatedUserIfPresent();
 }
+

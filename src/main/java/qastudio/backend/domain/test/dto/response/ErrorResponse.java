@@ -7,11 +7,11 @@ public class ErrorResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class Error {
+    public static class ErrorDetail {
         private Long testId;
         private String testName;
         private String errorImage;
-        private String errorCode;
+        private Integer errorCode;
         private String errorMessage;
     }
 }

@@ -1,10 +1,14 @@
 package qastudio.backend.domain.auth.service;
 
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.entity.enums.EmailType;
 
 public interface AuthCommandService {
-    TokenInfo userSignUp(AuthRequest request);
-    TokenInfo localLogin(AuthRequest loginRequest);
-    TokenInfo authenticateAndGenerateToken(String email, String password);
+    AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request);
+    AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest);
+    AuthResponse.LoginResponse authenticateAndGenerateToken(String email, String password);
+    void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest);
+    User getOrCreateUser(String email, EmailType emailType);
 }

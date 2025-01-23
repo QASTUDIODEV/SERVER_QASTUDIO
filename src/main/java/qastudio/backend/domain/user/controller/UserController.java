@@ -6,15 +6,20 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.user.converter.UserConverter;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.service.UserCommandService;
 import qastudio.backend.domain.user.service.UserCommandService;
 import qastudio.backend.domain.user.service.UserQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,13 +38,13 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PostMapping("/profile")
-    public ApiResponse<Void> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
-        userCommandService.createProfile(userId, updateUserInfo);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<UserResponse.UserProfile> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
+        UserResponse.UserProfile userProfile = userCommandService.createProfile(userId, updateUserInfo);
+        return ApiResponse.onSuccess(userProfile);
     }
 
     @Operation(
-            summary = "사용자 정보 조회 API",
+            summary = "사용자 정보 조회 API | by 제로",
             description = "마이페이지의 사용자 정보를 조회합니다."
     )
     @ApiResponses({
@@ -47,13 +52,14 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @GetMapping("")
-    public ApiResponse<UserResponse.User> getUser(@Auth Long userId) {
-        UserResponse.User user = userQueryService.getUser(userId);
-        return ApiResponse.onSuccess(user);
+    public ApiResponse<UserResponse.UserInfo> getUser(@Auth Long userId) {
+        User user = userQueryService.getUser(userId);
+        Integer projectCnt = userQueryService.getProjectCount(userId);
+        return ApiResponse.onSuccess(UserConverter.toUserInfo(user, projectCnt));
     }
 
     @Operation(
-            summary = "사용자 정보 수정 API",
+            summary = "사용자 정보 수정 API | by 제로",
             description = "마이페이지의 사용자 정보를 수정합니다."
     )
     @ApiResponses({
@@ -61,15 +67,16 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PatchMapping("")
-    public ApiResponse<UserResponse.User> updateUser(
+    public ApiResponse<UserResponse.UserInfo> updateUser(
             @Auth Long userId,
             @RequestBody @Valid UserRequest.UpdateUserInfo updateUserInfo) {
-        UserResponse.User user = userQueryService.updateUser(userId, updateUserInfo);
-        return ApiResponse.onSuccess(user);
+        User updatedUser = userCommandService.updateProfile(userId, updateUserInfo);
+        Integer projectCnt = userQueryService.getProjectCount(userId);
+        return ApiResponse.onSuccess(UserConverter.toUserInfo(updatedUser, projectCnt));
     }
 
     @Operation(
-            summary = "사용자 프로젝트 리스트 조회 API",
+            summary = "사용자 프로젝트 리스트 조회 API | by 제로",
             description = "마이페이지의 프로젝트 리스트를 조회합니다."
     )
     @ApiResponses({
@@ -83,7 +90,7 @@ public class UserController {
     public ApiResponse<UserResponse.UserProjectList> getUserProjectList(
             @Auth Long userId,
             @RequestParam(name = "page", defaultValue = "0") Integer page) {
-        UserResponse.UserProjectList userProjectList = userQueryService.getUserProjectList(userId, page);
-        return ApiResponse.onSuccess(userProjectList);
+        Page<UserProject> userProjectList = userQueryService.getUserProjectList(userId, page);
+        return ApiResponse.onSuccess(UserConverter.toUserProjectList(userProjectList));
     }
 }

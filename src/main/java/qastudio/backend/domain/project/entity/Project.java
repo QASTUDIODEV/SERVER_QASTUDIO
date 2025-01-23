@@ -1,9 +1,10 @@
 package qastudio.backend.domain.project.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
+import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.util.ArrayList;
@@ -33,13 +34,45 @@ public class Project extends BaseEntity {
     @Column(length = 500)
     private String introduction;
 
-    @Column(name = "view_type", nullable = false)
+    @Column(name = "view_type")
     @Enumerated(EnumType.STRING)
     private ViewType viewType;
+
+    @Column(name = "assistant_id")
+    private String assistantId;
+
+    @Column(name = "development_skill")
+    private ProjectStack developmentSkill;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CharacterTable> characterTables = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserProject> userProjects = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Test> tests = new ArrayList<>();
+
+    public void updateProjectInfo(String assistantId, String introduction, String viewType, String developmentSkill) {
+        this.assistantId = assistantId;
+        this.introduction = introduction;
+
+        try {
+            // 대소문자 확인
+            this.developmentSkill = ProjectStack.valueOf(developmentSkill.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("유효하지 않은 ProjectStack 값: " + developmentSkill, e);
+        }
+
+        try {
+            // 대소문자 확인
+            this.viewType = ViewType.valueOf(viewType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("유효하지 않은 ViewType 값: " + viewType, e);
+        }
+    }
+
+    public void updateIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
 }

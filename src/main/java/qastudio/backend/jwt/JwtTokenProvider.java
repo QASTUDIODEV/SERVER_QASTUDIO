@@ -39,6 +39,7 @@ public class JwtTokenProvider {
     public TokenInfo generateToken(Long userId, Authentication authentication, boolean isSocial) {
         String accessToken = generateAccessToken(userId, authentication, isSocial);
         String refreshToken = generateRefreshToken();
+
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 

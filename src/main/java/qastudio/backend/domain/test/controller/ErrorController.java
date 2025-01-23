@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import qastudio.backend.domain.test.converter.ErrorConverter;
 import qastudio.backend.domain.test.dto.response.ErrorResponse;
+import qastudio.backend.domain.test.entity.Error;
 import qastudio.backend.domain.test.service.ErrorQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
@@ -19,7 +21,7 @@ public class ErrorController {
     private final ErrorQueryService errorQueryService;
 
     @Operation(
-            summary = "오류 조회 API",
+            summary = "오류 조회 API | by 제로",
             description = "오류의 정보를 조회합니다."
     )
     @ApiResponses({
@@ -27,8 +29,8 @@ public class ErrorController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "TEST404", description = "존재하지 않는 테스트입니다.")
     })
     @GetMapping("")
-    public ApiResponse<ErrorResponse.Error> getError(@PathVariable("testId") Long testId) {
-        ErrorResponse.Error errorDetail = errorQueryService.getError(testId);
-        return ApiResponse.onSuccess(errorDetail);
+    public ApiResponse<ErrorResponse.ErrorDetail> getError(@PathVariable("testId") Long testId) {
+        Error error = errorQueryService.getError(testId);
+        return ApiResponse.onSuccess(ErrorConverter.toError(error));
     }
 }

@@ -18,7 +18,7 @@ public class UserProject extends BaseEntity {
     @Column(name = "user_project_id")
     private Long id;
 
-    @Column(name = "user_email", nullable = false)
+    @Column(name = "user_email")
     private String userEmail;
 
     @Enumerated(EnumType.STRING)

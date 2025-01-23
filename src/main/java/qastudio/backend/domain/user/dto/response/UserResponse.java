@@ -1,5 +1,6 @@
 package qastudio.backend.domain.user.dto.response;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 
@@ -7,11 +8,23 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class UserResponse {
+
     @Getter
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class User {
+    public static class UserProfile {
+        // 닉네임
+        private String nickname;
+        // 프로필 이미지
+        private String profileImage;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class UserInfo {
         // 유저 pk
         private Long userId;
         // 닉네임
@@ -37,6 +50,8 @@ public class UserResponse {
         private Long projectId;
         // 프로젝트 이름
         private String projectName;
+        // 프로젝트 대표 이미지
+        private String projectImage;
         // 참여자 수
         private Integer participant;
         // 마지막 수정일자
