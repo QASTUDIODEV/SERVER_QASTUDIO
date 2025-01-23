@@ -8,6 +8,7 @@ import qastudio.backend.domain.scenario.dto.request.EnvironmentRequest;
 import qastudio.backend.domain.scenario.dto.request.ScenarioExecutionRequest;
 import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
 import qastudio.backend.domain.scenario.service.ScenarioExecutionService;
+import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -26,17 +27,10 @@ public class ScenarioExecutionController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @PostMapping("/{scenarioId}/execute")
-    public ApiResponse<ExecutionResultResponse> executeScenario(
+    public ApiResponse<SeleniumExecutionResponse> executeScenario(
             @PathVariable Long scenarioId,
             @RequestBody @Valid ScenarioExecutionRequest request) {
-        ExecutionResultResponse result = scenarioExecutionService.executeScenario(scenarioId, request);
-        return ApiResponse.onSuccess(result);
+        SeleniumExecutionResponse response = scenarioExecutionService.executeScenario(request);
+        return ApiResponse.onSuccess(response);
     }
-
-//    @Operation(summary = "시나리오 실행 중단 API", description = "실행 중인 시나리오를 중단합니다.")
-//    @PostMapping("/{executionId}/stop")
-//    public ApiResponse<Void> stopScenario(@PathVariable Long executionId) {
-//        scenarioExecutionService.stopScenario(executionId);
-//        return ApiResponse.onSuccess(null);
-//    }
 }

@@ -15,21 +15,6 @@ public class SeleniumService {
 
     private final SeleniumWebSocketHandler seleniumWebSocketHandler;
 
-    public void executeScenario(Long scenarioId, String sessionId) {
-        WebDriver driver = new ChromeDriver();
-        try {
-            driver.get("https://naver.com");
-
-            // 로그인 시나리오 실행
-            performAction(driver, sessionId, By.id("email"), "send_keys", "test@example.com");
-            performAction(driver, sessionId, By.id("password"), "send_keys", "password123");
-            performAction(driver, sessionId, By.id("login-button"), "click", null);
-
-        } finally {
-            driver.quit();
-        }
-    }
-
     private void performAction(WebDriver driver, String sessionId, By locator, String action, String value) {
         WebElement element = driver.findElement(locator);
 
