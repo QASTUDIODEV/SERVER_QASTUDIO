@@ -5,7 +5,7 @@ public enum ActionType {
     SEND_KEYS("send_keys"),
     CLEAR("clear"),
     GET_ATTRIBUTE("get_attribute"),
-    GET_TEXT("text"),
+    TEXT("text"),
     IS_DISPLAYED("is_displayed"),
     IS_ENABLED("is_enabled"),
     IS_SELECTED("is_selected");
