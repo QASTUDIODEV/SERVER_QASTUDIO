@@ -1,23 +1,19 @@
 package qastudio.backend.domain.scenario.service;
 
+import qastudio.backend.domain.scenario.dto.request.ScenarioExecutionRequest;
+import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
+import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.scenario.dto.request.EnvironmentRequest;
-import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ScenarioExecutionServiceImpl implements ScenarioExecutionService {
 
-    @Override
-    public ExecutionResultResponse executeScenario(Long scenarioId, EnvironmentRequest request) {
-        return null;
-    }
+    private final SeleniumService seleniumService;
 
     @Override
-    public void stopScenario(Long executionId) {
-        System.out.println("Scenario execution stopped: " + executionId);
+    public SeleniumExecutionResponse executeScenario(ScenarioExecutionRequest request) {
+        return null;
     }
 }

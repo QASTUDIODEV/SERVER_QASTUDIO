@@ -7,7 +7,6 @@ import qastudio.backend.domain.scenario.dto.request.ActionUpdateRequest;
 import qastudio.backend.domain.scenario.dto.response.ActionResponse;
 import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.repository.ActionTableRepository;
-import qastudio.backend.domain.scenario.service.ActionCommandService;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +22,9 @@ public class ActionCommandServiceImpl implements ActionCommandService {
 
     @Override
     public void createActionsForScenario(Long scenarioId, List<ScenarioRequest.CreateScenarioRequest.Action> actions) {
+        for (ScenarioRequest.CreateScenarioRequest.Action action : actions) {
+            System.out.println(action);
+        }
         List<ActionTable> actionEntities = actions.stream()
                 .map(action -> actionConverter.toEntity(action, scenarioId))
                 .toList();

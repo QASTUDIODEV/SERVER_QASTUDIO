@@ -34,9 +34,7 @@ public class ScenarioController {
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
             @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
-        System.out.println("request = " + request);
         ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
-        System.out.println("scenarioResponse = " + scenarioResponse);
         actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
 
         return ApiResponse.onSuccess(scenarioResponse);
