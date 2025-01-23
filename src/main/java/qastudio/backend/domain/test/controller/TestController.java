@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import qastudio.backend.domain.project.entity.Project;
+import qastudio.backend.domain.test.converter.TestConverter;
 import qastudio.backend.domain.test.dto.response.TestResponse;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.service.TestQueryService;
@@ -46,7 +48,7 @@ public class TestController {
     }
 
     @Operation(
-            summary = "테스트 통계 조회 API",
+            summary = "테스트 통계 조회 API | by 제로",
             description = "테스트의 통계를 조회합니다."
     )
     @ApiResponses({
@@ -55,8 +57,13 @@ public class TestController {
     })
     @GetMapping("/statistics")
     public ApiResponse<TestResponse.TestStatistics> getTestStatistics(@PathVariable("projectId") Long projectId) {
-        TestResponse.TestStatistics testStatistics = testQueryService.getTestStatistics(projectId);
-        return ApiResponse.onSuccess(testStatistics);
+        Project testStatistics = testQueryService.getTestStatistics(projectId);
+        Long totalTestCnt = testQueryService.getTotalTests(projectId);
+        Long totalSuccessTestCnt = testQueryService.getTotalSuccessTests(projectId);
+        Long totalFailTestCnt = testQueryService.getTotalFailTests(projectId);
+        Double successRate = testQueryService.getSuccessRate(projectId);
+        Double failRate = testQueryService.getFailRate(projectId);
+        return ApiResponse.onSuccess(TestConverter.toTestStatistics(testStatistics, totalTestCnt, totalSuccessTestCnt,totalFailTestCnt, successRate, failRate));
     }
 
     @Operation(
