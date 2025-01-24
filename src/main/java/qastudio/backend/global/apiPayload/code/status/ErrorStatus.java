@@ -61,6 +61,10 @@ public enum ErrorStatus implements BaseErrorCode {
     // Error-related errors
     ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),
 
+    WEBSOCKET_MESSAGE_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR500", "WebSocket 메시지 전송 실패"),
+    JSON_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR500", "JSON 변환 오류"),
+    WEBSOCKET_CONNECTION_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR500", "WebSocket 연결 실패");
+
     ;
 
     private final HttpStatus httpStatus;
