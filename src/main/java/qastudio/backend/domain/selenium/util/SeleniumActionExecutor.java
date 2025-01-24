@@ -7,6 +7,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.entity.enums.ActionType;
 import qastudio.backend.domain.selenium.entity.enums.LocatorType;
+import qastudio.backend.global.util.HtmlCssFormatter;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 
 import java.time.Duration;
@@ -25,7 +26,6 @@ public class SeleniumActionExecutor {
     public static void performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
-            sendHtmlAndCssUpdate(driver, sessionId, logs);
 
             // 웹 요소 찾기
             WebElement webElement = new WebDriverWait(driver, Duration.ofSeconds(10))
@@ -49,11 +49,12 @@ public class SeleniumActionExecutor {
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
         if (webSocketHandler != null) {
             try {
-                String html = driver.getPageSource();
-                String css = getCurrentPageCss(driver);
+                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
+                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
+
 
                 logs.add("📡 실시간 HTML & CSS 전송");
-                webSocketHandler.sendHtmlAndCss(sessionId, html, css);
+                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss);
             } catch (Exception e) {
                 logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
             }
