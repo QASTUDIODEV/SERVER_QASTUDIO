@@ -23,7 +23,7 @@ public class SeleniumActionExecutor {
         webSocketHandler = handler;
     }
 
-    public static void performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
+    public static int performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
 
@@ -40,11 +40,13 @@ public class SeleniumActionExecutor {
             sendHtmlAndCssUpdate(driver, sessionId, logs);
             Thread.sleep(1500); // TODO : WebDriverWait로 대체
 
+            return 1;
         } catch (UnsupportedOperationException e) {
             logs.add("❌ 지원되지 않는 액션 오류: " + e.getMessage());
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
         }
+        return 0;
     }
 
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
