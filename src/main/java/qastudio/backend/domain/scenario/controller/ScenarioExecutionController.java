@@ -26,7 +26,7 @@ public class ScenarioExecutionController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
-    @PostMapping("/{scenarioId}/execute/{sessionId}")
+    @PostMapping("/{scenarioId}/sessions/{sessionId}/execute")
     public ResponseEntity<ApiResponse<SeleniumExecutionResponse>> executeScenario(
             @PathVariable String sessionId,
             @PathVariable Long scenarioId,
