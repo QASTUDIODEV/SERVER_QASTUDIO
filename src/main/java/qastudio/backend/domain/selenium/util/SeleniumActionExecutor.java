@@ -25,14 +25,17 @@ public class SeleniumActionExecutor {
     public static void performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
+            sendHtmlAndCssUpdate(driver, sessionId, logs);
+
+            // 웹 요소 찾기
             WebElement webElement = new WebDriverWait(driver, Duration.ofSeconds(10))
                     .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, actionDetail.getLocator().getValue())));
 
+            // 액션 유효성 검사
             ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
-
             LocatorActionValidator.validate(locatorType, actionType);
 
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 셀레니움 액션 실행
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
 
@@ -59,14 +62,19 @@ public class SeleniumActionExecutor {
 
     private static String getCurrentPageCss(WebDriver driver) {
         return (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-                "let styles = ''; " +
-                        "for (let s of document.styleSheets) { " +
-                        "  try { " +
-                        "    if (s.cssRules) { " +
-                        "      for (let r of s.cssRules) { styles += r.cssText + '\\n'; } " +
+                "let css = ''; " +
+                        "document.querySelectorAll('style').forEach(style => { " +
+                        "    css += style.innerHTML + '\\n'; " +
+                        "}); " +
+                        "document.querySelectorAll('*').forEach(element => { " +
+                        "    let computedStyle = window.getComputedStyle(element); " +
+                        "    for (let i = 0; i < computedStyle.length; i++) { " +
+                        "        css += element.tagName + '{' + computedStyle[i] + ':' + computedStyle.getPropertyValue(computedStyle[i]) + ';}\\n'; " +
                         "    } " +
-                        "  } catch (e) {} " +
-                        "} return styles;"
+                        "}); " +
+                        "return css;"
         );
     }
+
+
 }
