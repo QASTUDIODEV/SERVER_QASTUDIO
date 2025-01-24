@@ -35,12 +35,10 @@ public class ActionCommandServiceImpl implements ActionCommandService {
 
     @Override
     public void createActionsForScenario(Long scenarioId, List<ScenarioRequest.ActionRequest> actions) {
-        // 시나리오 조회
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Scenario not found"));
 
-        for (ScenarioRequest.ActionRequest actionReq : actions) {  // 변경된 부분
-            // ActionTable 저장
+        for (ScenarioRequest.ActionRequest actionReq : actions) {
             ActionTable action = ActionTable.builder()
                     .actionDescription(actionReq.getActionDescription())
                     .step(actionReq.getStep())
@@ -49,7 +47,6 @@ public class ActionCommandServiceImpl implements ActionCommandService {
                     .build();
             actionTableRepository.save(action);
 
-            // JSON 데이터를 String으로 변환하여 Feature 저장
             String featureJson;
             try {
                 featureJson = objectMapper.writeValueAsString(Map.of(
@@ -60,12 +57,9 @@ public class ActionCommandServiceImpl implements ActionCommandService {
                 throw new RuntimeException("Failed to serialize JSON", e);
             }
 
-            User user = userRepository.findById(scenario.getCharacterTable().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
             Feature feature = Feature.builder()
                     .featureJson(featureJson)
-                    .user(user)
+                    .user(null)
                     .action(action)
                     .build();
             featureRepository.save(feature);

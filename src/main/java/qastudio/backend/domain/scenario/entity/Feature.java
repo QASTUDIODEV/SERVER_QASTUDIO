@@ -21,7 +21,7 @@ public class Feature extends BaseEntity {
     private String featureJson;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "user_id")
+    @JoinColumn(nullable = true, name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
