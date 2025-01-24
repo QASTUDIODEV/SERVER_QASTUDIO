@@ -55,6 +55,8 @@ public class TestResponse {
         private String nickname;
         // 에러 pk
         private Long errorId;
+        // 시나리오 기록 (테스트 json)
+        private String scenarioRecord;
     }
 
     @Getter

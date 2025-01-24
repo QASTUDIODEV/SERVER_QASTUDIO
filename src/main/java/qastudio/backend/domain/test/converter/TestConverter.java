@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.test.dto.response.TestResponse;
 import qastudio.backend.domain.test.entity.Test;
+import qastudio.backend.domain.test.entity.enums.State;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class TestConverter {
     }
 
     public static TestResponse.Test toTest(Test test) {
-        return TestResponse.Test.builder()
+        TestResponse.Test.TestBuilder responseBuilder = TestResponse.Test.builder()
                 .testId(test.getId())
                 .testDate(test.getTestDate())
                 .testName(test.getTestName())
@@ -41,9 +42,17 @@ public class TestConverter {
                 .attainment(test.getAttainment())
                 .state(test.getState())
                 .time(test.getTime())
-                .nickname(test.getUser().getNickname())
-                .errorId(test.getError() != null ? test.getError().getId() : null)
-                .build();
+                .nickname(test.getUser().getNickname());
+
+        if (test.getState() == State.SUCCESS) {
+            responseBuilder.scenarioRecord(test.getScenarioRecord());
+        }
+
+        if (test.getState() == State.FAIL) {
+            responseBuilder.errorId(test.getError().getId());
+        }
+
+        return responseBuilder.build();
     }
 
     public static TestResponse.TestList toTestList(Page<Test> testList) {
