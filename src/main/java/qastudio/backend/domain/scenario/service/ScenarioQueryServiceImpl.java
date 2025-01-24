@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.scenario.dto.FeatureData;
+import qastudio.backend.domain.scenario.dto.response.ScenarioDetailResponse;
 import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.entity.Feature;
 import qastudio.backend.domain.scenario.entity.Scenario;
@@ -14,6 +15,7 @@ import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.global.util.SecurityUtils;
+import qastudio.backend.domain.scenario.dto.response.FeatureJson;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,45 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     private final FeatureRepository featureRepository;
     private final ObjectMapper objectMapper;
 
+    @Transactional
+    @Override
+    public ScenarioDetailResponse getScenarioDetail(Long scenarioId) {
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
+
+        List<ActionTable> actions = actionRepository.findByScenarioId(scenarioId);
+
+        List<ScenarioDetailResponse.ActionDetail> actionDetails = actions.stream()
+                .map(action -> {
+                    Feature feature = featureRepository.findByActionAndUserIsNull(action)
+                            .orElseThrow(() -> new IllegalArgumentException("기본 Feature를 찾을 수 없습니다. actionId: " + action.getId()));
+
+                    return convertToActionDetail(action, feature);
+                })
+                .collect(Collectors.toList());
+
+        return ScenarioDetailResponse.builder()
+                .scenarioName(scenario.getScenarioName())
+                .scenarioDescription(scenario.getScenarioDescription())
+                .actions(actionDetails)
+                .build();
+    }
+
+    private ScenarioDetailResponse.ActionDetail convertToActionDetail(ActionTable action, Feature feature) {
+        try {
+            FeatureJson featureJson = objectMapper.readValue(feature.getFeatureJson(), FeatureJson.class);
+
+            return ScenarioDetailResponse.ActionDetail.builder()
+                    .actionDescription(action.getActionDescription())
+                    .step(action.getStep())
+                    .actionType(action.getActionType())
+                    .locator(featureJson.getLocator())
+                    .action(featureJson.getAction())
+                    .build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON 변환 오류: " + e.getMessage());
+        }
+    }
     @Transactional
     @Override
     public SeleniumExecutionRequest getExecutionRequestByScenarioId(Long scenarioId, String baseUrl) {
