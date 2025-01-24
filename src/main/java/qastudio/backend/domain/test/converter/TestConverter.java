@@ -34,12 +34,15 @@ public class TestConverter {
     }
 
     public static TestResponse.Test toTest(Test test) {
+        Integer attainment = (int) Math.round(
+                (double) test.getExecutionActionCount() / test.getTotalActionCount() * 100 );
+
         TestResponse.Test.TestBuilder responseBuilder = TestResponse.Test.builder()
                 .testId(test.getId())
                 .testDate(test.getTestDate())
                 .testName(test.getTestName())
                 .pageName(test.getPage().getPageName())
-                .attainment(test.getAttainment())
+                .attainment(attainment)
                 .state(test.getState())
                 .time(test.getTime())
                 .nickname(test.getUser().getNickname());
