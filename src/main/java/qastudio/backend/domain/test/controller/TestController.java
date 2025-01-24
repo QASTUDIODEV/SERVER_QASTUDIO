@@ -5,10 +5,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.test.converter.TestConverter;
 import qastudio.backend.domain.test.dto.response.TestResponse;
+import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.service.TestQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
@@ -23,7 +25,7 @@ public class TestController {
     private final TestQueryService testQueryService;
 
     @Operation(
-            summary = "테스트 리스트 조회 API",
+            summary = "테스트 리스트 조회 API | by 제로",
             description = "테스트 리스트를 조회하고, 테스트 이름을 기준으로 검색합니다."
     )
     @ApiResponses({
@@ -33,7 +35,7 @@ public class TestController {
     @Parameters({
             @Parameter(name = "page", description = "페이지 번호, 0번이 1 페이지입니다."),
             @Parameter(name = "testName", description = "검색할 테스트 이름"),
-            @Parameter(name = "date", description = "날짜별 정렬"),
+            @Parameter(name = "date", description = "날짜별 정렬 (YYYY-MM-DD)"),
             @Parameter(name = "pageName", description = "페이지별 정렬"),
             @Parameter(name = "state", description = "성취 여부별 정렬")
     })
@@ -45,8 +47,8 @@ public class TestController {
             @RequestParam(name = "date", required = false) LocalDate date,
             @RequestParam(name = "pageName", required = false) String pageName,
             @RequestParam(name = "state", required = false) State state) {
-        TestResponse.TestList testList = testQueryService.getTestList(projectId, page, testName, date, pageName, state);
-        return ApiResponse.onSuccess(testList);
+        Page<Test> testList = testQueryService.getTestList(projectId, page, testName, date, pageName, state);
+        return ApiResponse.onSuccess(TestConverter.toTestList(testList));
     }
 
     @Operation(

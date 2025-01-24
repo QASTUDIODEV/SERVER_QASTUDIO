@@ -1,6 +1,7 @@
 package qastudio.backend.domain.test.dto.response;
 
 import lombok.*;
+import qastudio.backend.domain.test.entity.enums.State;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -47,11 +48,13 @@ public class TestResponse {
         // 성취도
         private Integer attainment;
         // 성취 여부
-        private String state;
+        private State state;
         // 소요 시간
         private Double time;
         // 닉네임
         private String nickname;
+        // 에러 pk
+        private Long errorId;
     }
 
     @Getter
