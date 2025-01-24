@@ -12,6 +12,7 @@ public class ErrorConverter {
                 .errorImage(error.getErrorImage())
                 .errorCode(error.getErrorCode())
                 .errorMessage(error.getErrorMessage())
+                .scenarioRecord(error.getTest().getScenarioRecord())
                 .build();
     }
 }
