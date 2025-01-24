@@ -56,14 +56,29 @@ public class FeatureRepositoryImpl implements FeatureRepositoryCustom {
     public Optional<Feature> findFeatureByUserOrDefault(Long userId, Long actionId) {
         QFeature feature = QFeature.feature;
 
+        // 사용자 ID가 존재하는 경우 해당 Feature 조회
         Feature userFeature = jpaQueryFactory
                 .selectFrom(feature)
                 .where(
                         feature.action.id.eq(actionId),
-                        userId != null ? feature.user.id.eq(userId) : feature.user.isNull()
+                        feature.user.id.eq(userId)
                 )
-                .fetchFirst();
+                .fetchOne();
 
-        return Optional.ofNullable(userFeature);
+        if (userFeature != null) {
+            return Optional.of(userFeature);
+        }
+
+        // 사용자의 Feature가 없으면 기본 Feature(userId = null) 조회
+        Feature defaultFeature = jpaQueryFactory
+                .selectFrom(feature)
+                .where(
+                        feature.action.id.eq(actionId),
+                        feature.user.isNull()
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(defaultFeature);
     }
+
 }

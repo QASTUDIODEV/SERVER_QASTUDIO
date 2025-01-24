@@ -38,6 +38,7 @@ public class SeleniumActionExecutor {
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 셀레니움 액션 실행
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
+            Thread.sleep(1500); // TODO : WebDriverWait로 대체
 
         } catch (UnsupportedOperationException e) {
             logs.add("❌ 지원되지 않는 액션 오류: " + e.getMessage());
