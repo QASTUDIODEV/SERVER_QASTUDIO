@@ -32,35 +32,13 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     public SeleniumExecutionRequest getExecutionRequestByScenarioId(Long scenarioId, String baseUrl) {
         Long userId = SecurityUtils.getCurrentUserId();
 
-        Scenario scenario = scenarioRepository.findById(scenarioId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
+        Scenario scenario = findScenarioById(scenarioId);
 
-        String pagePath = scenario.getPage().getPath();
-        if (!baseUrl.endsWith("/") && !pagePath.startsWith("/")) {
-            baseUrl += "/";
-        }
-        String fullTargetUrl = baseUrl + pagePath;
+        String fullTargetUrl = buildTargetUrl(baseUrl, scenario.getPage().getPath());
 
-        List<ActionTable> actions = actionRepository.findByScenarioId(scenarioId);
+        List<ActionTable> actions = getActionsForScenario(scenarioId);
 
-        List<SeleniumExecutionRequest.ActionDetail> seleniumActions = actions.stream().map(action -> {
-            Feature feature = featureRepository.findFeatureByUserOrDefault(userId, action.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 액션의 Feature를 찾을 수 없습니다. actionId: " + action.getId()));
-
-            try {
-                FeatureData featureData = objectMapper.readValue(feature.getFeatureJson(), FeatureData.class);
-
-                return SeleniumExecutionRequest.ActionDetail.builder()
-                        .actionDescription(action.getActionDescription())
-                        .step(action.getStep())
-                        .actionType(action.getActionType())
-                        .locator(featureData.getLocator())
-                        .action(featureData.getAction())
-                        .build();
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("JSON 변환 오류: " + e.getMessage());
-            }
-        }).collect(Collectors.toList());
+        List<SeleniumExecutionRequest.ActionDetail> seleniumActions = buildActionDetails(actions, userId);
 
         return new SeleniumExecutionRequest(
                 fullTargetUrl,
@@ -69,5 +47,48 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
                 scenario.getPage().getId(),
                 seleniumActions
         );
+    }
+
+    private Scenario findScenarioById(Long scenarioId) {
+        return scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
+    }
+
+    private String buildTargetUrl(String baseUrl, String pagePath) {
+        if (!baseUrl.endsWith("/") && !pagePath.startsWith("/")) {
+            baseUrl += "/";
+        }
+        return baseUrl + pagePath;
+    }
+
+
+    private List<ActionTable> getActionsForScenario(Long scenarioId) {
+        return actionRepository.findByScenarioId(scenarioId);
+    }
+
+    private List<SeleniumExecutionRequest.ActionDetail> buildActionDetails(List<ActionTable> actions, Long userId) {
+        return actions.stream()
+                .map(action -> {
+                    Feature feature = featureRepository.findFeatureByUserOrDefault(userId, action.getId())
+                            .orElseThrow(() -> new IllegalArgumentException("해당 액션의 Feature를 찾을 수 없습니다. actionId: " + action.getId()));
+
+                    FeatureData featureData = parseFeatureJson(feature.getFeatureJson());
+
+                    return SeleniumExecutionRequest.ActionDetail.builder()
+                            .actionDescription(action.getActionDescription())
+                            .step(action.getStep())
+                            .actionType(action.getActionType())
+                            .locator(featureData.getLocator())
+                            .action(featureData.getAction())
+                            .build();
+                }).collect(Collectors.toList());
+    }
+
+    private FeatureData parseFeatureJson(String featureJson) {
+        try {
+            return objectMapper.readValue(featureJson, FeatureData.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON 변환 오류: " + e.getMessage());
+        }
     }
 }
