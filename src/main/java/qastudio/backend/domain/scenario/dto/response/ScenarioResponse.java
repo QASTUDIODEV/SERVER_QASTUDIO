@@ -21,6 +21,4 @@ public class ScenarioResponse {
     @Schema(description = "시나리오 설명", example = "이 시나리오는 로그인 동작을 테스트합니다.")
     private String scenarioDescription;
 
-    @Schema(description = "액션 개수", example = "3")
-    private int actionCount;
 }

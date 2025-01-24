@@ -22,25 +22,24 @@ public class SeleniumActionExecutor {
         webSocketHandler = handler;
     }
 
-    public static void performAction(WebDriver driver, SeleniumExecutionRequest.Action action, String sessionId, List<String> logs) {
+    public static void performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
-            SeleniumExecutionRequest.Element element = action.getElement();
-            LocatorType locatorType = LocatorType.fromString(element.getLocator().getStrategy());
+            LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
             WebElement webElement = new WebDriverWait(driver, Duration.ofSeconds(10))
-                    .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, element.getLocator().getValue())));
+                    .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, actionDetail.getLocator().getValue())));
 
-            ActionType actionType = ActionType.fromString(element.getAction().getType());
+            ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
 
             LocatorActionValidator.validate(locatorType, actionType);
 
-            ActionExecutor.executeAction(webElement, actionType, element, logs);
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
 
         } catch (UnsupportedOperationException e) {
             logs.add("❌ 지원되지 않는 액션 오류: " + e.getMessage());
         } catch (Exception e) {
-            logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + action.getElement().getName() + " - 오류: " + e.getMessage());
+            logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
         }
     }
 
