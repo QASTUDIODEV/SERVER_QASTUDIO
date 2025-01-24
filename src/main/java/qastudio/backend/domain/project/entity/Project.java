@@ -34,7 +34,7 @@ public class Project extends BaseEntity {
     @Column(length = 500)
     private String introduction;
 
-    @Column(name = "view_type", nullable = false)
+    @Column(name = "view_type")
     @Enumerated(EnumType.STRING)
     private ViewType viewType;
 

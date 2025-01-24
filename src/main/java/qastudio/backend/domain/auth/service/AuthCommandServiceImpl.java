@@ -16,6 +16,7 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepositoryCustom;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -23,6 +24,7 @@ import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -40,15 +42,26 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter authConverter;
 
     @Override
-    public  AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
-        if (accountTableRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
+    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
+        String email = request.getEmail();
+        EmailType emailType = EmailType.LOCAL;
+
+        List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+
+        if (accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType))) {
+            throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
-        User user = authConverter.toUser(request);
-        userRepository.save(user);
+        User user;
+        if (accountTables.isEmpty()) {
+            user = authConverter.toUserAccountTable(request);
+            userRepository.save(user);
+        } else {
+            user = accountTables.get(0).getUser();
+            authConverter.toAccountTable(email, request.getPassword(), user);
+        }
 
-        return authenticateAndGenerateToken(request.getEmail(), request.getPassword());
+        return authenticateAndGenerateToken(email, request.getPassword());
     }
 
     @Override
@@ -102,6 +115,15 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         account.updatePassword(encodedNewPassword);
 
         accountTableRepository.save(account);
+    }
+
+    @Override
+    public User getOrCreateUser(String email, EmailType emailType) {
+        Optional<AccountTable> existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType);
+        return existingAccount.map(AccountTable::getUser).orElseGet(() -> {
+            User newUser = authConverter.toUser();
+            return newUser;
+        });
     }
 }
 

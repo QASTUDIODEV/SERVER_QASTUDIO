@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.AuthResponse;
@@ -13,7 +14,6 @@ import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
-import qastudio.backend.jwt.TokenInfo;
 
 @RestController
 @RequiredArgsConstructor
@@ -121,14 +121,6 @@ public class AuthController {
     public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
         AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest);
         return ApiResponse.onSuccess(loginResponse);
-    }
-
-    @Operation(
-            summary = "로그인 성공 후 토큰 전송 내부 API (백엔드 전용) | by 지지",
-            description = "클라이언트 사용하지 않는 API 입니다.")
-    @GetMapping("/login/success")
-    public ApiResponse<TokenInfo> loginSuccess(@Valid TokenInfo tokenInfo) {
-        return ApiResponse.onSuccess(tokenInfo);
     }
 
     @Operation(

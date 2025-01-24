@@ -1,6 +1,8 @@
 package qastudio.backend.domain.project.service;
 
 import jakarta.persistence.EntityNotFoundException;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.CreateCharacter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.UpdateCharacter;
+import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterScenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.entity.Page;
@@ -20,6 +23,8 @@ import qastudio.backend.domain.project.repository.PageRole.PageRoleRepository;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +42,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     @Override
     public CharacterScenario createCharacter(Long projectId, CreateCharacter createCharacter) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("프로젝트가 존재하지 않습니다."));
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         CharacterTable characterTable = characterConverter.toCharacter(createCharacter, project);
 

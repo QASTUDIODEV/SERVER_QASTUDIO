@@ -34,9 +34,7 @@ public class ScenarioController {
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
             @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
-        System.out.println("request = " + request);
         ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
-        System.out.println("scenarioResponse = " + scenarioResponse);
         actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
 
         return ApiResponse.onSuccess(scenarioResponse);
@@ -44,19 +42,19 @@ public class ScenarioController {
 
 
 
-    @Operation(
-            summary = "시나리오 조회 API | by 준",
-            description = "특정 시나리오의 정보를 반환하고, 해당 시나리오에 속한 액션 목록을 제공합니다."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
-    })
-    @GetMapping("/{scenarioId}")
-    public ApiResponse<ScenarioDetailResponse> getScenario(@PathVariable Long scenarioId) {
-        ScenarioDetailResponse response = scenarioQueryService.getScenarioById(scenarioId);
-        return ApiResponse.onSuccess(response);
-    }
+//    @Operation(
+//            summary = "시나리오 조회 API | by 준",
+//            description = "특정 시나리오의 정보를 반환하고, 해당 시나리오에 속한 액션 목록을 제공합니다."
+//    )
+//    @ApiResponses({
+//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
+//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
+//    })
+//    @GetMapping("/{scenarioId}")
+//    public ApiResponse<ScenarioDetailResponse> getScenario(@PathVariable Long scenarioId) {
+//        ScenarioDetailResponse response = scenarioQueryService.getScenarioById(scenarioId);
+//        return ApiResponse.onSuccess(response);
+//    }
 
     @Operation(
             summary = "시나리오 삭제 API | by 챠리",

@@ -16,10 +16,10 @@ public class ActionConverter {
 
     public ActionTable toEntity(ScenarioRequest.CreateScenarioRequest.Action action, Long scenarioId) {
         return ActionTable.builder()
-                .actionName(action.getActionName())
+                .actionDescription(action.getActionDdescription())
                 .step(action.getStep())
                 .scenario(Scenario.builder().id(scenarioId).build())
-                .actionElements(JsonUtil.toJson(action.getElements()))
+                .actionType(JsonUtil.toJson(action.getElements()))
                 .build();
     }
 

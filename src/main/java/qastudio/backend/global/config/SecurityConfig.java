@@ -76,6 +76,7 @@ public class SecurityConfig {
                 List.of(
                         "http://localhost:*",
                         "http://localhost",
+                        "http://localhost:5173",
                         "https://www.qa-studio.com",
                         "https://back.qa-studio.com"
                 )
@@ -83,6 +84,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

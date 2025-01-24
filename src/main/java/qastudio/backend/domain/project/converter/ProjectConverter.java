@@ -62,7 +62,6 @@ public class ProjectConverter {
                 .projectName(request.getProjectName())
                 .projectImage(staticUrl)
                 .projectUrl(request.getProjectUrl())
-                .viewType(request.getViewType() != null ? request.getViewType() : ViewType.PC)
                 .build();
     }
 

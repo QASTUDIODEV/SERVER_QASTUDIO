@@ -92,4 +92,21 @@ public class CharacterResponse {
         private Long scenarioId;
         private String scenarioDescription;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class PageInfo {
+        private Long pageId;
+        private String path;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ProjectPathList {
+        private List<PageInfo> projectPaths;
+    }
 }

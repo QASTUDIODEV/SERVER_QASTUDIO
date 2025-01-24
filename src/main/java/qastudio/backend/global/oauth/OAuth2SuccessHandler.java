@@ -1,6 +1,5 @@
 package qastudio.backend.global.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,18 +11,17 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import qastudio.backend.domain.auth.converter.AuthConverter;
-import qastudio.backend.domain.auth.dto.response.AuthResponse;
+import qastudio.backend.domain.auth.service.AuthCommandService;
+import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,10 +29,13 @@ import java.util.Optional;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
-    private final AuthConverter authConverter;
-    private static final String URI = "/api/v0/auth/login/success";
+    private final AuthCommandService authCommandService;
+    private final AuthQueryService authQueryService;
+
+    // 추후 수정할 예정입니다.
+    private static final String FRONTEND_URL = "http://localhost:5173/login/success";
 
     @Override
     @Transactional
@@ -42,8 +43,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException, ServletException {
 
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
-
-        // 소셜 로그인 시 필요한 사용자 정보
         String email = (String) principal.getAttributes().get("email");
         String registrationId = (String) principal.getAttributes().get("registrationId");
 
@@ -52,31 +51,33 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // OAuth2UserInfo 생성
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        // 사용자 정보 확인
-        Optional<AccountTable> accountOptional = accountTableRepository.findByEmailAndEmailType(email, emailType);
+        User currentUser = authQueryService.getAuthenticatedUserIfPresent()
+                .orElseGet(() -> authCommandService.getOrCreateUser(email, emailType));
 
-        if (accountOptional.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
-            return;
+        // 중복 계정 확인 및 추가
+        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, emailType).isPresent();
+        if (!accountExists) {
+            AccountTable newAccount = AccountTable.builder()
+                    .email(email)
+                    .emailType(emailType)
+                    .user(currentUser)
+                    .build();
+            currentUser.addAccount(newAccount);
+            accountTableRepository.save(newAccount);
         }
 
-        // 생성된 유저 정보 가져오기
-        AccountTable account = accountOptional.get();
-        User user = account.getUser();
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        // accessToken, refreshToken 발급
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, true);
+        String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
+                .queryParam("accessToken", tokenInfo.getAccessToken())
+                .queryParam("refreshToken", tokenInfo.getRefreshToken())
+                .queryParam("nickname", currentUser.getNickname())
+                .build()
+                .toUriString();
 
-        AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, user);
-        ApiResponse<AuthResponse.LoginResponse> apiResponse = ApiResponse.onSuccess(loginResponse);
-
-        // JSON 응답 전송
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        response.sendRedirect(redirectUrl);
     }
 }
