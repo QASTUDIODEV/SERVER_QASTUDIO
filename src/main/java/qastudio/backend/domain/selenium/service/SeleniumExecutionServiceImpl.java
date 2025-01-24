@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.scenario.entity.Scenario;
-import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.util.SeleniumActionExecutor;
@@ -17,7 +15,6 @@ import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +39,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             int totalActions = request.getActions().size();
             int executedActions = 0;
 
-            for (SeleniumExecutionRequest.Action action : request.getActions()) {
-                executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionName());
+            for (SeleniumExecutionRequest.ActionDetail action : request.getActions()) {
+                executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
                 SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
                 executedActions++;
             }
@@ -51,7 +48,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             executionLogs.add("✅ 테스트 완료");
             String scenarioRecord = convertActionsToJson(request);
 
-            // ✅ JPA `save()`를 활용한 테스트 결과 저장
             testCommandService.createTest(new TestRequest(
                     "Test Run - " + request.getTargetUrl(),
                     (executedActions * 100) / totalActions,
@@ -82,7 +78,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                     request.getUserId(),
                     request.getProjectId(),
                     request.getPageId(),
-                    scenarioRecord, // ✅ JSON 변환 확인
+                    scenarioRecord,
                     request.getActions().size(),
                     0
             ));

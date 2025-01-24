@@ -10,23 +10,23 @@ public class ActionExecutor {
 
     private ActionExecutor() {}
 
-    public static void executeAction(WebElement webElement, ActionType actionType, SeleniumExecutionRequest.Element element, List<String> logs) {
+    public static void executeAction(WebElement webElement, ActionType actionType, SeleniumExecutionRequest.ActionDetail actionDetail, List<String> logs) {
         switch (actionType) {
             case CLICK:
                 webElement.click();
-                logs.add("✅ 클릭 실행: " + element.getName());
+                logs.add("✅ 클릭 실행: " + actionDetail.getActionDescription());
                 break;
             case SEND_KEYS:
-                webElement.sendKeys(element.getAction().getValue());
-                logs.add("✅ 입력: " + element.getAction().getValue() + " → " + element.getName());
+                webElement.sendKeys(actionDetail.getAction().getValue());
+                logs.add("✅ 입력: " + actionDetail.getAction().getValue() + " → " + actionDetail.getActionDescription());
                 break;
             case CLEAR:
                 webElement.clear();
-                logs.add("✅ 입력 필드 초기화: " + element.getName());
+                logs.add("✅ 입력 필드 초기화: " + actionDetail.getActionDescription());
                 break;
             case GET_ATTRIBUTE:
-                String attributeValue = webElement.getAttribute(element.getAction().getValue());
-                logs.add("✅ 속성 값 가져오기: " + element.getAction().getValue() + " = " + attributeValue);
+                String attributeValue = webElement.getAttribute(actionDetail.getAction().getValue());
+                logs.add("✅ 속성 값 가져오기: " + actionDetail.getAction().getValue() + " = " + attributeValue);
                 break;
             case TEXT:
                 String text = webElement.getText();

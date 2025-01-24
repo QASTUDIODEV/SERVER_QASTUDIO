@@ -1,33 +1,29 @@
 package qastudio.backend.domain.selenium.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class SeleniumExecutionRequest {
-    @Schema(description = "테스트 대상 URL", example = "http://localhost:3000/")
-    @NotEmpty(message = "URL은 필수입니다.")
-    private String targetUrl;
 
-    @NotNull(message = "사용자 ID는 필수입니다.")
-    private Long userId;
+    @Schema(description = "테스트할 사이트의 기본 URL", example = "http://localhost:3000")
+    private final String targetUrl;
 
-    @NotNull(message = "프로젝트 ID는 필수입니다.")
-    private Long projectId;
+    @Schema(description = "사용자 ID", example = "1")
+    private final Long userId;
 
-    @NotNull(message = "페이지 ID는 필수입니다.")
-    private Long pageId;
+    @Schema(description = "프로젝트 ID", example = "2")
+    private final Long projectId;
+
+    @Schema(description = "페이지 ID", example = "3")
+    private final Long pageId;
 
     @Schema(description = "실행할 액션 목록")
-    @NotNull(message = "액션 리스트는 필수 값입니다.")
-    private List<Action> actions;
-    public SeleniumExecutionRequest(String targetUrl, Long userId, Long projectId, Long pageId, List<Action> actions) {
+    private final List<ActionDetail> actions;
+    public SeleniumExecutionRequest(String targetUrl, Long userId, Long projectId, Long pageId, List<ActionDetail> actions) {
         this.targetUrl = targetUrl;
         this.userId = userId;
         this.projectId = projectId;
@@ -35,69 +31,41 @@ public class SeleniumExecutionRequest {
         this.actions = actions;
     }
     @Getter
-    @NoArgsConstructor
-    public static class Action {
-        @Schema(description = "액션 이름", example = "Enter Email")
-        @NotEmpty(message = "액션 이름은 필수 값입니다.")
-        private String actionName;
+    @Builder
+    public static class ActionDetail {
+        @Schema(description = "액션 설명", example = "Enter Email")
+        private final String actionDescription;
 
         @Schema(description = "액션 단계", example = "1")
-        @NotNull(message = "액션 단계는 필수 값입니다.")
-        private Integer step;
+        private final Integer step;
 
-        @Schema(description = "실행할 요소")
-        @NotNull(message = "요소 정보는 필수 값입니다.")
-        private Element element;
+        @Schema(description = "액션 타입", example = "input")
+        private final String actionType;
 
-        public Action(String actionName, Integer step, Element element) {
-            this.actionName = actionName;
-            this.step = step;
-            this.element = element;
-        }
-    }
-
-    @Getter
-    @NoArgsConstructor
-    public static class Element {
-        @Schema(description = "요소 이름", example = "email_input")
-        private String name;
-
-        @Schema(description = "요소 유형", example = "input")
-        private String type;
-
-        @Schema(description = "요소의 Locator 정보")
-        @NotNull(message = "Locator 정보는 필수 값입니다.")
-        private Locator locator;
+        @Schema(description = "Locator 정보")
+        private final Locator locator;
 
         @Schema(description = "실행할 액션 정보")
-        @NotNull(message = "액션 정보는 필수 값입니다.")
-        private ActionDetail action;
-
-        public Element(String name, String type, Locator locator, ActionDetail action) {
-            this.name = name;
-            this.type = type;
-            this.locator = locator;
-            this.action = action;
-        }
+        private final Action action;
     }
 
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class Locator {
         @Schema(description = "Locator 전략", example = "id")
-        private String strategy;
+        private final String strategy;
 
         @Schema(description = "Locator 값", example = "email")
-        private String value;
+        private final String value;
     }
 
     @Getter
-    @NoArgsConstructor
-    public static class ActionDetail {
-        @Schema(description = "실행할 액션 유형", example = "send_keys")
-        private String type;
+    @Builder
+    public static class Action {
+        @Schema(description = "액션 타입", example = "send_keys")
+        private final String type;
 
-        @Schema(description = "입력할 값 (SEND_KEYS의 경우)", example = "testuser@example.com")
-        private String value;
+        @Schema(description = "액션 값", example = "testuser@example.com")
+        private final String value;
     }
 }
