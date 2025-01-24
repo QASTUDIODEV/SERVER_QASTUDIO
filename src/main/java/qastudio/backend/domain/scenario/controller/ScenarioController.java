@@ -60,18 +60,18 @@ public class ScenarioController {
         return ApiResponse.onSuccess(response);
     }
 
-//    @Operation(
-//            summary = "시나리오 삭제 API | by 챠리",
-//            description = "시나리오를 삭제합니다. 단일 시나리오를 삭제할 수도 있고, 여러 시나리오를 삭제할 수도 있습니다."
-//    )
-//    @ApiResponses({
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "존재하지 않는 시나리오입니다."),
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
-//    })
-//    @DeleteMapping("")
-//    public ApiResponse<Void> deleteScenarios(@RequestBody ScenarioRequest.DeleteScenarios deleteScenarios) {
-//        scenarioCommandService.deleteScenarios(deleteScenarios.getScenarioIds());
-//        return ApiResponse.onSuccess(null);
-//    }
+    @Operation(
+            summary = "시나리오 삭제 API | by 챠리",
+            description = "시나리오를 삭제합니다. 단일 시나리오를 삭제할 수도 있고, 여러 시나리오를 삭제할 수도 있습니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "존재하지 않는 시나리오입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @DeleteMapping("")
+    public ApiResponse<Void> deleteScenarios(@RequestBody ScenarioRequest.DeleteScenarios deleteScenarios) {
+        scenarioCommandService.deleteScenarios(deleteScenarios.getScenarioIds());
+        return ApiResponse.onSuccess(null);
+    }
 }

@@ -2,6 +2,7 @@ package qastudio.backend.domain.scenario.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -62,5 +63,14 @@ public class ScenarioRequest {
         @Schema(example = "{\"type\": \"send_keys\", \"value\": \"testuser@example.com\"}", description = "액션 정보")
         @NotNull(message = "Action 정보는 필수입니다.")
         private Map<String, Object> action;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    public static class DeleteScenarios {
+
+        @Schema(description = "삭제할 시나리오 ID 목록", example = "[1, 2, 3]")
+        @NotEmpty(message = "삭제할 시나리오 ID 목록은 비어 있을 수 없습니다.")
+        private List<Long> scenarioIds;
     }
 }
