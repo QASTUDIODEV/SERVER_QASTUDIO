@@ -1,27 +1,29 @@
 package qastudio.backend.domain.scenario.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class ActionResponse {
 
-    @Schema(description = "액션 ID", example = "1")
-    private Long id;
+    @Schema(description = "액션 ID", example = "10")
+    private Long actionId;
 
-    @Schema(description = "선택 방법", example = "css_selector")
-    private String locatorType;
+    @Schema(description = "액션 설명", example = "Enter Email")
+    private String actionDescription;
 
-    @Schema(description = "요소 값", example = "#email")
-    private String locatorValue;
+    @Schema(description = "액션 단계", example = "1")
+    private Integer step;
 
-    @Schema(description = "행동 종류", example = "send_keys")
+    @Schema(description = "액션 유형", example = "input")
     private String actionType;
 
-    @Schema(description = "행동 값", example = "testuser@example.com")
-    private String actionValue;
+    @Schema(description = "Locator 정보")
+    private SeleniumExecutionRequest.Locator locator;
+
+    @Schema(description = "Action 정보")
+    private SeleniumExecutionRequest.Action action;
 }

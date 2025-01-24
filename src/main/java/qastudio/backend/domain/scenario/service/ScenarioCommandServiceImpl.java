@@ -1,34 +1,64 @@
 
 package qastudio.backend.domain.scenario.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import qastudio.backend.domain.scenario.converter.ScenarioConverter;
+import qastudio.backend.domain.project.entity.CharacterTable;
+import qastudio.backend.domain.project.entity.Page;
+import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
+import qastudio.backend.domain.project.repository.Page.PageRepository;
 import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.scenario.dto.request.ActionRequest;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
+import qastudio.backend.domain.scenario.entity.ActionTable;
+import qastudio.backend.domain.scenario.entity.Feature;
 import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.scenario.repository.ActionTableRepository;
+import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.scenario.service.ScenarioCommandService;
 import org.springframework.transaction.annotation.Transactional;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.User.UserRepository;
+
+
 
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
 public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
     private final ScenarioRepository scenarioRepository;
-    private final ScenarioConverter scenarioConverter;
+    private final CharacterTableRepository characterTableRepository;
+    private final PageRepository pageRepository;
 
     @Override
     public ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request) {
-        Scenario scenario = scenarioConverter.toEntity(request);
-        Scenario savedScenario = scenarioRepository.save(scenario);
-        return scenarioConverter.toResponse(savedScenario);
-    }
+        // Character 및 Page 엔티티 조회
+        CharacterTable character = characterTableRepository.findById(request.getCharacterId())
+                .orElseThrow(() -> new EntityNotFoundException("Character not found"));
 
+        Page page = pageRepository.findById(request.getPageId())
+                .orElseThrow(() -> new EntityNotFoundException("Page not found"));
+
+        // Scenario 저장
+        Scenario scenario = Scenario.builder()
+                .scenarioName(request.getScenarioName())
+                .scenarioDescription(request.getScenarioDescription())
+                .characterTable(character)
+                .page(page)
+                .build();
+        scenarioRepository.save(scenario);
+
+        return new ScenarioResponse(scenario.getId(), scenario.getScenarioName(), scenario.getScenarioDescription());
+    }
 
     @Override
     public void deleteScenarios(List<Long> scenarioIds) {
