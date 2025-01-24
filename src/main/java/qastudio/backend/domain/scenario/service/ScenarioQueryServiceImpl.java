@@ -32,6 +32,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     @Transactional
     @Override
     public ScenarioDetailResponse getScenarioDetail(Long scenarioId) {
+        Long userId = SecurityUtils.getCurrentUserId();
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
 
@@ -39,14 +40,15 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
 
         List<ScenarioDetailResponse.ActionDetail> actionDetails = actions.stream()
                 .map(action -> {
-                    Feature feature = featureRepository.findByActionAndUserIsNull(action)
-                            .orElseThrow(() -> new IllegalArgumentException("기본 Feature를 찾을 수 없습니다. actionId: " + action.getId()));
+                    Feature feature = featureRepository.findByUserAndActionOrDefault(userId, action)
+                            .orElseThrow(() -> new IllegalArgumentException("Feature를 찾을 수 없습니다. actionId: " + action.getId()));
 
                     return convertToActionDetail(action, feature);
                 })
                 .collect(Collectors.toList());
 
         return ScenarioDetailResponse.builder()
+                .scenarioId(scenario.getId())
                 .scenarioName(scenario.getScenarioName())
                 .scenarioDescription(scenario.getScenarioDescription())
                 .actions(actionDetails)
@@ -58,6 +60,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
             FeatureJson featureJson = objectMapper.readValue(feature.getFeatureJson(), FeatureJson.class);
 
             return ScenarioDetailResponse.ActionDetail.builder()
+                    .actionId(action.getId())
                     .actionDescription(action.getActionDescription())
                     .step(action.getStep())
                     .actionType(action.getActionType())

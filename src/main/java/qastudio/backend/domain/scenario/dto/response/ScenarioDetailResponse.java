@@ -11,6 +11,9 @@ import java.util.List;
 @Builder
 public class ScenarioDetailResponse {
 
+    @Schema(description = "시나리오 ID", example = "1")
+    private Long scenarioId;
+
     @Schema(description = "시나리오 이름", example = "Login Test")
     private String scenarioName;
 
@@ -23,6 +26,8 @@ public class ScenarioDetailResponse {
     @Getter
     @Builder
     public static class ActionDetail {
+        @Schema(description = "액션 ID", example = "1")
+        private Long actionId;
 
         @Schema(description = "액션 설명", example = "Enter Email")
         private String actionDescription;

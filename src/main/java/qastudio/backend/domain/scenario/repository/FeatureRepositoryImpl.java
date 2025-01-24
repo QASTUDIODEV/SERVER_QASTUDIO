@@ -13,6 +13,32 @@ public class FeatureRepositoryImpl implements FeatureRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
     @Override
+    public Optional<Feature> findByUserAndActionOrDefault(Long userId, ActionTable action) {
+        QFeature feature = QFeature.feature;
+
+        Feature userFeature = jpaQueryFactory
+                .selectFrom(feature)
+                .where(
+                        feature.action.eq(action),
+                        feature.user.id.eq(userId) // 특정 사용자 Feature 조회
+                )
+                .fetchOne();
+
+        if (userFeature != null) {
+            return Optional.of(userFeature);
+        }
+        Feature defaultFeature = jpaQueryFactory
+                .selectFrom(feature)
+                .where(
+                        feature.action.eq(action),
+                        feature.user.isNull() // 기본 Feature 조회
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(defaultFeature);
+    }
+
+    @Override
     public Optional<Feature> findByActionAndUserIsNull(ActionTable action) {
         QFeature feature = QFeature.feature;
 

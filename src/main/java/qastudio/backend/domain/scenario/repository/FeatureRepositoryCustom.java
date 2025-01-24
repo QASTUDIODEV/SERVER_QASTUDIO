@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface FeatureRepositoryCustom {
     Optional<Feature> findByActionAndUserIsNull(ActionTable action);
     Optional<Feature> findFeatureByUserOrDefault(Long userId, Long actionId);
+    Optional<Feature> findByUserAndActionOrDefault(Long userId, ActionTable action);
 }
