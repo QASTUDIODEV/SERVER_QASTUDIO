@@ -13,6 +13,7 @@ import qastudio.backend.domain.scenario.repository.ActionTableRepository;
 import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
+import qastudio.backend.global.util.SecurityUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,8 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     @Transactional
     @Override
     public SeleniumExecutionRequest getExecutionRequestByScenarioId(Long scenarioId, String baseUrl) {
+        Long userId = SecurityUtils.getCurrentUserId();
+
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
 
@@ -41,7 +44,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
         List<ActionTable> actions = actionRepository.findByScenarioId(scenarioId);
 
         List<SeleniumExecutionRequest.ActionDetail> seleniumActions = actions.stream().map(action -> {
-            Feature feature = featureRepository.findByAction(action)
+            Feature feature = featureRepository.findFeatureByUserOrDefault(userId, action.getId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 액션의 Feature를 찾을 수 없습니다. actionId: " + action.getId()));
 
             try {

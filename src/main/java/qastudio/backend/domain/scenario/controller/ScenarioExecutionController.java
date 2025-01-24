@@ -37,7 +37,6 @@ public class ScenarioExecutionController {
         }
 
         SeleniumExecutionRequest executionRequest = scenarioQueryService.getExecutionRequestByScenarioId(scenarioId, request.getBaseUrl());
-        System.out.println("executionRequest = " + executionRequest);
         SeleniumExecutionResponse response = seleniumExecutionService.executeTest(sessionId, executionRequest);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
