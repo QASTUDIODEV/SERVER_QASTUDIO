@@ -17,7 +17,6 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
@@ -29,7 +28,6 @@ import java.io.IOException;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
     private final AuthQueryService authQueryService;
@@ -68,20 +66,20 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        // Access Token 쿠키 설정
-        Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
-        accessTokenCookie.setHttpOnly(false);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
-        response.addCookie(accessTokenCookie);
+        // existing_user, token 정보 전달
+        setCookie(response, "existing_user", String.valueOf(accountExists), 1800);
+        setCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
+        setCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
-        // Refresh Token 쿠키 설정
-        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(false);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
-        response.addCookie(refreshTokenCookie);
+        response.sendRedirect("http://localhost:5173/login/success");
+    }
+
+    private void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(false); // HTTP-Only 설정 (보안 강화 필요 시 true로 변경하기)
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
     }
 }
