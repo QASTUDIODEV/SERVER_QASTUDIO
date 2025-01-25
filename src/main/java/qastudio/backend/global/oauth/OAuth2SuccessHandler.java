@@ -1,6 +1,7 @@
 package qastudio.backend.global.oauth;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -10,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -33,9 +33,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
     private final AuthQueryService authQueryService;
-
-    // 추후 수정할 예정입니다.
-    private static final String FRONTEND_URL = "http://localhost:5173/login/success";
 
     @Override
     @Transactional
@@ -71,13 +68,20 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
-                .queryParam("accessToken", tokenInfo.getAccessToken())
-                .queryParam("refreshToken", tokenInfo.getRefreshToken())
-                .queryParam("nickname", currentUser.getNickname())
-                .build()
-                .toUriString();
+        // Access Token 쿠키 설정
+        Cookie accessTokenCookie = new Cookie("accessToken", tokenInfo.getAccessToken());
+        accessTokenCookie.setHttpOnly(false);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 30);   // 30분 유지
+        response.addCookie(accessTokenCookie);
 
-        response.sendRedirect(redirectUrl);
+        // Refresh Token 쿠키 설정
+        Cookie refreshTokenCookie = new Cookie("refreshToken", tokenInfo.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);   // 7일 유지
+        response.addCookie(refreshTokenCookie);
     }
 }
