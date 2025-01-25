@@ -1,11 +1,14 @@
 package qastudio.backend.domain.test.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.test.dto.response.TestResponse;
+import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.repository.TestRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -21,9 +24,20 @@ public class TestQueryServiceImpl implements TestQueryService{
     private final TestRepository testRepository;
 
     @Override
-    public TestResponse.TestList getTestList(Long projectId, Integer page, LocalDate date, String pageName, State state) {
-        return null;
-    };
+    public Page<Test> getTestList(Long projectId, Integer page, String testName, LocalDate date, String pageName, State state) {
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        Page<Test> testPage = testRepository.findAllByProject(
+                project,
+                testName,
+                date,
+                pageName,
+                state,
+                PageRequest.of(page, 6));
+
+        return testPage;
+    }
 
     @Override
     public Project getTestStatistics(Long projectId) {
@@ -82,9 +96,4 @@ public class TestQueryServiceImpl implements TestQueryService{
         Double rateChange = ((todayRate - yesterdayRate) / yesterdayRate) * 100;
         return Math.round(rateChange * 10) / 10.0;
     }
-
-    @Override
-    public TestResponse.TestList searchTestsByTestName(Long projectId, String testName, Integer page, LocalDate date, String pageName, State state) {
-        return null;
-    };
 }

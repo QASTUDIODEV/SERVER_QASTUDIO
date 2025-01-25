@@ -13,5 +13,6 @@ public class ErrorResponse {
         private String errorImage;
         private Integer errorCode;
         private String errorMessage;
+        private String scenarioRecord;
     }
 }
