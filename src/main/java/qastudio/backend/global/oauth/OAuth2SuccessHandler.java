@@ -17,10 +17,12 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,9 +30,9 @@ import java.io.IOException;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
-    private final AuthQueryService authQueryService;
     private final AuthConverter authConverter;
 
     @Override
@@ -50,25 +52,25 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        User currentUser = authQueryService.getAuthenticatedUserIfPresent()
+        boolean isExistingUser = (boolean) principal.getAttributes().get("existing_user");
+
+        User currentUser = userRepository.findByAccountsEmail(email)
                 .orElseGet(() -> authCommandService.getOrCreateUser(email, emailType));
 
-        // 중복 계정 확인 및 추가
-        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, emailType).isPresent();
+        boolean accountExists = accountTableRepository.existsByEmailAndEmailType(email, emailType);
         if (!accountExists) {
             AccountTable newAccount = AccountTable.builder()
                     .email(email)
                     .emailType(emailType)
                     .user(currentUser)
                     .build();
-            currentUser.addAccount(newAccount);
             accountTableRepository.save(newAccount);
         }
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
         // existing_user, token 정보 전달
-        authConverter.toCookie(response, "existing_user", String.valueOf(accountExists), 1800);
+        authConverter.toCookie(response, "existing_user", String.valueOf(isExistingUser), 1800);
         authConverter.toCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
         authConverter.toCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 

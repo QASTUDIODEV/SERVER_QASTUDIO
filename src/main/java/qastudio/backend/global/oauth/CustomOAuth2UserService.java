@@ -62,6 +62,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
 
+        boolean existingUser = accountTableRepository.existsByEmail(email);
+
         // 로그인된 사용자 확인
         User currentUser = getCurrentAuthenticatedUser();
 
@@ -73,6 +75,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // 로그인되지 않은 상태면 기존 로직 수행 (이메일 기준 회원 조회 및 추가)
             user = getOrSave(oAuth2UserInfo, email);
         }
+
+        updatedAttributes.put("existing_user", existingUser);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
