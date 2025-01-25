@@ -89,8 +89,8 @@ public class AuthConverter {
 
     public void toCookie(HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(false);  // 보안 강화를 위해 true로 변경 가능
-        cookie.setSecure(false);
+        cookie.setHttpOnly(false);  // 쿠키 접근 허용 => 변경 예정
+        cookie.setSecure(false);    // 개발 환경(로컬) 허용 => 변경 예정
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
