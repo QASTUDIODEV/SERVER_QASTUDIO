@@ -71,8 +71,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         setCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
         setCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
-        response.sendRedirect("http://localhost:5173/login/success");
-    }
+        String redirectUrl = "http://localhost:5173/login/success";
+        if (!request.getServerName().contains("localhost")) {
+            redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
+        }
+        response.sendRedirect(redirectUrl);    }
 
     private void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
