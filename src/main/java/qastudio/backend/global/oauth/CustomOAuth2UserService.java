@@ -41,14 +41,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        log.info("===== OAuth2 로그인 요청 시작 =====");
-        log.info("Client registration ID: {}", userRequest.getClientRegistration().getRegistrationId());
-        log.info("Access token: {}", userRequest.getAccessToken().getTokenValue());
-        log.info("Received additional parameters: {}", userRequest.getAdditionalParameters());
-
         // 유저 정보 가져오기
         Map<String, Object> oAuth2UserAttributes = super.loadUser(userRequest).getAttributes();
-        log.info("Received OAuth2 user attributes: {}", oAuth2UserAttributes);
 
         // OAuth2 공급자 ID
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
@@ -58,7 +52,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 이메일 추출
         String email = extractEmail(registrationId, oAuth2UserAttributes, userRequest);
-        log.info("Extracted email: {}", email);
 
         // 사용자 고유 식별자
         String userNameAttributeName = registrationId + "_" + oAuth2UserInfo.getId();
@@ -71,11 +64,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 로그인된 사용자 확인
         User currentUser = getCurrentAuthenticatedUser();
-        if (currentUser != null) {
-            log.info("현재 로그인된 사용자 ID: {}", currentUser.getId());
-        } else {
-            log.info("로그인된 사용자가 없습니다. 새로운 계정 생성 여부 확인 중...");
-        }
 
         User user;
         if (currentUser != null) {
@@ -98,10 +86,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
 
         if (existingAccounts.isEmpty()) {
-            log.info("신규 계정을 생성합니다. 이메일: {}", email);
             return createNewUser(email, oAuth2UserInfo);
         } else {
-            log.info("기존 계정을 찾았습니다. 사용자 ID: {}", existingAccounts.get(0).getUser().getId());
             return linkSocialAccount(existingAccounts.get(0).getUser(), email, oAuth2UserInfo);
         }
     }
