@@ -128,10 +128,10 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "소셜 로그인 후 토큰 확인 용 API | by 지지",
-            description = "소셜 로그인 후 토큰 확인할 수 있습니다. "
+            summary = "회원가입/로그인 후 토큰 확인 용 API | by 지지",
+            description = "회원가입/로그인 후 토큰 확인할 수 있습니다. "
     )
-    @GetMapping("/login/success")
+    @GetMapping("/check/token")
     public ApiResponse<TokenInfo> checkCookies(HttpServletRequest request) {
         TokenInfo tokenInfo = authConverter.toTokenInfo(request);
         return ApiResponse.onSuccess(tokenInfo);
