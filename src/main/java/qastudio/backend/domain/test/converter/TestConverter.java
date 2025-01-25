@@ -67,8 +67,12 @@ public class TestConverter {
                 .listSize(testLists.size())
                 .totalPage(testList.getTotalPages())
                 .totalElements(testList.getTotalElements())
+                .offset(testList.getPageable().getOffset())
+                .limit(testList.getPageable().getPageSize())
                 .isFirst(testList.isFirst())
                 .isLast(testList.isLast())
+                .hasPrevious(testList.hasPrevious())
+                .hasNext(testList.hasNext())
                 .build();
     }
 }

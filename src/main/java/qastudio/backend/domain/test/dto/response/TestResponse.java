@@ -69,7 +69,11 @@ public class TestResponse {
         private Integer listSize;
         private Integer totalPage;
         private Long totalElements;
+        private Long offset;
+        private Integer limit;
         private Boolean isFirst;
         private Boolean isLast;
+        private Boolean hasPrevious;
+        private Boolean hasNext;
     }
 }
