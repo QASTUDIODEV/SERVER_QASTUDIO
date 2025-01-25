@@ -1,6 +1,8 @@
 package qastudio.backend.domain.auth.converter;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -10,7 +12,8 @@ import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
-import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.jwt.TokenInfo;
@@ -20,23 +23,43 @@ import qastudio.backend.jwt.TokenInfo;
 public class AuthConverter {
 
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
     private final AuthQueryService authQueryService;
+    private final AccountTableRepository accountTableRepository;
 
-    public User toUser(AuthRequest.LocalRequest request) {
+    public User toUser() {
+        User newUser = User.builder().nickname("").build();
+        userRepository.save(newUser);
+        return newUser;
+    }
+
+    public User toUserAccountTable(AuthRequest.LocalRequest request) {
         User user = User.builder()
                 .nickname("") // 기본 닉네임
                 .build();
-
         AccountTable accountTable = AccountTable.builder()
                 .emailType(EmailType.LOCAL)
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 암호화
                 .user(user)
                 .build();
+        user.addAccount(accountTable);
+        return user;
+    }
+
+    public AccountTable toAccountTable(String email, String password, User user) {
+        AccountTable accountTable = AccountTable.builder()
+                .emailType(EmailType.LOCAL)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .user(user)
+                .build();
+
+        accountTableRepository.save(accountTable);
 
         user.addAccount(accountTable);
 
-        return user;
+        return accountTable;
     }
 
     public AuthResponse.LoginResponse toLoginResponse(TokenInfo tokenInfo, User user) {
@@ -62,6 +85,15 @@ public class AuthConverter {
         }
 
         return new TokenInfo("Bearer", accessToken, refreshToken);
+    }
+
+    public void toCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(false);  // 보안 강화를 위해 true로 변경 가능
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
     }
 
 }

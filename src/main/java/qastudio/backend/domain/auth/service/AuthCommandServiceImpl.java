@@ -1,5 +1,6 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,13 +43,14 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter authConverter;
 
     @Override
-    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
         String email = request.getEmail();
         EmailType emailType = EmailType.LOCAL;
 
         List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+        boolean accountExists = accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType));
 
-        if (accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType))) {
+        if (accountExists) {
             throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
         }
 
@@ -60,15 +62,22 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             user = accountTables.get(0).getUser();
             authConverter.toAccountTable(email, request.getPassword(), user);
         }
+        AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
 
-        return authenticateAndGenerateToken(email, request.getPassword());
+        authConverter.toCookie(response, "existing_user", "false", 1800);
+        authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
+        authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
     }
 
     @Override
-    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest) {
+    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
-            // 비밀번호 검증 포함
-            return authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+            AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+
+            authConverter.toCookie(response, "existing_user", "true", 1800);
+            authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
+            authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {

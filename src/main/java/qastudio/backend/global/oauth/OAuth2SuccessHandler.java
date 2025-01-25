@@ -1,7 +1,6 @@
 package qastudio.backend.global.oauth;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -11,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -31,6 +31,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
     private final AuthQueryService authQueryService;
+    private final AuthConverter authConverter;
 
     @Override
     @Transactional
@@ -67,22 +68,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
         // existing_user, token 정보 전달
-        setCookie(response, "existing_user", String.valueOf(accountExists), 1800);
-        setCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
-        setCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
+        authConverter.toCookie(response, "existing_user", String.valueOf(accountExists), 1800);
+        authConverter.toCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
+        authConverter.toCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
         String redirectUrl = "http://localhost:5173/login/success";
         if (!request.getServerName().contains("localhost")) {
             redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
         }
-        response.sendRedirect(redirectUrl);    }
-
-    private void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(false); // HTTP-Only 설정 (보안 강화 필요 시 true로 변경하기)
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAge);
-        response.addCookie(cookie);
+        response.sendRedirect(redirectUrl);
     }
 }

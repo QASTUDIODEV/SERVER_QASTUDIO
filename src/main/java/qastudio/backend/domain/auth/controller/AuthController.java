@@ -3,6 +3,7 @@ package qastudio.backend.domain.auth.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +46,16 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse< AuthResponse.LoginResponse> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
-        AuthResponse.LoginResponse loginResponse = authCommandService.userSignUp(authRequest);
-        return ApiResponse.onSuccess(loginResponse);
+    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        authCommandService.userSignUp(authRequest, response);
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "이미 등록된 이메일입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "EMAIL400", description = "이메일 인증 코드 전송을 실패했습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "Email already registered."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "EMAIL400", description = "Failed to send email verification code.")
     })
     @PostMapping("/sign-up/email")
     public ApiResponse<EmailResponse> sendSignEmail(@RequestBody @Valid EmailRequest emailRequest){
@@ -121,9 +122,9 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest) {
-        AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest);
-        return ApiResponse.onSuccess(loginResponse);
+    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        authCommandService.localLogin(authRequest, response);
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
