@@ -43,7 +43,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
-    private static final String REDIRECT_URL = "http://localhost:5173/login/success";
+    private static final String REDIRECT_URL = "https://localhost:5173/login/success";
 
     @Override
     public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
