@@ -1,4 +1,4 @@
-package qastudio.backend.jwt;
+package qastudio.backend.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

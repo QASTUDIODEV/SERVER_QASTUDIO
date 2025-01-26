@@ -11,12 +11,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
-import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.TokenInfo;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,7 +47,7 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) throws IOException {
         authCommandService.userSignUp(authRequest, response);
         return ApiResponse.onSuccess(null);
     }
@@ -122,7 +123,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) throws IOException {
         authCommandService.localLogin(authRequest, response);
         return ApiResponse.onSuccess(null);
     }

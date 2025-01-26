@@ -15,7 +15,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import qastudio.backend.global.oauth.CustomOAuth2UserService;
 import qastudio.backend.global.oauth.OAuth2SuccessHandler;
-import qastudio.backend.jwt.JwtTokenFilter;
+import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 import java.util.List;
 

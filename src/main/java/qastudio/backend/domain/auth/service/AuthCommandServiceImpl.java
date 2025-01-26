@@ -22,9 +22,10 @@ import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-import qastudio.backend.jwt.JwtTokenProvider;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +43,10 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
+    private static final String REDIRECT_URL = "http://localhost:5173/login/success";
+
     @Override
-    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) throws IOException {
         String email = request.getEmail();
         EmailType emailType = EmailType.LOCAL;
 
@@ -71,10 +74,12 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         response.addCookie(existing_user_cookie);
         response.addCookie(accessToken_cookie);
         response.addCookie(refreshToken_cookie);
+
+        response.sendRedirect(REDIRECT_URL);
     }
 
     @Override
-    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
+    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) throws IOException{
         try {
             AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
@@ -85,6 +90,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             response.addCookie(existing_user_cookie);
             response.addCookie(accessToken_cookie);
             response.addCookie(refreshToken_cookie);
+
+            response.sendRedirect(REDIRECT_URL);
 
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);

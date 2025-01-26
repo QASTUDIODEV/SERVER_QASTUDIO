@@ -1,4 +1,4 @@
-package qastudio.backend.jwt;
+package qastudio.backend.global.security.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
