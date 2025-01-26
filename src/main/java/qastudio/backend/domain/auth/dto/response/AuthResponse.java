@@ -9,8 +9,7 @@ public class AuthResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class LoginResponse {
-        private String nickname;
-        private String profileImage;
+        private String existing_user;
 
         private TokenInfo token;
     }

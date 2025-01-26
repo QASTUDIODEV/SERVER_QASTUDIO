@@ -43,11 +43,11 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
-    private static final String REDIRECT_URL = "https://localhost:5173/login/success";
+    private static final String REDIRECT_URL = "https://localhost:5173";
 
     @Override
-    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
-        try {
+    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
+//        try {
             String email = request.getEmail();
             EmailType emailType = EmailType.LOCAL;
 
@@ -67,43 +67,51 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 authConverter.toAccountTable(email, request.getPassword(), user);
             }
 
-            AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
+            TokenInfo tokenInfo = authenticateAndGenerateToken(email, request.getPassword());
 
-            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
-            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
-            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+            AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, false);
 
-            response.addCookie(existing_user_cookie);
-            response.addCookie(accessToken_cookie);
-            response.addCookie(refreshToken_cookie);
+            return loginResponse;
 
-            response.sendRedirect(REDIRECT_URL);
-
-        } catch (IOException e) {
-            log.error("Redirection failed during user sign-up: {}", e.getMessage());
-            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
-        }
+////            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
+////            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+////            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+////
+////            response.addCookie(existing_user_cookie);
+////            response.addCookie(accessToken_cookie);
+////            response.addCookie(refreshToken_cookie);
+////
+////            response.sendRedirect(REDIRECT_URL);
+//
+//        } catch (IOException e) {
+//            log.error("Redirection failed during user sign-up: {}", e.getMessage());
+//            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
+//        }
     }
 
 
     @Override
-    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
+    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
-            AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+            TokenInfo tokenInfo = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "true", 1800);
-            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
-            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+//            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "true", 1800);
+//            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+//            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+//
+//            response.addCookie(existing_user_cookie);
+//            response.addCookie(accessToken_cookie);
+//            response.addCookie(refreshToken_cookie);
+//
+//            response.sendRedirect(REDIRECT_URL);
 
-            response.addCookie(existing_user_cookie);
-            response.addCookie(accessToken_cookie);
-            response.addCookie(refreshToken_cookie);
+            AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, true);
 
-            response.sendRedirect(REDIRECT_URL);
+            return loginResponse;
 
-        } catch (IOException e) {
-            log.error("Redirection failed during local login: {}", e.getMessage());
-            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
+//        } catch (IOException e) {
+//            log.error("Redirection failed during local login: {}", e.getMessage());
+//            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {
@@ -113,7 +121,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     // 인증 객체 생성 관련해서 수정 예정
     @Override
-    public AuthResponse.LoginResponse authenticateAndGenerateToken(String email, String password) {
+    public TokenInfo authenticateAndGenerateToken(String email, String password) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
@@ -129,7 +137,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         User user = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, false);
 
-        return authConverter.toLoginResponse(tokenInfo, user);
+        return tokenInfo;
     }
 
     @Override

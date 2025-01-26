@@ -11,13 +11,12 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.security.jwt.TokenInfo;
-
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,9 +46,9 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
-        authCommandService.userSignUp(authRequest, response);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse< AuthResponse.LoginResponse> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        AuthResponse.LoginResponse loginResponse = authCommandService.userSignUp(authRequest, response);
+        return ApiResponse.onSuccess(loginResponse);
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
@@ -123,9 +122,9 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
-        authCommandService.localLogin(authRequest, response);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest, response);
+        return ApiResponse.onSuccess(loginResponse);
     }
 
     @Operation(
