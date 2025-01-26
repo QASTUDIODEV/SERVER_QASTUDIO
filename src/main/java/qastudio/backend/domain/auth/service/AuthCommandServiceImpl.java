@@ -1,5 +1,6 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,6 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepositoryCustom;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -64,9 +64,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
         AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
 
-        authConverter.toCookie(response, "existing_user", "false", 1800);
-        authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
-        authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+        Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
+        Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+
+        response.addCookie(existing_user_cookie);
+        response.addCookie(accessToken_cookie);
+        response.addCookie(refreshToken_cookie);
     }
 
     @Override
@@ -74,9 +78,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         try {
             AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-            authConverter.toCookie(response, "existing_user", "true", 1800);
-            authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
-            authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "true", 1800);
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+
+            response.addCookie(existing_user_cookie);
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
 
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
