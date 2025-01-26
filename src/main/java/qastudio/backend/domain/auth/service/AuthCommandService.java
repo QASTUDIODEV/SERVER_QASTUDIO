@@ -9,8 +9,8 @@ import qastudio.backend.domain.user.entity.enums.EmailType;
 import java.io.IOException;
 
 public interface AuthCommandService {
-    void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) throws IOException;
-    void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) throws IOException;
+    void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response);
+    void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response);
     AuthResponse.LoginResponse authenticateAndGenerateToken(String email, String password);
     void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest);
     User getOrCreateUser(String email, EmailType emailType);

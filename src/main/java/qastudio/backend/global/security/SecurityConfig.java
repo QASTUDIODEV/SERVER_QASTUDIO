@@ -1,4 +1,4 @@
-package qastudio.backend.global.config;
+package qastudio.backend.global.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +13,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import qastudio.backend.global.oauth.CustomOAuth2UserService;
-import qastudio.backend.global.oauth.OAuth2SuccessHandler;
+import qastudio.backend.global.security.oauth.CustomOAuth2UserService;
+import qastudio.backend.global.security.oauth.OAuth2SuccessHandler;
 import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 import java.util.List;

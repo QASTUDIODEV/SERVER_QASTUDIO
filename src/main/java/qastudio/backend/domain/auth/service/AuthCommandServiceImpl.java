@@ -46,40 +46,48 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private static final String REDIRECT_URL = "http://localhost:5173/login/success";
 
     @Override
-    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) throws IOException {
-        String email = request.getEmail();
-        EmailType emailType = EmailType.LOCAL;
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
+        try {
+            String email = request.getEmail();
+            EmailType emailType = EmailType.LOCAL;
 
-        List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
-        boolean accountExists = accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType));
+            List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+            boolean accountExists = accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType));
 
-        if (accountExists) {
-            throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
+            if (accountExists) {
+                throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
+            }
+
+            User user;
+            if (accountTables.isEmpty()) {
+                user = authConverter.toUserAccountTable(request);
+                userRepository.save(user);
+            } else {
+                user = accountTables.get(0).getUser();
+                authConverter.toAccountTable(email, request.getPassword(), user);
+            }
+
+            AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
+
+            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+
+            response.addCookie(existing_user_cookie);
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
+
+            response.sendRedirect(REDIRECT_URL);
+
+        } catch (IOException e) {
+            log.error("Redirection failed during user sign-up: {}", e.getMessage());
+            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
         }
-
-        User user;
-        if (accountTables.isEmpty()) {
-            user = authConverter.toUserAccountTable(request);
-            userRepository.save(user);
-        } else {
-            user = accountTables.get(0).getUser();
-            authConverter.toAccountTable(email, request.getPassword(), user);
-        }
-        AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
-
-        Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
-        Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
-        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
-
-        response.addCookie(existing_user_cookie);
-        response.addCookie(accessToken_cookie);
-        response.addCookie(refreshToken_cookie);
-
-        response.sendRedirect(REDIRECT_URL);
     }
 
+
     @Override
-    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) throws IOException{
+    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
             AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
@@ -93,6 +101,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             response.sendRedirect(REDIRECT_URL);
 
+        } catch (IOException e) {
+            log.error("Redirection failed during local login: {}", e.getMessage());
+            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {

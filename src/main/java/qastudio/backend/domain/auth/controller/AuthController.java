@@ -47,7 +47,7 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) throws IOException {
+    public ApiResponse<Void> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
         authCommandService.userSignUp(authRequest, response);
         return ApiResponse.onSuccess(null);
     }
@@ -123,7 +123,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) throws IOException {
+    public ApiResponse<Void> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
         authCommandService.localLogin(authRequest, response);
         return ApiResponse.onSuccess(null);
     }

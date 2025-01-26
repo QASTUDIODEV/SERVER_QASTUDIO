@@ -1,4 +1,4 @@
-package qastudio.backend.global.oauth;
+package qastudio.backend.global.security.oauth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
