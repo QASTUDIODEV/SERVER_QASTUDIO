@@ -75,9 +75,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         authConverter.toCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
         String redirectUrl = "http://localhost:5173/login/success";
-        if (!request.getServerName().contains("localhost")) {
-            redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
-        }
+
         response.sendRedirect(redirectUrl);
     }
 }
