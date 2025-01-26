@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
+import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -22,6 +22,7 @@ import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,10 +33,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
-    private final AuthQueryService authQueryService;
-
-    // 추후 수정할 예정입니다.
-    private static final String FRONTEND_URL = "http://localhost:5173/login/success";
+    private final AuthConverter authConverter;
 
     @Override
     @Transactional
@@ -54,30 +52,32 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
 
-        User currentUser = authQueryService.getAuthenticatedUserIfPresent()
+        boolean isExistingUser = (boolean) principal.getAttributes().get("existing_user");
+
+        User currentUser = userRepository.findByAccountsEmail(email)
                 .orElseGet(() -> authCommandService.getOrCreateUser(email, emailType));
 
-        // 중복 계정 확인 및 추가
-        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, emailType).isPresent();
+        boolean accountExists = accountTableRepository.existsByEmailAndEmailType(email, emailType);
         if (!accountExists) {
             AccountTable newAccount = AccountTable.builder()
                     .email(email)
                     .emailType(emailType)
                     .user(currentUser)
                     .build();
-            currentUser.addAccount(newAccount);
             accountTableRepository.save(newAccount);
         }
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
-        String redirectUrl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
-                .queryParam("accessToken", tokenInfo.getAccessToken())
-                .queryParam("refreshToken", tokenInfo.getRefreshToken())
-                .queryParam("nickname", currentUser.getNickname())
-                .build()
-                .toUriString();
+        // existing_user, token 정보 전달
+        authConverter.toCookie(response, "existing_user", String.valueOf(isExistingUser), 1800);
+        authConverter.toCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
+        authConverter.toCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
+        String redirectUrl = "http://localhost:5173/login/success";
+        if (!request.getServerName().contains("localhost")) {
+            redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
+        }
         response.sendRedirect(redirectUrl);
     }
 }

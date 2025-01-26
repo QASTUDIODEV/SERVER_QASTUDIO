@@ -1,6 +1,8 @@
 package qastudio.backend.domain.auth.converter;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -35,16 +37,13 @@ public class AuthConverter {
         User user = User.builder()
                 .nickname("") // 기본 닉네임
                 .build();
-
         AccountTable accountTable = AccountTable.builder()
                 .emailType(EmailType.LOCAL)
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 암호화
                 .user(user)
                 .build();
-
         user.addAccount(accountTable);
-
         return user;
     }
 
@@ -72,4 +71,30 @@ public class AuthConverter {
 
         return loginResponse;
     }
+
+    public TokenInfo toTokenInfo(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        String accessToken = authQueryService.getCookieValue(request, "accessToken");
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if (accessToken == null || refreshToken == null) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        return new TokenInfo("Bearer", accessToken, refreshToken);
+    }
+
+    public void toCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(false);  // 쿠키 접근 허용 => 변경 예정
+        cookie.setSecure(false);    // 개발 환경(로컬) 허용 => 변경 예정
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        cookie.setAttribute("SameSite", "None");
+        response.addCookie(cookie);
+    }
+
 }

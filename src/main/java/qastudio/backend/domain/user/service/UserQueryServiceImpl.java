@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.user.converter.UserConverter;
 import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
@@ -21,12 +22,21 @@ import java.time.LocalDate;
 @Transactional(readOnly = true)
 public class UserQueryServiceImpl implements UserQueryService {
     private final UserRepository userRepository;
+    private final UserConverter userConverter;
 
     @Override
     public User getUser(Long userId)  {
         return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
     };
+
+    @Override
+    public UserResponse.UserProfile getProfile(Long userId) {
+        return userConverter.toUserProfile(
+                userRepository.findByUserId(userId)
+                        .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND))
+        );
+    }
 
     @Override
     public Integer getProjectCount(Long userId) {
