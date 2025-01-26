@@ -6,6 +6,8 @@ import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 
+import java.io.IOException;
+
 public interface AuthCommandService {
     void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response);
     void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response);

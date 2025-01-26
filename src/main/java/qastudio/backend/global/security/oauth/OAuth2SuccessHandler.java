@@ -1,4 +1,4 @@
-package qastudio.backend.global.oauth;
+package qastudio.backend.global.security.oauth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -19,8 +18,8 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
-import qastudio.backend.jwt.JwtTokenProvider;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
 import java.io.IOException;
 
@@ -34,6 +33,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccountTableRepository accountTableRepository;
     private final AuthCommandService authCommandService;
     private final AuthConverter authConverter;
+
+    private static final String REDIRECT_URL = "http://localhost:5173/login/success";
 
     @Override
     @Transactional
@@ -79,8 +80,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addCookie(accessToken_cookie);
         response.addCookie(refreshToken_cookie);
 
-        String redirectUrl = "http://localhost:5173/login/success";
-
-        response.sendRedirect(redirectUrl);
+        response.sendRedirect(REDIRECT_URL);
     }
 }

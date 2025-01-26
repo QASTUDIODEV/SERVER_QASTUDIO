@@ -28,6 +28,7 @@ public enum ErrorStatus implements BaseErrorCode {
     PASSWORD_ALREADY_USED(HttpStatus.CONFLICT, "AUTH410", "Password already in use."),
     UNSUPPORTED_SOCIAL_TYPE(HttpStatus.NOT_FOUND, "AUTH415", "Unsupported social login type."),
     ILLEGAL_REGISTRATION_ID(HttpStatus.UNAUTHORIZED, "AUTH422", "Invalid registration ID."),
+    REDIRECTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH500", "Redirection failed due to an internal server error."),
 
     // Email-related errors
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "Failed to send email verification code."),

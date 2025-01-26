@@ -11,12 +11,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.request.EmailRequest;
-import qastudio.backend.domain.auth.dto.response.AuthResponse;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.TokenInfo;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor

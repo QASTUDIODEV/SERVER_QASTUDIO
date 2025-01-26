@@ -2,9 +2,7 @@ package qastudio.backend.domain.auth.converter;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
@@ -17,7 +15,7 @@ import qastudio.backend.domain.user.repository.AccountTable.AccountTableReposito
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
 @Component
 @RequiredArgsConstructor

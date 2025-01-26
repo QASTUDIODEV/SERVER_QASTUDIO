@@ -1,4 +1,4 @@
-package qastudio.backend.global.oauth;
+package qastudio.backend.global.security.oauth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

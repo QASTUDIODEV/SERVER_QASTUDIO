@@ -1,7 +1,7 @@
 package qastudio.backend.domain.auth.dto.response;
 
 import lombok.*;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
 public class AuthResponse {
     @Getter
