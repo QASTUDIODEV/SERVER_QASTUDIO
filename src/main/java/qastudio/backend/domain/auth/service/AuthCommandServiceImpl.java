@@ -64,9 +64,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         }
         AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(email, request.getPassword());
 
-        authConverter.toCookie(response, "existing_user", "false", 1800);
-        authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
-        authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+        authConverter.setCookie(response, "existing_user", "false", 1800);
+        authConverter.setCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
+        authConverter.setCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
     }
 
     @Override
@@ -74,9 +74,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         try {
             AuthResponse.LoginResponse loginResponse = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-            authConverter.toCookie(response, "existing_user", "true", 1800);
-            authConverter.toCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
-            authConverter.toCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+            authConverter.setCookie(response, "existing_user", "true", 1800);
+            authConverter.setCookie(response, "accessToken", loginResponse.getToken().getAccessToken(), 1800);
+            authConverter.setCookie(response, "refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
 
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);

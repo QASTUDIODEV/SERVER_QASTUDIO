@@ -70,12 +70,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
         // existing_user, token 정보 전달
-        authConverter.toCookie(response, "existing_user", String.valueOf(isExistingUser), 1800);
-        authConverter.toCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
-        authConverter.toCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
+        authConverter.setCookie(response, "existing_user", String.valueOf(isExistingUser), 1800);
+        authConverter.setCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
+        authConverter.setCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
 
         String redirectUrl = "http://localhost:5173/login/success";
-
+        if (!request.getServerName().contains("localhost")) {
+            redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
+        }
         response.sendRedirect(redirectUrl);
     }
 }

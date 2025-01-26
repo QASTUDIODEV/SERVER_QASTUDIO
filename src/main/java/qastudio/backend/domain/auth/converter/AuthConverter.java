@@ -4,6 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
@@ -87,14 +88,16 @@ public class AuthConverter {
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
-    public void toCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(false);  // 쿠키 접근 허용 => 변경 예정
-        cookie.setSecure(false);    // 개발 환경(로컬) 허용 => 변경 예정
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAge);
-        cookie.setAttribute("SameSite", "None");
-        response.addCookie(cookie);
+    public void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .path("/")
+                .sameSite("None")
+                .httpOnly(false)
+                .secure(true)
+                .maxAge(maxAge)
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
 }
