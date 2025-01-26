@@ -93,6 +93,7 @@ public class AuthConverter {
         cookie.setSecure(false);    // 개발 환경(로컬) 허용 => 변경 예정
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
+        cookie.setAttribute("SameSite", "None");
         response.addCookie(cookie);
     }
 
