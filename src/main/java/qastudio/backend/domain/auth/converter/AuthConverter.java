@@ -88,16 +88,14 @@ public class AuthConverter {
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
-    public void setCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .path("/")
-                .sameSite("None")
-                .httpOnly(false)
-                .secure(true)
-                .maxAge(maxAge)
-                .build();
+    public Cookie createCookie(String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setMaxAge(maxAge);
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        return cookie;
     }
 
 }

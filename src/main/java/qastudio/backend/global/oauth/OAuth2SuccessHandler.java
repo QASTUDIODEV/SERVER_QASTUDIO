@@ -1,18 +1,19 @@
 package qastudio.backend.global.oauth;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.service.AuthCommandService;
-import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
@@ -22,7 +23,6 @@ import qastudio.backend.jwt.JwtTokenProvider;
 import qastudio.backend.jwt.TokenInfo;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -69,15 +69,18 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
+
         // existing_user, token 정보 전달
-        authConverter.setCookie(response, "existing_user", String.valueOf(isExistingUser), 1800);
-        authConverter.setCookie(response, "accessToken", tokenInfo.getAccessToken(), 1800); // 30분
-        authConverter.setCookie(response, "refreshToken", tokenInfo.getRefreshToken(), 604800); // 1주일
+        Cookie existing_user_cookie = authConverter.createCookie("existing_user", String.valueOf(isExistingUser), 1800);
+        Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
+
+        response.addCookie(existing_user_cookie);
+        response.addCookie(accessToken_cookie);
+        response.addCookie(refreshToken_cookie);
 
         String redirectUrl = "http://localhost:5173/login/success";
-        if (!request.getServerName().contains("localhost")) {
-            redirectUrl = "https://dlysp0ocmm6yr.cloudfront.net/login/success";
-        }
+
         response.sendRedirect(redirectUrl);
     }
 }
