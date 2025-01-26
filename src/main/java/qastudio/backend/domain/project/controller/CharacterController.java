@@ -1,6 +1,8 @@
 package qastudio.backend.domain.project.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,9 @@ import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import java.util.List;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import qastudio.backend.global.handler.annotation.Auth;
 
 @RestController
 @RequiredArgsConstructor
@@ -72,16 +77,25 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할-시나리오 생성 API | by 챠리 (ai 연결 필요)",
-            description = "역할을 생성하며 ai에게 시나리오 생성을 요청합니다."
+            summary = "역할-시나리오 생성 API | by 챠리",
+            description = "역할을 생성하며 ai에 시나리오 생성을 요청합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
     })
     @PostMapping("")
-    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
-        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter);
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@Auth Long userId, @PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter, @Parameter(hidden = true) @RequestHeader("Authorization") String authorizationHeader)
+            throws JsonProcessingException {
+        // 헤더에서 토큰 값 추출
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else {
+            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
+        }
+
+        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, token);
         return ApiResponse.onSuccess(characterScenario);
     }
 
