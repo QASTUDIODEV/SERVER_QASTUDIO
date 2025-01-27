@@ -46,9 +46,9 @@ public class AuthController {
             )
     })
     @PostMapping("/sign-up")
-    public ApiResponse< AuthResponse.LoginResponse> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
-        AuthResponse.LoginResponse loginResponse = authCommandService.userSignUp(authRequest, response);
-        return ApiResponse.onSuccess(loginResponse);
+    public ApiResponse<String> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        authCommandService.userSignUp(authRequest, response);
+        return ApiResponse.onSuccess("회원 가입에 성공하였습니다.");
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")

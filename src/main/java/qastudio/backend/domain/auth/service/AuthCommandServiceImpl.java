@@ -43,11 +43,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
-    private static final String REDIRECT_URL = "https://localhost:5173";
-
     @Override
-    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
-//        try {
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
             String email = request.getEmail();
             EmailType emailType = EmailType.LOCAL;
 
@@ -71,22 +68,13 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, false);
 
-            return loginResponse;
+            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
 
-////            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
-////            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
-////            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
-////
-////            response.addCookie(existing_user_cookie);
-////            response.addCookie(accessToken_cookie);
-////            response.addCookie(refreshToken_cookie);
-////
-////            response.sendRedirect(REDIRECT_URL);
-//
-//        } catch (IOException e) {
-//            log.error("Redirection failed during user sign-up: {}", e.getMessage());
-//            throw new AuthException(ErrorStatus.REDIRECTION_FAILED);
-//        }
+            response.addCookie(existing_user_cookie);
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
     }
 
 
