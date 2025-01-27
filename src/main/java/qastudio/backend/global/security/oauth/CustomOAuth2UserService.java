@@ -62,46 +62,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         updatedAttributes.put("email", email);
         updatedAttributes.put(userNameAttributeName, userNameAttributeName);
 
-        boolean existingUser = accountTableRepository.existsByEmail(email);
-
-        // 로그인된 사용자 확인
+        // 현재 로그인된 사용자 확인
         User currentUser = getCurrentAuthenticatedUser();
 
-        User user;
         if (currentUser != null) {
-            // 로그인된 상태면 현재 사용자에 계정 추가
-            user = linkSocialAccount(currentUser, email, oAuth2UserInfo);
+            return linkOrFail(currentUser, email, oAuth2UserInfo);
         } else {
-            // 로그인되지 않은 상태면 기존 로직 수행 (이메일 기준 회원 조회 및 추가)
-            user = getOrSave(oAuth2UserInfo, email);
-        }
-
-        updatedAttributes.put("existing_user", existingUser);
-
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
-                updatedAttributes,
-                userNameAttributeName
-        );
-    }
-
-    // 기존 계정 검색 및 저장
-    private User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
-        List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
-
-        if (existingAccounts.isEmpty()) {
-            return createNewUser(email, oAuth2UserInfo);
-        } else {
-            return linkSocialAccount(existingAccounts.get(0).getUser(), email, oAuth2UserInfo);
+            return getOrSave(oAuth2UserInfo, email);
         }
     }
 
-    // 로그인된 사용자 기준으로 계정 추가
-    private User linkSocialAccount(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
-        // 해당 소셜 로그인 계정이 이미 존재하는지 확인
-        boolean accountExists = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType()).isPresent();
+    // 현재 로그인된 사용자 기준으로 계정 추가
+    private OAuth2User linkOrFail(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
+        AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType())
+                .orElse(null);
 
-        if (!accountExists) {
+        if (existingAccount != null && !existingAccount.getUser().getId().equals(user.getId())) {
+            throw new AuthException(ErrorStatus.ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER);
+        }
+
+        if (existingAccount == null) {
             AccountTable newAccount = AccountTable.builder()
                     .email(email)
                     .emailType(oAuth2UserInfo.getEmailType())
@@ -110,9 +90,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             user.addAccount(newAccount);
             accountTableRepository.save(newAccount);
+            log.info("새로운 소셜 계정 추가 완료: email={}, emailType={}", email, oAuth2UserInfo.getEmailType());
         }
 
-        return user;
+        return buildOAuth2User(user, email, oAuth2UserInfo);
+    }
+
+    // 기존 계정 검색 및 저장 (기존 사용자 또는 신규 사용자 처리)
+    private OAuth2User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
+        List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
+
+        if (existingAccounts.isEmpty()) {
+            User newUser = createNewUser(email, oAuth2UserInfo);
+            return buildOAuth2User(newUser, email, oAuth2UserInfo);
+        }
+
+        User existingUser = existingAccounts.get(0).getUser();
+        return linkOrFail(existingUser, email, oAuth2UserInfo);
     }
 
     // 새 사용자 및 계정 생성
@@ -120,7 +114,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user = User.builder()
                 .nickname("")
                 .build();
-
         userRepository.save(user);
 
         AccountTable accountTable = AccountTable.builder()
@@ -128,11 +121,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .emailType(oAuth2UserInfo.getEmailType())
                 .user(user)
                 .build();
-
         user.addAccount(accountTable);
         accountTableRepository.save(accountTable);
 
         return user;
+    }
+
+    // OAuth2User 객체 생성
+    private OAuth2User buildOAuth2User(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("email", email);
+        attributes.put("emailType", oAuth2UserInfo.getEmailType().toString());
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                attributes,
+                "email"
+        );
     }
 
     // 현재 로그인된 사용자 가져오기 (없으면 null 반환)

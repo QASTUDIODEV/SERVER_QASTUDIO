@@ -68,11 +68,9 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, false);
 
-            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "false", 1800);
             Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
             Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
 
-            response.addCookie(existing_user_cookie);
             response.addCookie(accessToken_cookie);
             response.addCookie(refreshToken_cookie);
     }

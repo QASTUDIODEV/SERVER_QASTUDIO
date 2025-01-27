@@ -30,6 +30,9 @@ public enum ErrorStatus implements BaseErrorCode {
     ILLEGAL_REGISTRATION_ID(HttpStatus.UNAUTHORIZED, "AUTH422", "Invalid registration ID."),
     REDIRECTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH500", "Redirection failed due to an internal server error."),
 
+    // Social account linking errors
+    SOCIAL_ACCOUNT_LINK_NOT_ALLOWED(HttpStatus.CONFLICT, "AUTH411", "Social account linking is not allowed."),
+    ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER(HttpStatus.CONFLICT, "AUTH412", "This account is already linked to another user."),
     // Email-related errors
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "Failed to send email verification code."),
 
