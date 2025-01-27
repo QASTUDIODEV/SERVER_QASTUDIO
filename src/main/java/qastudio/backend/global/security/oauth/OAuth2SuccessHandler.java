@@ -65,7 +65,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 currentUser = existingAccount.getUser();
             } else {
                 // 사용자가 없으면 새 사용자 생성
-                currentUser = authConverter.toUser(email, emailType);
+                currentUser = authConverter.toUserAccountTable(email, emailType);
             }
         } else {
             // 로그인된 사용자가 있지만 다른 계정과 연결된 경우

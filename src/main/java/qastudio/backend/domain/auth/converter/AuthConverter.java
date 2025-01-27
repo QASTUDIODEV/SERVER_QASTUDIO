@@ -32,7 +32,7 @@ public class AuthConverter {
         return newUser;
     }
 
-    public User toUser(String email, EmailType emailType) {
+    public User toUserAccountTable(String email, EmailType emailType) {
         User newUser = User.builder()
                 .nickname("")
                 .build();
