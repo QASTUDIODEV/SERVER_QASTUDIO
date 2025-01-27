@@ -66,10 +66,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
             TokenInfo tokenInfo = authenticateAndGenerateToken(email, request.getPassword());
 
-            AuthResponse.LoginResponse loginResponse = authConverter.toLoginResponse(tokenInfo, false);
-
-            Cookie accessToken_cookie = authConverter.createCookie("accessToken", loginResponse.getToken().getAccessToken(), 1800);
-            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", loginResponse.getToken().getRefreshToken(), 604800);
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
 
             response.addCookie(accessToken_cookie);
             response.addCookie(refreshToken_cookie);
@@ -77,17 +75,19 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
 
     @Override
-    public void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
+    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
             TokenInfo tokenInfo = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
 
-            Cookie existing_user_cookie = authConverter.createCookie("existing_user", "true", 1800);
             Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
             Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
 
-            response.addCookie(existing_user_cookie);
             response.addCookie(accessToken_cookie);
             response.addCookie(refreshToken_cookie);
+
+            User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+
+            return authConverter.toLoginResponse(user);
 
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);

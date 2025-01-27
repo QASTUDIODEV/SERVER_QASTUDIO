@@ -122,9 +122,9 @@ public class AuthController {
             )
     })
     @PostMapping("/login/local")
-    public ApiResponse<String> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
-        authCommandService.localLogin(authRequest, response);
-        return ApiResponse.onSuccess("로그인에 성공하였습니다.");
+    public ApiResponse<AuthResponse.LoginResponse> loginLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
+        AuthResponse.LoginResponse loginResponse = authCommandService.localLogin(authRequest, response);
+        return ApiResponse.onSuccess(loginResponse);
     }
 
     @Operation(
