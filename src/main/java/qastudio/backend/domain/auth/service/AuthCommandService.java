@@ -10,8 +10,8 @@ import qastudio.backend.global.security.jwt.TokenInfo;
 import java.io.IOException;
 
 public interface AuthCommandService {
-    AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response);
-    AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response);
+    void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response);
+    void localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response);
     TokenInfo authenticateAndGenerateToken(String email, String password);
     void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest);
     User getOrCreateUser(String email, EmailType emailType);
