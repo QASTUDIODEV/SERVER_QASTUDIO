@@ -151,9 +151,8 @@ public class AuthController {
                     description = "Invalid request."
             )
     })
-    @GetMapping("/login/kakao")
-    public RedirectView kakaoLogin() {
-        return new RedirectView("/oauth2/authorization/kakao");
+    @GetMapping("/oauth2/authorization/kakao")
+    public void kakaoLogin() {
     }
 
     @Operation(
@@ -170,9 +169,8 @@ public class AuthController {
                     description = "Invalid request."
             )
     })
-    @GetMapping("/login/google")
-    public RedirectView googleLogin() {
-        return new RedirectView("/oauth2/authorization/google");
+    @GetMapping("/oauth2/authorization/google")
+    public void googleLogin() {
     }
 
 
@@ -190,9 +188,8 @@ public class AuthController {
                     description = "Invalid request."
             )
     })
-    @GetMapping("/login/github")
-    public RedirectView githubLogin() {
-        return new RedirectView("/oauth2/authorization/github");
+    @GetMapping("/oauth2/authorization/github")
+    public void githubLogin() {
     }
 
 }
