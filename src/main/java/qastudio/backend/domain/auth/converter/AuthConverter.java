@@ -32,6 +32,22 @@ public class AuthConverter {
         return newUser;
     }
 
+    public User toUser(String email, EmailType emailType) {
+        User newUser = User.builder()
+                .nickname("")
+                .build();
+        userRepository.save(newUser);
+
+        AccountTable newAccount = AccountTable.builder()
+                .email(email)
+                .emailType(emailType)
+                .user(newUser)
+                .build();
+        accountTableRepository.save(newAccount);
+
+        return newUser;
+    }
+
     public User toUserAccountTable(AuthRequest.LocalRequest request) {
         User user = User.builder()
                 .nickname("") // 기본 닉네임

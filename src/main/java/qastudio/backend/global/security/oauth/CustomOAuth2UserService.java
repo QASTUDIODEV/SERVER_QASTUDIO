@@ -43,11 +43,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         // 유저 정보 가져오기
         Map<String, Object> oAuth2UserAttributes = super.loadUser(userRequest).getAttributes();
-
-        // OAuth2 공급자 ID
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-
-        // OAuth2UserInfo 생성
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2UserAttributes);
 
         // 이메일 추출
@@ -66,14 +62,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User currentUser = getCurrentAuthenticatedUser();
 
         if (currentUser != null) {
-            return linkOrFail(currentUser, email, oAuth2UserInfo);
+            return linkOrFail(currentUser, email, oAuth2UserInfo, updatedAttributes);
         } else {
-            return getOrSave(oAuth2UserInfo, email);
+            return getOrSave(updatedAttributes, oAuth2UserInfo, email);
         }
     }
 
-    // 현재 로그인된 사용자 기준으로 계정 추가
-    private OAuth2User linkOrFail(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
+    // 현재 로그인된 사용자 기준으로 계정 추가 (계정 연동)
+    private OAuth2User linkOrFail(User user, String email, OAuth2UserInfo oAuth2UserInfo, Map<String, Object> updatedAttributes) {
         AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType())
                 .orElse(null);
 
@@ -90,23 +86,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             user.addAccount(newAccount);
             accountTableRepository.save(newAccount);
-            log.info("새로운 소셜 계정 추가 완료: email={}, emailType={}", email, oAuth2UserInfo.getEmailType());
         }
 
-        return buildOAuth2User(user, email, oAuth2UserInfo);
+        return buildOAuth2User(updatedAttributes, email, oAuth2UserInfo);
     }
 
     // 기존 계정 검색 및 저장 (기존 사용자 또는 신규 사용자 처리)
-    private OAuth2User getOrSave(OAuth2UserInfo oAuth2UserInfo, String email) {
+    private OAuth2User getOrSave(Map<String, Object> updatedAttributes, OAuth2UserInfo oAuth2UserInfo, String email) {
         List<AccountTable> existingAccounts = accountTableRepository.findByEmail(email);
 
         if (existingAccounts.isEmpty()) {
-            User newUser = createNewUser(email, oAuth2UserInfo);
-            return buildOAuth2User(newUser, email, oAuth2UserInfo);
+            createNewUser(email, oAuth2UserInfo);
+            return buildOAuth2User(updatedAttributes, email, oAuth2UserInfo);
         }
 
         User existingUser = existingAccounts.get(0).getUser();
-        return linkOrFail(existingUser, email, oAuth2UserInfo);
+        return linkOrFail(existingUser, email, oAuth2UserInfo, updatedAttributes);
     }
 
     // 새 사용자 및 계정 생성
@@ -128,8 +123,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     // OAuth2User 객체 생성
-    private OAuth2User buildOAuth2User(User user, String email, OAuth2UserInfo oAuth2UserInfo) {
-        Map<String, Object> attributes = new HashMap<>();
+    private OAuth2User buildOAuth2User(Map<String, Object> updatedAttributes, String email, OAuth2UserInfo oAuth2UserInfo) {
+        Map<String, Object> attributes = new HashMap<>(updatedAttributes);
         attributes.put("email", email);
         attributes.put("emailType", oAuth2UserInfo.getEmailType().toString());
 

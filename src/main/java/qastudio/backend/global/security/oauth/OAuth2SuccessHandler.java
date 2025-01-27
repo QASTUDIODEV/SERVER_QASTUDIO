@@ -43,49 +43,52 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
         String email = (String) principal.getAttributes().get("email");
         String registrationId = (String) principal.getAttributes().get("registrationId");
-        log.info("OAuth2User attributes: {}", principal.getAttributes());
 
         if (email == null || registrationId == null) {
             response.sendRedirect(REDIRECT_URL + "?status=error&message=" +
-                    URLEncoder.encode("이메일 또는 registrationId가 없습니다.", StandardCharsets.UTF_8));
+                    URLEncoder.encode("Email or registrationId is missing.", StandardCharsets.UTF_8));
             return;
         }
 
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, principal.getAttributes());
         EmailType emailType = oAuth2UserInfo.getEmailType();
-        User currentUser = authQueryService.getAuthenticatedUserIfPresent().orElse(null);
 
-        if (currentUser == null) {
-            response.sendRedirect(REDIRECT_URL + "?status=error&code=AUTH401&message=" +
-                    URLEncoder.encode("현재 로그인된 사용자가 없습니다.", StandardCharsets.UTF_8));
-            return;
-        }
-
-        // 추가하려는 계정이 이미 존재하는지 확인
+        // 이메일 기반으로 기존 계정 확인
         AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .orElse(null);
 
-        if (existingAccount != null && !existingAccount.getUser().getId().equals(currentUser.getId())) {
-            response.sendRedirect(REDIRECT_URL + "?status=error&code=AUTH411&message=" +
-                    URLEncoder.encode("소셜 계정 연동이 불가능합니다.", StandardCharsets.UTF_8));
-            return;
+        User currentUser = authQueryService.getAuthenticatedUserIfPresent().orElse(null);
+
+        if (currentUser == null) {
+            // 현재 인증된 사용자가 없으면 기존 계정을 확인 후 사용
+            if (existingAccount != null) {
+                currentUser = existingAccount.getUser();
+            } else {
+                // 사용자가 없으면 새 사용자 생성
+                currentUser = authConverter.toUser(email, emailType);
+            }
+        } else {
+            // 로그인된 사용자가 있지만 다른 계정과 연결된 경우
+            if (existingAccount != null && !existingAccount.getUser().getId().equals(currentUser.getId())) {
+                response.sendRedirect(REDIRECT_URL + "?status=error&code=AUTH411&message=" +
+                        URLEncoder.encode("Social account linking is not allowed.", StandardCharsets.UTF_8));
+                return;
+            }
+
+            if (existingAccount == null) {
+                // 계정이 존재하지 않으면 새로운 계정 추가
+                AccountTable newAccount = AccountTable.builder()
+                        .email(email)
+                        .emailType(emailType)
+                        .user(currentUser)
+                        .build();
+
+                currentUser.addAccount(newAccount);
+                accountTableRepository.save(newAccount);
+            }
         }
 
-        if (existingAccount == null) {
-            // 계정이 존재하지 않으면 새로운 계정을 추가
-            AccountTable newAccount = AccountTable.builder()
-                    .email(email)
-                    .emailType(emailType)
-                    .user(currentUser)
-                    .build();
-
-            currentUser.addAccount(newAccount);
-            accountTableRepository.save(newAccount);
-
-            log.info("새로운 계정 추가 완료: 이메일={}, 소셜타입={}", email, emailType);
-        }
-
-        // 정상적으로 JWT 토큰 발급
+        // JWT 토큰 발급
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(currentUser.getId(), authentication, true);
 
         response.addCookie(authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800));
