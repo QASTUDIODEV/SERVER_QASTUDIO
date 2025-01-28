@@ -3,6 +3,7 @@ package qastudio.backend.domain.project.converter;
 import java.util.ArrayList;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
+import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
 import qastudio.backend.domain.project.entity.Project;
@@ -65,14 +66,14 @@ public class ProjectConverter {
                 .build();
     }
 
-    public ProjectCreation toProjectCreationResponse(UserProject userproject, Project newProject) {
+    public ProjectCreation toProjectCreationResponse(UserProject userProject, List<TeamMemberRequest.MemberEmail> memberEmailList, Project newProject) {
         return ProjectCreation.builder()
-                .userId(userproject.getUser().getId())
+                .userId(userProject.getUser().getId())
                 .projectId(newProject.getId())
                 .projectName(newProject.getProjectName())
                 .projectImage(newProject.getProjectImage())
                 .projectUrl(newProject.getProjectUrl())
-                .memberEmails(new ArrayList<>()) // 멤버 이메일은 필요에 따라 추가 로직 구현
+                .memberEmails(memberEmailList)
                 .build();
     }
 }

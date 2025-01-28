@@ -76,25 +76,25 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         throw new TokenException(ErrorStatus.INVALID_TOKEN);
     }
 
-    // Authorization 헤더에서 토큰 추출
-    private String getToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-//    // 쿠키에서 토큰 추출
+//    // Authorization 헤더에서 토큰 추출
 //    private String getToken(HttpServletRequest request) {
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if ("accessToken".equals(cookie.getName())) {
-//                    return cookie.getValue();
-//                }
-//            }
+//        String bearerToken = request.getHeader("Authorization");
+//        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+//            return bearerToken.substring(7);
 //        }
 //        return null;
 //    }
+
+    // 쿠키에서 토큰 추출
+    private String getToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
 }

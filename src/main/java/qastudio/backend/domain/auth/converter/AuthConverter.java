@@ -61,10 +61,9 @@ public class AuthConverter {
         return accountTable;
     }
 
-    public AuthResponse.LoginResponse toLoginResponse(TokenInfo tokenInfo, boolean existing_user) {
+    public AuthResponse.LoginResponse toLoginResponse(User user) {
         AuthResponse.LoginResponse loginResponse = AuthResponse.LoginResponse.builder()
-                .existing_user(String.valueOf(existing_user))
-                .token(tokenInfo)
+                .nickname(user.getNickname())
                 .build();
 
         return loginResponse;
