@@ -7,7 +7,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -60,6 +62,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 현재 로그인된 사용자 확인
         User currentUser = getCurrentAuthenticatedUser();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            log.info("Authenticated user: {}", authentication.getPrincipal());
+        } else {
+            log.warn("No authenticated user found.");
+        }
 
         if (currentUser != null) {
             return linkOrFail(currentUser, email, oAuth2UserInfo, updatedAttributes);

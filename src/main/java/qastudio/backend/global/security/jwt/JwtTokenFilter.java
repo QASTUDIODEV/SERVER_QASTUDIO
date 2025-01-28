@@ -34,7 +34,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         try {
             processTokenAuthentication(request);
         } catch (TokenException e) {
-            log.error("Invalid Token", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: Invalid Token");
             return;
@@ -46,10 +45,20 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     // 인증 필터 제외 경로
     private boolean isExcluded(HttpServletRequest request) {
         String uri = request.getRequestURI();
+        String skipAuth = request.getParameter("skipAuth"); // 쿼리 파라미터 확인
+
+        if (uri.startsWith("/oauth2/authorization") && "true".equals(skipAuth)) {
+            return true;
+        }
+
+        // 기본 인증 제외 경로 처리
         return uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/v3/api-docs") ||
-                uri.startsWith("/api/v0/auth") || // 모든 인증 관련 경로 제외
-                uri.startsWith("/oauth2") ||      // OAuth2 로그인 요청 경로 추가
+                uri.startsWith("/api/v0/auth/sign-up") || // 회원가입 제외
+                uri.startsWith("/api/v0/auth/login") ||   // 로그인 제외
+                uri.startsWith("/api/v0/auth/update/password") ||   // 비밀번호 변경 제외
+                uri.startsWith("/api/v0/auth/check") ||   // 토큰 확인 제외
+                uri.startsWith("/api/v0/auth/sign-up/email") || // 이메일 인증 제외
                 uri.startsWith("/css") ||
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||

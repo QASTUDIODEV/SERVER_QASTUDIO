@@ -33,7 +33,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AuthQueryService authQueryService;
     private final AuthConverter authConverter;
 
-    private static final String REDIRECT_URL = "https://localhost:5173/login/success";
+    private static final String REDIRECT_URL = "http://localhost:3000/login/success";
 
     @Override
     @Transactional

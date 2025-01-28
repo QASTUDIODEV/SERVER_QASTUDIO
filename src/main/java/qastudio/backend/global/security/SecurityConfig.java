@@ -1,14 +1,18 @@
 package qastudio.backend.global.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -44,14 +48,28 @@ public class SecurityConfig {
                                 "/lib/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/v0/auth/**",
-                                "/login/oauth2/code/**",
-                                "/oauth2/**",
+                                "/api/v0/auth/sign-up", // 회원가입 제외
+                                "/api/v0/auth/sign-up/email", // 이메일 인증 제외
+                                "/api/v0/auth/login", // 로그인 제외
+                                "/api/v0/auth/update/password", // 비밀번호 변경 제외
+                                "/api/v0/auth/check", // 토큰 확인 제외
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",
                                 "/health"
                         ).permitAll()
+                        .requestMatchers("/oauth2/authorization/**").access((authentication, context) -> {
+                            // HttpServletRequest를 직접 가져오는 대신 SecurityContext를 활용
+                            boolean skipAuth = context.getRequest().getParameter("skipAuth") != null
+                                    && "true".equals(context.getRequest().getParameter("skipAuth"));
+
+                            // SecurityContext에서 인증 정보 가져오기
+                            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
+
+                            // 인증된 사용자이거나 skipAuth 파라미터가 true이면 허용
+                            boolean allowAccess = skipAuth || (authentication1 != null && authentication1.isAuthenticated());
+                            return new AuthorizationDecision(allowAccess);
+                        })
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
@@ -77,6 +95,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(
                 List.of(
                         "http://localhost:8080",
+                        "http://localhost:3000",
                         "https://localhost:5173",
                         "https://www.qa-studio.com",
                         "https://back.qa-studio.com"

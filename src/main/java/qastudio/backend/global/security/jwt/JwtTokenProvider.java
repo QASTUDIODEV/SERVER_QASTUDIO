@@ -78,7 +78,6 @@ public class JwtTokenProvider {
     // 유효성 검사
     public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
-            log.error("Token is empty or null");
             return false;
         }
 
