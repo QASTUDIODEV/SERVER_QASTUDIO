@@ -92,11 +92,6 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
                 String pagePath = jsonPage.path("path").asText();
                 String pageDescription = jsonPage.path("description").asText();
 
-                // Data too long for column 'page_description : 임시 수정한 것, 수정 필요
-                if (pageDescription.length() > 100) {
-                    pageDescription = pageDescription.substring(0, 100);
-                }
-
                 Page page = Page.builder()
                         .project(project)
                         .pageName(pageName)

@@ -22,7 +22,7 @@ public class Page extends BaseEntity {
     @Column(name = "page_name", nullable = false)
     private String pageName;
 
-    @Column(name = "page_description", nullable = false, length = 100)
+    @Column(name = "page_description", nullable = false)
     private String pageDescription;
 
     @Column(nullable = false)

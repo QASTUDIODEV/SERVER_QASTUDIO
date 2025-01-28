@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -68,17 +70,25 @@ public class ProjectController {
             @Auth Long userId,
             @PathVariable("projectId") Long projectId,
             @RequestParam("zipFile") MultipartFile zipFile,
-            @Parameter(hidden = true) @RequestHeader("Authorization") String authorizationHeader ) throws JsonProcessingException {
+            HttpServletRequest request) throws JsonProcessingException {
 
-        // 헤더에서 토큰 값 추출
-        String token = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-        } else {
+        // 쿠키에서 JWT 토큰 추출
+        String jwtToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 토큰이 없을 경우 예외 처리
+        if (jwtToken == null || jwtToken.isEmpty()) {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        Project project = projectCommandService.uploadProjectFile(userId, projectId, zipFile, token);
+        Project project = projectCommandService.uploadProjectFile(userId, projectId, zipFile, jwtToken);
         return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
