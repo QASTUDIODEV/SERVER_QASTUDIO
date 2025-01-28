@@ -31,15 +31,15 @@ public class CharacterTable extends BaseEntity {
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "user_id")
+    private User user;
+
     @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PageRole> pageRoles;
 
     @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Scenario> scenarios = new ArrayList<>();
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "user_id")
-    private User user;
 
     public void update (UpdateCharacter updateCharacter) {
         this.characterName = updateCharacter.getCharacterName();

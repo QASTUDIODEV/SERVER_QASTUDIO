@@ -38,11 +38,11 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserProject> userProjects = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private CharacterTable characterTable;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<CharacterTable> characterTable;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private Scenario scenario;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Scenario> scenario;
 
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);

@@ -33,7 +33,7 @@ public class Scenario extends BaseEntity {
     @JoinColumn(nullable = false, name = "page_id")
     private Page page;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
