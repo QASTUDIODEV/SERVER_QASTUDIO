@@ -26,20 +26,6 @@ public class CharacterController {
     private final CharacterQueryService characterQueryService;
     private final CharacterCommandService characterCommandService;
 
-    @Operation(
-            summary = "프로젝트 역할 조회 API",
-            description = "프로젝트의 역할 정보를 조회합니다."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
-    })
-    @GetMapping("")
-    public ApiResponse<CharacterResponse.ProjectCharacterList> getProjectCharacter (@PathVariable("projectId") Long projectId) {
-        List<CharacterTable> characters = characterQueryService.getProjectCharacter(projectId);
-        return ApiResponse.onSuccess(CharacterConverter.toProjectCharacterList(characters));
-    }
 
     @Operation(
             summary = "프로젝트 별 역할 리스트 조회 API | by 챠리",
