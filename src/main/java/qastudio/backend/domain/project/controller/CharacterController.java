@@ -1,22 +1,27 @@
 package qastudio.backend.domain.project.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterScenario;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
-import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.service.CharacterCommandService;
 import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
-import java.util.List;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import qastudio.backend.global.handler.annotation.Auth;
+import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,30 +63,71 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할-시나리오 생성 API | by 챠리 (ai 연결 필요)",
-            description = "역할을 생성하며 ai에게 시나리오 생성을 요청합니다."
+            summary = "역할-시나리오 생성 API | by 챠리",
+            description = "역할을 생성하며 ai에 시나리오 생성을 요청합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
     @PostMapping("")
-    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter) {
-        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter);
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (
+            @Auth Long userId,
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter,
+            @Parameter(hidden = true) HttpServletRequest request)
+            throws JsonProcessingException {
+        // 쿠키에서 JWT 토큰 추출
+        String jwtToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // 토큰이 없을 경우 예외 처리
+        if (jwtToken == null || jwtToken.isEmpty()) {
+            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
+        }
+
+        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
     @Operation(
-            summary = "역할-시나리오 수정 API",
+            summary = "역할-시나리오 수정 API | by 챠리",
             description = "역할을 수정한 후, ai에게 시나리오 생성을 재요청합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "역할-시나리오 수정 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @PatchMapping("/{characterId}")
-    public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (@PathVariable("characterId") Long characterId, @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter) {
-        CharacterScenario characterScenario = characterCommandService.updateCharacter(characterId, updateCharacter);
+    @PatchMapping("/{characterId}/{scenarioId}")
+    public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (
+            @PathVariable("projectId") Long projectId,
+            @PathVariable("characterId") Long characterId,
+            @PathVariable("scenarioId") Long scenarioId,
+            @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter,
+            @Parameter(hidden = true) HttpServletRequest request)
+            throws JsonProcessingException {
+        // 쿠키에서 JWT 토큰 추출
+        String jwtToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // 토큰이 없을 경우 예외 처리
+        if (jwtToken == null || jwtToken.isEmpty()) {
+            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
+        }
+
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(projectId, characterId, scenarioId, updateCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 

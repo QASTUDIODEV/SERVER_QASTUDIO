@@ -1,5 +1,9 @@
 package qastudio.backend.domain.project.converter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
@@ -9,6 +13,7 @@ import qastudio.backend.domain.project.entity.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.entity.Scenario;
 
 @Component
@@ -95,26 +100,35 @@ public class CharacterConverter {
                 .build();
     }
 
-    public CharacterResponse.CharacterScenario toCharacterScenario(CharacterTable characterTable, List<String> accessPages) {
+    public CharacterResponse.CharacterScenario toCharacterScenario(CharacterTable characterTable, List<String> accessPages, Scenario scenario, List<ActionTable> actionTables) {
+        String scenarioDescriptionWithSteps = toScenarioDescription(actionTables);
+
         return CharacterResponse.CharacterScenario.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
                 .characterDescription(characterTable.getCharacterDescription())
                 .accessPage(accessPages)
+                .scenarioId(scenario.getId())
+                .scenarioDescription(scenarioDescriptionWithSteps)
                 .build();
     }
 
-    public CharacterResponse.CharacterScenario toCharacterScenarioResponse(CharacterTable character, List<PageRole> pageRoles) {
-        List<String> accessPages = pageRoles.stream()
-                .map(pageRole -> pageRole.getPage().getPath())
-                .collect(Collectors.toList());
+    public String toScenarioDescription(List<ActionTable> actionTables) {
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        return CharacterResponse.CharacterScenario.builder()
-                .characterId(character.getId())
-                .characterName(character.getCharacterName())
-                .characterDescription(character.getCharacterDescription())
-                .accessPage(accessPages)
-                .build();
+        List<ObjectNode> actionsJsonList = new ArrayList<>();
+        for (ActionTable action : actionTables) {
+            ObjectNode actionJson = objectMapper.createObjectNode();
+            actionJson.put("step", action.getStep());
+            actionJson.put("actionDescription", action.getActionDescription());
+            actionsJsonList.add(actionJson);
+        }
+
+        try {
+            return objectMapper.writeValueAsString(actionsJsonList);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error while converting ActionTable to JSON.", e);
+        }
     }
 
     public static CharacterResponse.ProjectPathList toProjectPathList(List<Page> pages) {
