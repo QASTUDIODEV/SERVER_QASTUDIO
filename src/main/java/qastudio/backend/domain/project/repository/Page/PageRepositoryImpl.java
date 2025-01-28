@@ -8,7 +8,6 @@ import static qastudio.backend.domain.project.entity.QPage.page;
 
 import java.util.List;
 import java.util.Optional;
-import qastudio.backend.domain.project.entity.QPage;
 
 @Repository
 @RequiredArgsConstructor
@@ -34,8 +33,6 @@ public class PageRepositoryImpl implements PageRepositoryCustom{
 
     @Override
     public List<Page> findAllByPaths(String path, Long projectId){
-        QPage page = QPage.page;
-
         return jpaQueryFactory.selectFrom(page)
                 .where(page.path.eq(path).and(page.project.id.eq(projectId))) // projectId 조건 추가
                 .fetch();
@@ -43,8 +40,6 @@ public class PageRepositoryImpl implements PageRepositoryCustom{
 
     @Override
     public Optional<Page> findByPath(String path, Long projectId) {
-        QPage page = QPage.page;
-
         Page resultPage = jpaQueryFactory
                 .selectFrom(page)
                 .where(page.path.eq(path).and(page.project.id.eq(projectId)))

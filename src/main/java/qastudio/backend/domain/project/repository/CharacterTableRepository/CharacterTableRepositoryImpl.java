@@ -5,18 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
+import static qastudio.backend.domain.project.entity.QCharacterTable.characterTable;
+import static qastudio.backend.domain.scenario.entity.QScenario.scenario;
 
 import java.util.List;
-import qastudio.backend.domain.project.entity.QCharacterTable;
-import qastudio.backend.domain.scenario.entity.QScenario;
 
 @Repository
 @RequiredArgsConstructor
 public class CharacterTableRepositoryImpl implements CharacterTableRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
-
-    private final QCharacterTable characterTable = QCharacterTable.characterTable;
-    private final QScenario scenario = QScenario.scenario;
 
     @Override
     public List<CharacterTable> findAllByProjectId(Long projectId) {
@@ -36,8 +33,6 @@ public class CharacterTableRepositoryImpl implements CharacterTableRepositoryCus
 
     @Override
     public List<CharacterTable> findAllById(List<Long> ids) {
-        QCharacterTable characterTable = QCharacterTable.characterTable;
-
         return jpaQueryFactory
                 .selectFrom(characterTable)
                 .where(characterTable.id.in(ids))
