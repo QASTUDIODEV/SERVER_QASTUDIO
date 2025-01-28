@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.*;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.UpdateCharacter;
 import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
@@ -35,6 +36,10 @@ public class CharacterTable extends BaseEntity {
 
     @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Scenario> scenarios = new ArrayList<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "user_id")
+    private User user;
 
     public void update (UpdateCharacter updateCharacter) {
         this.characterName = updateCharacter.getCharacterName();

@@ -2,7 +2,9 @@ package qastudio.backend.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.entity.UserProject;
+import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.util.ArrayList;
@@ -35,6 +37,12 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserProject> userProjects = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private CharacterTable characterTable;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Scenario scenario;
 
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);
