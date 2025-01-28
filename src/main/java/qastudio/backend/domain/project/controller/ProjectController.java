@@ -70,7 +70,7 @@ public class ProjectController {
             @Auth Long userId,
             @PathVariable("projectId") Long projectId,
             @RequestParam("zipFile") MultipartFile zipFile,
-            HttpServletRequest request) throws JsonProcessingException {
+            @Parameter(hidden = true) HttpServletRequest request) throws JsonProcessingException {
 
         // 쿠키에서 JWT 토큰 추출
         String jwtToken = null;
