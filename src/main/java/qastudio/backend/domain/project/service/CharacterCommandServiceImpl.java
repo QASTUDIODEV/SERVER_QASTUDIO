@@ -36,6 +36,8 @@ import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.scenario.repository.ActionTableRepository;
 import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -54,6 +56,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     private final PageRoleRepository pageRoleRepository;
     private final PageRepository pageRepository;
     private final ActionTableRepository actionTableRepository;
+    private final UserRepository userRepository;
     private final FeatureRepository featureRepository;
     private final CharacterConverter characterConverter;
     private static final Logger logger = LoggerFactory.getLogger(CharacterCommandServiceImpl.class);
@@ -64,11 +67,13 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
 
     @Override
-    public CharacterScenario createCharacter(Long projectId, CreateCharacter createCharacter, String token) throws JsonProcessingException {
+    public CharacterScenario createCharacter(Long userId, Long projectId, CreateCharacter createCharacter, String token) throws JsonProcessingException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
-        CharacterTable characterTable = characterConverter.toCharacter(createCharacter, project);
+        CharacterTable characterTable = characterConverter.toCharacter(createCharacter, user, project);
         CharacterTable savedCharacterTable = characterTableRepository.save(characterTable);
 
         for (String accessPagePath : createCharacter.getAccessPage()) {
@@ -90,7 +95,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         }
 
         Long scenarioId = null; // 시나리오 처음 생성할 때
-        Scenario scenario = createScenario(project, characterTable, token, scenarioId);
+        Scenario scenario = createScenario(user, project, characterTable, token, scenarioId);
         List<ActionTable> actionTables = actionTableRepository.findByScenarioId(scenario.getId());
 
         return characterConverter.toCharacterScenario(
@@ -101,7 +106,9 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     }
 
     @Override
-    public CharacterScenario updateCharacter(Long projectId, Long characterId, Long scenarioId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
+    public CharacterScenario updateCharacter(Long userId, Long projectId, Long characterId, Long scenarioId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         Project project = projectRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project does not exist."));
@@ -141,7 +148,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         }
         existingCharacterTable.update(updateCharacter);
 
-        Scenario updatedScenario = createScenario(project, existingCharacterTable, token, scenarioId);
+        Scenario updatedScenario = createScenario(user, project, existingCharacterTable, token, scenarioId);
         List<ActionTable> actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
 
         return characterConverter.toCharacterScenario(
@@ -190,7 +197,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         }
     }
 
-    private Scenario createScenario (Project project, CharacterTable characterTable, String token, Long scenarioId) throws JsonProcessingException {
+    private Scenario createScenario (User user, Project project, CharacterTable characterTable, String token, Long scenarioId) throws JsonProcessingException {
 
         String assistantId = project.getAssistantId();
         String name = characterTable.getCharacterName();
@@ -225,6 +232,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                         .scenarioName(scenarioName)
                         .scenarioDescription(scenarioDescription)
                         .page(page)
+                        .user(user)
                         .build();
                 scenarioRepository.save(scenario);
                 saveActionsAndFeatures(scenario, scenariosArray);

@@ -92,7 +92,7 @@ public class CharacterController {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, jwtToken);
+        CharacterScenario characterScenario = characterCommandService.createCharacter(userId, projectId, createCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
@@ -106,6 +106,7 @@ public class CharacterController {
     })
     @PatchMapping("/{characterId}/{scenarioId}")
     public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (
+            @Auth Long userId,
             @PathVariable("projectId") Long projectId,
             @PathVariable("characterId") Long characterId,
             @PathVariable("scenarioId") Long scenarioId,
@@ -127,7 +128,7 @@ public class CharacterController {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.updateCharacter(projectId, characterId, scenarioId, updateCharacter, jwtToken);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(userId, projectId, characterId, scenarioId, updateCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 

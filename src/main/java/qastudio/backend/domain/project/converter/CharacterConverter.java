@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.user.entity.User;
 
 @Component
 public class CharacterConverter {
@@ -92,11 +93,12 @@ public class CharacterConverter {
                 .build();
     }
 
-    public CharacterTable toCharacter(CharacterRequest.CreateCharacter createCharacter, Project project) {
+    public CharacterTable toCharacter(CharacterRequest.CreateCharacter createCharacter, User user, Project project) {
         return CharacterTable.builder()
                 .characterName(createCharacter.getCharacterName())
                 .characterDescription(createCharacter.getCharacterDescription())
                 .project(project)
+                .user(user)
                 .build();
     }
 
