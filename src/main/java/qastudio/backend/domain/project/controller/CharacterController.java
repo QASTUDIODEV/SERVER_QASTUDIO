@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.handler.annotation.Auth;
+import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,17 +71,28 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
     @PostMapping("")
-    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (@Auth Long userId, @PathVariable("projectId") Long projectId, @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter, @Parameter(hidden = true) @RequestHeader("Authorization") String authorizationHeader)
+    public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (
+            @Auth Long userId,
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid CharacterRequest.CreateCharacter createCharacter,
+            @Parameter(hidden = true) HttpServletRequest request)
             throws JsonProcessingException {
-        // 헤더에서 토큰 값 추출
-        String token = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-        } else {
+        // 쿠키에서 JWT 토큰 추출
+        String jwtToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // 토큰이 없을 경우 예외 처리
+        if (jwtToken == null || jwtToken.isEmpty()) {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, token);
+        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
@@ -91,17 +105,29 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
     @PatchMapping("/{characterId}/{scenarioId}")
-    public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (@PathVariable("projectId") Long projectId, @PathVariable("characterId") Long characterId, @PathVariable("scenarioId") Long scenarioId, @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter, @Parameter(hidden = true) @RequestHeader("Authorization") String authorizationHeader)
+    public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (
+            @PathVariable("projectId") Long projectId,
+            @PathVariable("characterId") Long characterId,
+            @PathVariable("scenarioId") Long scenarioId,
+            @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter,
+            @Parameter(hidden = true) HttpServletRequest request)
             throws JsonProcessingException {
-        // 헤더에서 토큰 값 추출
-        String token = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-        } else {
+        // 쿠키에서 JWT 토큰 추출
+        String jwtToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    jwtToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // 토큰이 없을 경우 예외 처리
+        if (jwtToken == null || jwtToken.isEmpty()) {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.updateCharacter(projectId, characterId, scenarioId, updateCharacter, token);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(projectId, characterId, scenarioId, updateCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
