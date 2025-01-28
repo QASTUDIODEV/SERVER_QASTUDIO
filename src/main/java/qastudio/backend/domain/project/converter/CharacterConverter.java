@@ -131,19 +131,6 @@ public class CharacterConverter {
         }
     }
 
-    public CharacterResponse.CharacterScenario toCharacterScenarioResponse(CharacterTable character, List<PageRole> pageRoles) {
-        List<String> accessPages = pageRoles.stream()
-                .map(pageRole -> pageRole.getPage().getPath())
-                .collect(Collectors.toList());
-
-        return CharacterResponse.CharacterScenario.builder()
-                .characterId(character.getId())
-                .characterName(character.getCharacterName())
-                .characterDescription(character.getCharacterDescription())
-                .accessPage(accessPages)
-                .build();
-    }
-
     public static CharacterResponse.ProjectPathList toProjectPathList(List<Page> pages) {
         List<CharacterResponse.PageInfo> paths = pages.stream()
                 .map(page -> {

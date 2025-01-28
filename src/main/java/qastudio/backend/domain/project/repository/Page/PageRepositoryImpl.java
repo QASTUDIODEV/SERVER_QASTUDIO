@@ -33,16 +33,6 @@ public class PageRepositoryImpl implements PageRepositoryCustom{
     }
 
     @Override
-    public List<Page> findAllByPathIn(List<String> paths) {
-        QPage page = QPage.page;
-
-        return jpaQueryFactory
-                .selectFrom(page)
-                .where(page.path.in(paths))
-                .fetch();
-    }
-
-    @Override
     public List<Page> findAllByPaths(String path, Long projectId){
         QPage page = QPage.page;
 
