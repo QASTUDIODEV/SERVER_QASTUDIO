@@ -172,7 +172,7 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
         List<TeamMemberRequest.MemberEmail> memberEmailList = createProject.getMemberEmailList();
         teamMemberCommandService.inviteMembers(newProject.getId(), memberEmailList);
 
-        return projectConverter.toProjectCreationResponse(userProject, savedProject);
+        return projectConverter.toProjectCreationResponse(userProject, memberEmailList, savedProject);
     }
 
     @Override

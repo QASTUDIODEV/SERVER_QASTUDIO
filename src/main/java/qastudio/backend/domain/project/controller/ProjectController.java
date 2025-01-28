@@ -35,7 +35,7 @@ public class ProjectController {
     private final ProjectCommandService projectCommandService;
 
     @Operation(
-            summary = "프로젝트 생성 API | by 챠리 (팀원 초대 미완)",
+            summary = "프로젝트 생성 API | by 챠리",
             description = "새로운 프로젝트를 생성합니다. 프로젝트 이미지는 presigned/upload로 업로드 후, response.result의 keyName만 projectImage로 주세요"
     )
     @ApiResponses({
