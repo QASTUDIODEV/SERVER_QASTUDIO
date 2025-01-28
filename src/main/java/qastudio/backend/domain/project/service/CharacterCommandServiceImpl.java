@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -77,7 +76,8 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
             if (pages.isEmpty()) {
                 throw new IllegalArgumentException(
-                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath, projectId));
+                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
+                                projectId));
             }
 
             for (Page page : pages) {
@@ -89,52 +89,8 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
             }
         }
 
-        String assistantId = project.getAssistantId();
-        String name = characterTable.getCharacterName();
-        String description = characterTable.getCharacterDescription();
-
-        String aiResponse = getResponse(assistantId, name, description, token);
-
-        logger.info(aiResponse);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(aiResponse);
-        String dataJson = rootNode.path("data").asText();
-        JsonNode dataNode = objectMapper.readTree(dataJson);
-
-        Scenario scenario;
-        try {
-            String scenarioName = dataNode.path("title").asText();
-            String scenarioDescription = dataNode.path("description").asText();
-            String startPage = dataNode.path("start_path").asText();
-
-            if (startPage == null || startPage.isEmpty()) {
-                throw new IllegalArgumentException("Start path is missing or invalid in the AI response.");
-            }
-
-            logger.info("Extracted start_path: {}", startPage);
-            logger.info("Looking for page with path '{}' and projectId '{}'", startPage, projectId);
-
-            Page page = pageRepository.findByPath(startPage, projectId).orElseThrow(() -> {
-                logger.info("Page not found with path: {} and projectId: {}", startPage, projectId);
-                return new BadRequestException(ErrorStatus.PAGE_NOT_FOUND);});
-
-            scenario = Scenario.builder()
-                    .characterTable(characterTable)
-                    .scenarioName(scenarioName)
-                    .scenarioDescription(scenarioDescription)
-                    .page(page)
-                    .build();
-            scenarioRepository.save(scenario);
-
-            JsonNode scenariosArray = dataNode.path("scenarios");
-            saveActionsAndFeatures(scenario, scenariosArray);
-
-        } catch (Exception e) {
-            logger.error("Error processing AI scenario JSON response: {}", e.getMessage(), e);
-            throw new RuntimeException("An error occurred while processing the AI scenario JSON response.");
-        }
-
+        Long scenarioId = null; // 시나리오 처음 생성할 때
+        Scenario scenario = createScenario(project, characterTable, token, scenarioId);
         List<ActionTable> actionTables = actionTableRepository.findByScenarioId(scenario.getId());
 
         return characterConverter.toCharacterScenario(
@@ -144,12 +100,73 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 actionTables);
     }
 
-    private String getResponse(String assistantId, String name, String description, String token) {
+    @Override
+    public CharacterScenario updateCharacter(Long projectId, Long characterId, Long scenarioId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
+
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project does not exist."));
+
+        CharacterTable existingCharacterTable = characterTableRepository.findById(characterId)
+                .orElseThrow(() -> new EntityNotFoundException("Character does not exist."));
+
+        for (String accessPagePath : updateCharacter.getAccessPage()) {
+            List<Page> pages = pageRepository.findAllByPaths(accessPagePath, projectId);
+            logger.info("pages {}", pages);
+
+            if (pages.isEmpty()) {
+                throw new IllegalArgumentException(
+                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
+                                projectId));
+            }
+
+            List<PageRole> existingPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
+            List<Page> existingPages = existingPageRoles.stream()
+                    .map(PageRole::getPage)
+                    .toList();
+            logger.info("existingPages {}", existingPages);
+
+            List<Page> pagesToAdd = pages.stream()
+                    .filter(page -> !existingPages.contains(page))
+                    .toList();
+            logger.info("pagesToAdd {}", pagesToAdd);
+
+            for (Page page : pagesToAdd) {
+                PageRole newPageRole = PageRole.builder()
+                        .characterTable(existingCharacterTable)
+                        .page(page)
+                        .build();
+                pageRoleRepository.save(newPageRole);
+            }
+
+        }
+        existingCharacterTable.update(updateCharacter);
+
+        Scenario updatedScenario = createScenario(project, existingCharacterTable, token, scenarioId);
+        List<ActionTable> actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
+
+        return characterConverter.toCharacterScenario(
+                existingCharacterTable,
+                updateCharacter.getAccessPage(),
+                updatedScenario,
+                actionTables);
+    }
+
+    public void deleteCharacters(List<Long> characterIds) {
+        List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
+
+        if (charactersToDelete.size() != characterIds.size()) {
+            throw new EntityNotFoundException("Some characters do not exist.");
+        }
+
+        characterTableRepository.deleteAll(charactersToDelete);
+    }
+
+    private String getAiResponse(String assistantId, String name, String description, String token) {
         WebClient webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + token)
                 .clientConnector(new ReactorClientHttpConnector(
-                        HttpClient.create().responseTimeout(Duration.ofSeconds(120))  // 타임아웃을 30초로 설정
+                        HttpClient.create().responseTimeout(Duration.ofSeconds(120))  // 타임아웃을 120초로 설정
                 ))
                 .build();
 
@@ -170,6 +187,65 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
         } catch (Exception e){
             throw new RuntimeException("An error occurred while processing the AI scenario request.", e);
+        }
+    }
+
+    private Scenario createScenario (Project project, CharacterTable characterTable, String token, Long scenarioId) throws JsonProcessingException {
+
+        String assistantId = project.getAssistantId();
+        String name = characterTable.getCharacterName();
+        String description = characterTable.getCharacterDescription();
+        String aiResponse = getAiResponse(assistantId, name, description, token);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(aiResponse);
+        String dataJson = rootNode.path("data").asText();
+        JsonNode dataNode = objectMapper.readTree(dataJson);
+
+        logger.info(aiResponse);
+
+        Scenario scenario;
+        try {
+            String scenarioName = dataNode.path("title").asText();
+            String scenarioDescription = dataNode.path("description").asText();
+            String startPage = dataNode.path("start_path").asText();
+            JsonNode scenariosArray = dataNode.path("scenarios");
+
+            if (startPage == null || startPage.isEmpty()) {
+                throw new IllegalArgumentException("Start path is missing or invalid in the AI response.");
+            }
+
+            Page page = pageRepository.findByPath(startPage, project.getId()).orElseThrow(() -> {
+                logger.info("Page not found with path: {} and projectId: {}", startPage, project.getId());
+                return new BadRequestException(ErrorStatus.PAGE_NOT_FOUND);});
+
+            if (scenarioId == null) {
+                scenario = Scenario.builder()
+                        .characterTable(characterTable)
+                        .scenarioName(scenarioName)
+                        .scenarioDescription(scenarioDescription)
+                        .page(page)
+                        .build();
+                scenarioRepository.save(scenario);
+                saveActionsAndFeatures(scenario, scenariosArray);
+
+                return scenario;
+            } else {
+                Scenario existingScenario = scenarioRepository.findById(scenarioId)
+                        .orElseThrow(() -> new EntityNotFoundException("Scenario does not exist."));
+                existingScenario.update(scenarioName, scenarioDescription, characterTable, page);
+                scenarioRepository.save(existingScenario);
+
+                List<ActionTable> existingActions = actionTableRepository.findByScenarioId(scenarioId);
+                actionTableRepository.deleteAll(existingActions);
+                saveActionsAndFeatures(existingScenario, scenariosArray);
+
+                return existingScenario;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing AI scenario JSON response: {}", e.getMessage(), e);
+            throw new RuntimeException("An error occurred while processing the AI scenario JSON response.");
         }
     }
 
@@ -205,61 +281,5 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                     .build();
             featureRepository.save(feature);
         }
-    }
-
-    @Override
-    public CharacterScenario updateCharacter(Long characterId, UpdateCharacter updateCharacter) {
-        // accessPage 수정 안 되는 문제 해결 필요
-
-        CharacterTable characterTable = characterTableRepository.findById(characterId)
-                .orElseThrow(() -> new EntityNotFoundException("역할이 존재하지 않습니다."));
-
-        characterTable.updateCharacter(
-                updateCharacter.getCharacterName(),
-                updateCharacter.getCharacterDescription()
-        );
-
-        List<String> accessPagePaths = updateCharacter.getAccessPage();
-        List<Page> requestedPages = pageRepository.findAllByPathIn(accessPagePaths);
-
-        List<PageRole> existingPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
-        List<Page> existingPages = existingPageRoles.stream()
-                .map(PageRole::getPage)
-                .toList();
-
-        List<Page> pagesToAdd = requestedPages.stream()
-                .filter(page -> !existingPages.contains(page))
-                .toList();
-
-        for (Page page : pagesToAdd) {
-            PageRole newPageRole = PageRole.builder()
-                    .characterTable(characterTable)
-                    .page(page)
-                    .build();
-            pageRoleRepository.save(newPageRole);
-        }
-
-        List<PageRole> rolesToRemove = existingPageRoles.stream()
-                .filter(pageRole -> !requestedPages.contains(pageRole.getPage()))
-                .collect(Collectors.toList());
-
-        if (!rolesToRemove.isEmpty()) {
-            pageRoleRepository.deleteAll(rolesToRemove);
-        }
-
-        characterTableRepository.save(characterTable);
-
-        List<PageRole> updatedPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
-        return characterConverter.toCharacterScenarioResponse(characterTable, updatedPageRoles);
-    }
-
-    public void deleteCharacters(List<Long> characterIds) {
-        List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
-
-        if (charactersToDelete.size() != characterIds.size()) {
-            throw new EntityNotFoundException("일부 역할이 존재하지 않습니다.");
-        }
-
-        characterTableRepository.deleteAll(charactersToDelete);
     }
 }

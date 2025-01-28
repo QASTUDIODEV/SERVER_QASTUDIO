@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
+import qastudio.backend.domain.project.dto.request.CharacterRequest.UpdateCharacter;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
@@ -35,8 +36,8 @@ public class CharacterTable extends BaseEntity {
     @OneToMany(mappedBy = "characterTable", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Scenario> scenarios = new ArrayList<>();
 
-    public void updateCharacter(String characterName, String characterDescription) {
-        this.characterName = characterName;
-        this.characterDescription = characterDescription;
+    public void update (UpdateCharacter updateCharacter) {
+        this.characterName = updateCharacter.getCharacterName();
+        this.characterDescription = updateCharacter.getCharacterDescription();
     }
 }
