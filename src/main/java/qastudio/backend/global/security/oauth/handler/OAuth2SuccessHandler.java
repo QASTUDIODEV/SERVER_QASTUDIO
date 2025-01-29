@@ -5,7 +5,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -68,7 +71,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         }
     }
 
-    // ✅ 추가 소셜 계정 연결 또는 로그인 상태 확인
+    // 추가 소셜 계정 연결 또는 로그인 상태 확인
     private void handleAddSocialOrRedirect(HttpServletResponse response, User currentUser, String email,
                                            EmailType emailType, String addSocial) throws IOException {
         try {
@@ -96,7 +99,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         }
     }
 
-    // ✅ 새 사용자 처리
+    // 새 사용자 처리
     private void handleNewUser(HttpServletResponse response, String email, EmailType emailType) throws IOException {
         AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType).orElse(null);
 
@@ -106,15 +109,23 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         generateAndRedirect(response, currentUser);
     }
 
-    // ✅ JWT 생성 및 성공 리다이렉트
+    // JWT 생성 및 성공 리다이렉트
     private void generateAndRedirect(HttpServletResponse response, User user) throws IOException {
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("")
+                .roles("USER")
+                .build();
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), null);
         response.addCookie(authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800));
         response.addCookie(authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800));
         redirectWithSuccess(response, null);
     }
 
-    // ✅ 성공 리다이렉트
+    // 성공 리다이렉트
     private void redirectWithSuccess(HttpServletResponse response, String message) throws IOException {
         String url = REDIRECT_URL + "?status=success";
         if (message != null) {
@@ -123,7 +134,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.sendRedirect(url);
     }
 
-    // ✅ 에러 리다이렉트
+    // 에러 리다이렉트
     private void redirectWithError(HttpServletResponse response, String message) throws IOException {
         String url = REDIRECT_URL + "?status=error";
         if (message != null) {

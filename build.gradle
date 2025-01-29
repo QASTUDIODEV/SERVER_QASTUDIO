@@ -77,6 +77,7 @@ dependencies {
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+	// MacOS에서 Netty DNS 오류 해결
 	implementation 'io.netty:netty-resolver-dns-native-macos:4.1.103.Final:osx-aarch_64'
 }
 
