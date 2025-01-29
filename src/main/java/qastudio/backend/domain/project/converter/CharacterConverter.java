@@ -56,26 +56,6 @@ public class CharacterConverter {
                 .build();
     }
 
-    public CharacterResponse.Scenario toScenario(Scenario scenario) {
-        return CharacterResponse.Scenario.builder()
-                .scenarioId(scenario.getId())
-                .scenarioName(scenario.getScenarioName())
-                .author(scenario.getUser().getNickname())
-                .createdAt(scenario.getCreatedAt())
-                .updatedAt(scenario.getUpdatedAt())
-                .build();
-    }
-
-    public CharacterResponse.ScenarioList toScenarioList(List<Scenario> scenarios) {
-        List<CharacterResponse.Scenario> scenarioResponses = scenarios.stream()
-                .map(this::toScenario)
-                .collect(Collectors.toList());
-
-        return CharacterResponse.ScenarioList.builder()
-                .scenarioList(scenarioResponses)
-                .build();
-    }
-
     public CharacterTable toCharacter(CharacterRequest.CreateCharacter createCharacter, User user, Project project) {
         return CharacterTable.builder()
                 .characterName(createCharacter.getCharacterName())
