@@ -107,8 +107,6 @@ public class JwtTokenProvider {
         List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
         String userId = claims.getSubject(); // JWT의 subject를 사용자 ID로 간주
 
-        log.info("🔍 Principal (userId) in token: {}", claims.getSubject());
-        log.info("🔍 Authorities: {}", authorities);
         return new UsernamePasswordAuthenticationToken(
                 Long.parseLong(userId), // principal에 userId 설정
                 null,
@@ -144,10 +142,20 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
 
-            return claims.get("userId", Long.class);
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("Invalid JWT token", e);
-            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+            String subject = claims.getSubject();
+
+            if (subject == null || subject.isBlank()) {
+                return null;
+            }
+
+            try {
+                return Long.parseLong(subject);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+        } catch (Exception e) {
+            return null;
         }
     }
 }

@@ -1,4 +1,4 @@
-package qastudio.backend.global.security.oauth;
+package qastudio.backend.global.security.oauth.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -6,25 +6,24 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.auth.converter.AuthConverter;
-import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.JwtTokenProvider;
 import qastudio.backend.global.security.jwt.TokenInfo;
+import qastudio.backend.global.security.oauth.CustomOAuth2UserService;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,10 +31,9 @@ import java.util.Optional;
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
-    private final AuthQueryService authQueryService;
     private final AuthConverter authConverter;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     private static final String REDIRECT_URL = "http://localhost:3000/login/success";
 
@@ -43,70 +41,58 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+        try {
+            OAuth2User principal = (OAuth2User) authentication.getPrincipal();
+            String email = (String) principal.getAttributes().get("email");
+            String registrationId = (String) principal.getAttributes().get("registrationId");
 
-        OAuth2User principal = (OAuth2User) authentication.getPrincipal();
-        String email = (String) principal.getAttributes().get("email");
-        String registrationId = (String) principal.getAttributes().get("registrationId");
-
-        if (email == null || registrationId == null) {
-            redirectWithError(response, "Email or registrationId is missing.");
-            return;
-        }
-
-        EmailType emailType = EmailType.valueOf(registrationId.toUpperCase());
-        String addSocial = request.getParameter("addSocial");
-
-        // ✅ accessToken에서 userId 추출
-        String accessToken = getAccessTokenFromRequest(request);
-        Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
-
-        if (userId != null) {
-            // 로그인된 사용자가 있는 경우
-            handleAddSocialOrRedirect(response, userId, email, emailType, addSocial);
-        } else {
-            // 로그인된 사용자가 없는 경우
-            handleNewUser(response, email, emailType);
-        }
-    }
-
-    // ✅ accessToken 추출
-    private String getAccessTokenFromRequest(HttpServletRequest request) {
-        return authQueryService.getCookieValue(request, "accessToken");
-    }
-
-    // ✅ 추가 소셜 계정 연결 또는 로그인 상태 확인
-    private void handleAddSocialOrRedirect(HttpServletResponse response, Long userId, String email,
-                                           EmailType emailType, String addSocial) throws IOException {
-        Optional<User> optionalUser = userRepository.findById(userId);
-
-        User currentUser;
-
-        if (optionalUser.isPresent()) {
-            currentUser = optionalUser.get();
-            log.info("✅ Found user: {}", currentUser.getId());
-        } else {
-            throw new AuthException(ErrorStatus.USER_NOT_FOUND);
-        }
-        AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType).orElse(null);
-
-        if ("true".equals(addSocial)) {
-            // 계정 추가 처리
-            if (existingAccount != null && !existingAccount.getUser().getId().equals(currentUser.getId())) {
-                redirectWithError(response, "Social account is already linked to another user.");
+            if (email == null || registrationId == null) {
+                redirectWithError(response, "Email or registrationId is missing.");
                 return;
             }
 
-            if (existingAccount == null) {
-                AccountTable newAccount = AccountTable.builder()
-                        .email(email)
-                        .emailType(emailType)
-                        .user(currentUser)
-                        .build();
-                accountTableRepository.save(newAccount);
+            EmailType emailType = EmailType.valueOf(registrationId.toUpperCase());
+            String addSocial = request.getParameter("addSocial");
+
+            User currentUser = customOAuth2UserService.getCurrentAuthenticatedUser();
+
+            if (currentUser != null) {
+                handleAddSocialOrRedirect(response, currentUser, email, emailType, addSocial);
+            } else {
+                handleNewUser(response, email, emailType);
             }
-            redirectWithSuccess(response, "Social account added successfully.");
-        } else {
-            generateAndRedirect(response, currentUser);
+        } catch (OAuth2AuthenticationException e) {
+            redirectWithError(response, e.getMessage());
+        } catch (Exception e) {
+            redirectWithError(response, "Unexpected authentication error.");
+        }
+    }
+
+    // ✅ 추가 소셜 계정 연결 또는 로그인 상태 확인
+    private void handleAddSocialOrRedirect(HttpServletResponse response, User currentUser, String email,
+                                           EmailType emailType, String addSocial) throws IOException {
+        try {
+            AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType).orElse(null);
+
+            if ("true".equals(addSocial)) {
+                if (existingAccount != null && !existingAccount.getUser().getId().equals(currentUser.getId())) {
+                    throw new AuthException(ErrorStatus.ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER);
+                }
+
+                if (existingAccount == null) {
+                    AccountTable newAccount = AccountTable.builder()
+                            .email(email)
+                            .emailType(emailType)
+                            .user(currentUser)
+                            .build();
+                    accountTableRepository.save(newAccount);
+                }
+                redirectWithSuccess(response, "Social account added successfully.");
+            } else {
+                generateAndRedirect(response, currentUser);
+            }
+        } catch (AuthException e) {
+            redirectWithError(response, e.getMessage());
         }
     }
 
@@ -139,6 +125,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     // ✅ 에러 리다이렉트
     private void redirectWithError(HttpServletResponse response, String message) throws IOException {
-        response.sendRedirect(REDIRECT_URL + "?status=error&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8));
+        String url = REDIRECT_URL + "?status=error";
+        if (message != null) {
+            url += "&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+        }
+        response.sendRedirect(url);
     }
 }

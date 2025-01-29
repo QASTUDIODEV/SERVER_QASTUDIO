@@ -38,19 +38,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 throw new TokenException(ErrorStatus.NULL_TOKEN);
             }
 
-            log.info("🔍 Validating token: {}", token);
-
             if (jwtTokenProvider.validateToken(token)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                log.info("🔍 SecurityContextHolder contains: {}", SecurityContextHolder.getContext().getAuthentication());
-                log.info("✅ User authenticated: {}", authentication.getName());
             } else {
                 throw new TokenException(ErrorStatus.INVALID_TOKEN);
             }
         } catch (TokenException e) {
-            log.error("⛔ Invalid Token", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: Invalid Token");
             return;
@@ -59,7 +53,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // 추가 로그: 인증 정보 확인
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
-            log.info("🔍 Authentication success. Principal: {}", auth.getPrincipal());
+            log.info("🔍 Authentication success");
         } else {
             log.warn("⚠ Authentication failed or not present.");
         }

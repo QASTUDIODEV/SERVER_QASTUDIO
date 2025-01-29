@@ -19,6 +19,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
@@ -27,6 +29,7 @@ import qastudio.backend.domain.user.repository.AccountTable.AccountTableReposito
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +45,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final AccountTableRepository accountTableRepository;
     private final UserRepository userRepository;
     private final AuthQueryService authQueryService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -74,11 +78,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     // 현재 로그인된 사용자 기준으로 계정 추가 (계정 연동)
     private OAuth2User linkOrFail(User user, String email, OAuth2UserInfo oAuth2UserInfo, Map<String, Object> updatedAttributes) {
+        if (user == null) {
+            updatedAttributes.put("error", "UNAUTHORIZED");
+            return buildErrorOAuth2User(updatedAttributes);
+        }
+
         AccountTable existingAccount = accountTableRepository.findByEmailAndEmailType(email, oAuth2UserInfo.getEmailType())
                 .orElse(null);
 
         if (existingAccount != null && !existingAccount.getUser().getId().equals(user.getId())) {
-            throw new AuthException(ErrorStatus.ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER);
+
+            throw new OAuth2AuthenticationException("ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER");
         }
 
         if (existingAccount == null) {
@@ -87,12 +97,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .emailType(oAuth2UserInfo.getEmailType())
                     .user(user)
                     .build();
-
             user.addAccount(newAccount);
             accountTableRepository.save(newAccount);
         }
 
         return buildOAuth2User(updatedAttributes, email, oAuth2UserInfo);
+    }
+
+    private OAuth2User buildErrorOAuth2User(Map<String, Object> updatedAttributes) {
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST")),
+                updatedAttributes,
+                "error"
+        );
     }
 
     // 기존 계정 검색 및 저장 (기존 사용자 또는 신규 사용자 처리)
@@ -132,7 +149,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         attributes.put("email", email);
         attributes.put("emailType", oAuth2UserInfo.getEmailType().toString());
 
-        // userId를 principal로 사용하도록 설정
         Long userId = authQueryService.findUserIdByEmail(email, oAuth2UserInfo.getEmailType());
 
         attributes.put("userId", userId);
@@ -140,13 +156,40 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "userId" // userId를 principal로 설정
+                "userId"
         );
     }
 
     // 현재 로그인된 사용자 가져오기 (없으면 null 반환)
-    private User getCurrentAuthenticatedUser() {
-        return authQueryService.getAuthenticatedUserIfPresent();
+    public User getCurrentAuthenticatedUser() {
+        HttpServletRequest request = getCurrentHttpRequest();
+        if (request == null) {
+            return null;
+        }
+
+        String accessToken = authQueryService.getCookieValue(request, "accessToken");
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+
+        Long userId = null;
+        try {
+            userId = jwtTokenProvider.getUserIdFromToken(accessToken);
+        } catch (Exception e) {
+            return null;
+        }
+
+        if (userId == null) {
+            return null;
+        }
+
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    // ✅ 현재 HTTP 요청을 가져오는 메서드 추가
+    private HttpServletRequest getCurrentHttpRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        return (attributes != null) ? attributes.getRequest() : null;
     }
 
     // 이메일 추출

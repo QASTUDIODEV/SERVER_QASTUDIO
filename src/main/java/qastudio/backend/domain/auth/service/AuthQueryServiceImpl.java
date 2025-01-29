@@ -16,8 +16,7 @@ import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-
-import java.util.Optional;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
 
 @Slf4j
 @Service
@@ -27,6 +26,7 @@ public class AuthQueryServiceImpl implements AuthQueryService {
 
     private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public User findUserIdByEmailAndEmailType(String email, EmailType emailType) {
@@ -52,18 +52,15 @@ public class AuthQueryServiceImpl implements AuthQueryService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            log.warn("❌ Authentication is null or not authenticated.");
             return null;
         }
 
         try {
             String userIdString = authentication.getName();
-            log.info("🔍 Retrieved principal (userId): {}", userIdString);
 
             Long userId = Long.parseLong(userIdString);
             return userRepository.findById(userId).orElse(null);
         } catch (NumberFormatException e) {
-            log.error("❌ Failed to parse principal as userId: {}", authentication.getName(), e);
             return null;
         }
     }
@@ -73,5 +70,39 @@ public class AuthQueryServiceImpl implements AuthQueryService {
         return accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .map(account -> account.getUser().getId())
                 .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
+    }
+
+    @Override
+    public User getAuthenticatedUserFromRequest(HttpServletRequest request) {
+        String accessToken = getAccessTokenFromRequest(request);
+        if (accessToken == null || accessToken.isBlank()) {
+            return null;
+        }
+
+        Long userId;
+        try {
+            userId = jwtTokenProvider.getUserIdFromToken(accessToken);
+        } catch (Exception e) {
+            return null;
+        }
+
+        if (userId == null) {
+            return null;
+        }
+
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    @Override
+    public String getAccessTokenFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
