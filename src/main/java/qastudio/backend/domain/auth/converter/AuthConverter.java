@@ -26,9 +26,19 @@ public class AuthConverter {
     private final AuthQueryService authQueryService;
     private final AccountTableRepository accountTableRepository;
 
-    public User toUser() {
-        User newUser = User.builder().nickname("").build();
+    public User toUserAccountTable(String email, EmailType emailType) {
+        User newUser = User.builder()
+                .nickname("")
+                .build();
         userRepository.save(newUser);
+
+        AccountTable newAccount = AccountTable.builder()
+                .email(email)
+                .emailType(emailType)
+                .user(newUser)
+                .build();
+        accountTableRepository.save(newAccount);
+
         return newUser;
     }
 
@@ -44,6 +54,20 @@ public class AuthConverter {
                 .build();
         user.addAccount(accountTable);
         return user;
+    }
+
+    public AccountTable toAccountTable(String email, User user) {
+        AccountTable accountTable = AccountTable.builder()
+                .emailType(EmailType.LOCAL)
+                .email(email)
+                .user(user)
+                .build();
+
+        accountTableRepository.save(accountTable);
+
+        user.addAccount(accountTable);
+
+        return accountTable;
     }
 
     public AccountTable toAccountTable(String email, String password, User user) {
