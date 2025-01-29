@@ -25,7 +25,7 @@ import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v0/projects/{projectId}/characters")
+@RequestMapping("/api/v0/projects")
 public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
@@ -41,7 +41,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @GetMapping("/detail")
+    @GetMapping("/{projectId}/characters")
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
         DetailCharacterList detailCharacterList = characterQueryService.getDetailCharacterList(projectId);
         return ApiResponse.onSuccess(detailCharacterList);
@@ -56,8 +56,8 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "The role does not exist."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @GetMapping("/{characterId}/scenarios")
-    public ApiResponse<CharacterResponse.ScenarioList> getScenarioLost (@PathVariable("characterId") Long characterId) {
+    @GetMapping("/characters/{characterId}/scenarios")
+    public ApiResponse<CharacterResponse.ScenarioList> getScenarioList (@PathVariable("characterId") Long characterId) {
         ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
         return ApiResponse.onSuccess(scenarioList);
     }
@@ -70,7 +70,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "역할-시나리오 생성 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @PostMapping("")
+    @PostMapping("/{projectId}/characters")
     public ApiResponse<CharacterResponse.CharacterScenario> createCharacter (
             @Auth Long userId,
             @PathVariable("projectId") Long projectId,
@@ -92,7 +92,7 @@ public class CharacterController {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.createCharacter(projectId, createCharacter, jwtToken);
+        CharacterScenario characterScenario = characterCommandService.createCharacter(userId, projectId, createCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
@@ -104,8 +104,9 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "역할-시나리오 수정 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @PatchMapping("/{characterId}/{scenarioId}")
+    @PatchMapping("/{projectId}/characters/{characterId}/scenarios/{scenarioId}")
     public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (
+            @Auth Long userId,
             @PathVariable("projectId") Long projectId,
             @PathVariable("characterId") Long characterId,
             @PathVariable("scenarioId") Long scenarioId,
@@ -127,7 +128,7 @@ public class CharacterController {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.updateCharacter(projectId, characterId, scenarioId, updateCharacter, jwtToken);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(userId, projectId, characterId, scenarioId, updateCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
@@ -140,7 +141,7 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "The role does not exist."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @DeleteMapping("")
+    @DeleteMapping("/characters")
     public ApiResponse<Void>  deleteCharacters(@RequestBody CharacterRequest.DeleteCharacters deleteCharacters) {
         characterCommandService.deleteCharacters(deleteCharacters.getCharacterIds());
         return ApiResponse.onSuccess(null);
@@ -171,7 +172,7 @@ public class CharacterController {
                             )
                     )),
     })
-    @GetMapping("/paths")
+    @GetMapping("/{projectId}/characters/paths")
     public ApiResponse<CharacterResponse.ProjectPathList>  getProjectPaths(@PathVariable("projectId") Long projectId) {
         CharacterResponse.ProjectPathList projectPath = characterQueryService.getProjectPaths(projectId);
         return ApiResponse.onSuccess(projectPath);
