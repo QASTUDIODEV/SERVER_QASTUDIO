@@ -4,8 +4,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -48,49 +46,10 @@ public class AuthQueryServiceImpl implements AuthQueryService {
     }
 
     @Override
-    public User getAuthenticatedUserIfPresent() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-
-        try {
-            String userIdString = authentication.getName();
-
-            Long userId = Long.parseLong(userIdString);
-            return userRepository.findById(userId).orElse(null);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    @Override
     public Long findUserIdByEmail(String email, EmailType emailType) {
         return accountTableRepository.findByEmailAndEmailType(email, emailType)
                 .map(account -> account.getUser().getId())
                 .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
-    }
-
-    @Override
-    public User getAuthenticatedUserFromRequest(HttpServletRequest request) {
-        String accessToken = getAccessTokenFromRequest(request);
-        if (accessToken == null || accessToken.isBlank()) {
-            return null;
-        }
-
-        Long userId;
-        try {
-            userId = jwtTokenProvider.getUserIdFromToken(accessToken);
-        } catch (Exception e) {
-            return null;
-        }
-
-        if (userId == null) {
-            return null;
-        }
-
-        return userRepository.findById(userId).orElse(null);
     }
 
     @Override

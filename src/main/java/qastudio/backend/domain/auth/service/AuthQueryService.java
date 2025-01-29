@@ -9,11 +9,7 @@ public interface AuthQueryService {
 
     String getCookieValue(HttpServletRequest request, String name);
 
-    User getAuthenticatedUserIfPresent();
-
     Long findUserIdByEmail(String email, EmailType emailType);
-
-    User getAuthenticatedUserFromRequest(HttpServletRequest request);
 
     String getAccessTokenFromRequest(HttpServletRequest request);
 }
