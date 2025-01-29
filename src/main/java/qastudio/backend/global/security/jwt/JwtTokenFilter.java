@@ -10,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -31,44 +31,37 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = null; // 토큰 변수 추가
+        String token = null;
         try {
-            token = getToken(request); // 쿠키에서 토큰 추출
+            token = getToken(request);
+
             if (token == null) {
                 throw new TokenException(ErrorStatus.NULL_TOKEN);
             }
 
-            if (jwtTokenProvider.validateToken(token)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
+            if (!jwtTokenProvider.validateToken(token)) {
                 throw new TokenException(ErrorStatus.INVALID_TOKEN);
             }
-        } catch (TokenException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: Invalid Token");
-            return;
-        }
 
-        // 추가 로그: 인증 정보 확인
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
-            log.info("🔍 Authentication success");
-        } else {
-            log.warn("⚠ Authentication failed or not present.");
+            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (TokenException e) {
+            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorStatus._INTERNAL_SERVER_ERROR);
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // 인증 필터 제외 경로
+    // 인증 제외할 경로
     private boolean isExcluded(HttpServletRequest request) {
         String uri = request.getRequestURI();
 
-        // 기본 인증 제외 경로 처리
         return uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/v3/api-docs") ||
-                uri.startsWith("/api/v0/auth") || // 인증 경로 추가
+                uri.startsWith("/api/v0/auth") ||
                 uri.startsWith("/css") ||
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||
@@ -77,7 +70,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 uri.equals("/health");
     }
 
-    // 쿠키에서 토큰 추출
+    // 쿠키에서 accessToken 추출
     private String getToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

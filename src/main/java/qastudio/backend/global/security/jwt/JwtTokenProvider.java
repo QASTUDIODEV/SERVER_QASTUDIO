@@ -45,7 +45,11 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성
-    private String generateAccessToken (Long userId, Authentication authentication) {
+    private String generateAccessToken(Long userId, Authentication authentication) {
+        if (userId == null) {
+            throw new AuthException(ErrorStatus.INVALID_TOKEN);
+        }
+
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + ACCESS_TOKEN_DURATION);
 
@@ -59,7 +63,9 @@ public class JwtTokenProvider {
             String authorities = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.joining(","));
-            jwtBuilder.claim("auth", authorities); // 권한 정보 추가
+            jwtBuilder.claim("auth", authorities);
+        } else {
+            jwtBuilder.claim("auth", "ROLE_USER");
         }
 
         return jwtBuilder.compact();
@@ -93,6 +99,7 @@ public class JwtTokenProvider {
         } catch (JwtException e) {
             log.error("Token is invalid", e);
         }
+
         return false;
     }
 
@@ -100,15 +107,25 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
 
+        if (claims == null) {
+            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+        }
+
+        String subject = claims.getSubject();
+        if (subject == null || subject.isBlank()) {
+            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+        }
+
         if (claims.get("auth") == null) {
-            throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
+            throw new TokenException(ErrorStatus.MISSING_AUTHORITY);
         }
 
         List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
-        String userId = claims.getSubject(); // JWT의 subject를 사용자 ID로 간주
+
+        UserDetails userDetails = new User(subject, "", authorities);
 
         return new UsernamePasswordAuthenticationToken(
-                Long.parseLong(userId), // principal에 userId 설정
+                userDetails,
                 null,
                 authorities
         );
@@ -123,7 +140,9 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            return e.getClaims();
+            throw new TokenException(ErrorStatus.EXPIRED_TOKEN);
+        } catch (JwtException e) {
+            throw new AuthException(ErrorStatus.INVALID_TOKEN);
         }
     }
 
@@ -154,8 +173,8 @@ public class JwtTokenProvider {
                 return null;
             }
 
-        } catch (Exception e) {
-            return null;
+        } catch (JwtException e) {
+            throw new TokenException(ErrorStatus.INVALID_TOKEN);
         }
     }
 }
