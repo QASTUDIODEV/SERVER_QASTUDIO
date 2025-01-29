@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.dto.response;
 
 import lombok.*;
+import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 
@@ -63,6 +64,6 @@ public class ProjectResponse {
         private String projectName;
         private String projectImage;
         private String projectUrl;
-        private List<String> memberEmails;
+        private List<TeamMemberRequest.MemberEmail> memberEmails;
     }
 }

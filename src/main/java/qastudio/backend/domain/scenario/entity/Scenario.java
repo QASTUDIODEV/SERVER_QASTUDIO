@@ -31,4 +31,11 @@ public class Scenario extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "page_id")
     private Page page;
+
+    public void update (String scenarioName, String scenarioDescription, CharacterTable characterTable, Page page) {
+        this.scenarioName = scenarioName;
+        this.scenarioDescription = scenarioDescription;
+        this.characterTable = characterTable;
+        this.page = page;
+    }
 }

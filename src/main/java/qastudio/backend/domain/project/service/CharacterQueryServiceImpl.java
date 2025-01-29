@@ -24,11 +24,6 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     private final PageRepository pageRepository;
 
     @Override
-    public List<CharacterTable> getProjectCharacter(Long projectId) {
-        return List.of();
-    }
-
-    @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
         List<CharacterTable> characterTables = characterRepository.findAllByProjectId(projectId);
         return characterConverter.toDetailCharacterList(characterTables, projectId);

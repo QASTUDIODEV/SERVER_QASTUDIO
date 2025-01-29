@@ -29,40 +29,40 @@ public class PageController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER400", description = "프로젝트에 속하지 않는 역할입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER400", description = "The role does not belong to the project.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "CHARACTER400",
-                                    summary = "프로젝트에 속하지 않는 역할입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"CHARACTER400\",\n  \"message\": \"프로젝트에 속하지 않는 역할입니다.\"\n}"
+                                    summary = "The role does not belong to the project.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"CHARACTER400\",\n  \"message\": \"The role does not belong to the project.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
-                                    summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "존재하지 않는 역할입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "CHARACTER404", description = "The role does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "CHARACTER404",
-                                    summary = "존재하지 않는 역할입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"CHARACTER404\",\n  \"message\": \"존재하지 않는 역할입니다.\"\n}"
+                                    summary = "The role does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"CHARACTER404\",\n  \"message\": \"The role does not exist.\"\n}"
                             )
                     )),
     })
@@ -79,22 +79,22 @@ public class PageController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
                                     summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
     })
@@ -110,22 +110,22 @@ public class PageController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PAGE404", description = "존재하지 않는 페이지입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PAGE404", description = "The page does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PAGE404",
-                                    summary = "존재하지 않는 페이지입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PAGE404\",\n  \"message\": \"존재하지 않는 페이지입니다.\"\n}"
+                                    summary = "The page does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PAGE404\",\n  \"message\": \"The page does not exist.\"\n}"
                             )
                     )),
     })
