@@ -12,7 +12,6 @@ import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.service.TeamMemberCommandService;
 import qastudio.backend.domain.project.service.TeamMemberQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
-import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import java.util.List;
@@ -31,71 +30,71 @@ public class TeamMemberController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER400", description = "userId와 이메일 정보가 일치하지 않습니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER400", description = "User ID and email do not match.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "MEMBER400",
-                                    summary = "userId와 이메일 정보가 일치하지 않습니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER400\",\n  \"message\": \"userId와 이메일 정보가 일치하지 않습니다.\"\n}"
+                                    summary = "User ID and email do not match.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER400\",\n  \"message\": \"User ID and email do not match.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
-                                    summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "존재하지 않는 사용자입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "User not found.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "AUTH404",
-                                    summary = "존재하지 않는 사용자입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"AUTH404\",\n  \"message\": \"존재하지 않는 사용자입니다.\"\n}"
+                                    summary = "User not found.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"AUTH404\",\n  \"message\": \"User not found.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER409", description = "이미 프로젝트에 추가된 유저입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER409", description = "The user is already added to the project.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "MEMBER409",
-                                    summary = "이미 프로젝트에 추가된 유저입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER409\",\n  \"message\": \"이미 프로젝트에 추가된 유저입니다.\"\n}"
+                                    summary = "The user is already added to the project.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER409\",\n  \"message\": \"The user is already added to the project.\"\n}"
                             )
                     ))
     })
     @PostMapping("/team-members/invite")
     public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers);
+        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
     }
 
     @Operation(
             summary = "프로젝트에 가입된 팀원 조회 API | by 노을",
-            description = "프로젝트에 가입된 팀원 정보를 초대합니다."
+            description = "프로젝트에 가입된 팀원 정보를 조회합니다. LEADER, MEMBER 모두 조회하며 사용자의 프로필, 닉네임 등 상세 정보를 확인할 수 있습니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
-                                    summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
     })
@@ -105,6 +104,28 @@ public class TeamMemberController {
         return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
     }
 
+    @Operation(
+            summary = "프로젝트 팀원 초대 시 현재 가입된 팀원의 이메일 조회 API | by 노을",
+            description = "프로젝트 팀원 초대 시 현재 가입된 팀원의 이메일을 조회하기 위해 사용합니다. LEADER는 조회하지 않으며, 이메일과 userId만 응답합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                    name = "PROJECT404",
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
+                            )
+                    )),
+    })
+    @GetMapping("/{projectId}/team-members/emails")
+    public ApiResponse<TeamMemberResponse.UserEmailList> getTeamMemberExceptLeader(@PathVariable("projectId") Long projectId) {
+        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
+        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromUserProjects(userProjects));
+    }
+
     // EmailList
     @Operation(
             summary = "프로젝트 팀원 삭제 API | by 노을",
@@ -112,40 +133,40 @@ public class TeamMemberController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER400", description = "userId와 이메일 정보가 일치하지 않습니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "MEMBER400", description = "User ID and email do not match.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "MEMBER400",
-                                    summary = "userId와 이메일 정보가 일치하지 않습니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER400\",\n  \"message\": \"userId와 이메일 정보가 일치하지 않습니다.\"\n}"
+                                    summary = "User ID and email do not match.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"MEMBER400\",\n  \"message\": \"User ID and email do not match.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
-                                    summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "존재하지 않는 사용자입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH404", description = "User not found.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "AUTH404",
-                                    summary = "존재하지 않는 사용자입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"AUTH404\",\n  \"message\": \"존재하지 않는 사용자입니다.\"\n}"
+                                    summary = "User not found.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"AUTH404\",\n  \"message\": \"User not found.\"\n}"
                             )
                     )),
     })
@@ -161,29 +182,29 @@ public class TeamMemberController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "COMMON400",
-                                    summary = "잘못된 요청입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"잘못된 요청입니다.\"\n}"
+                                    summary = "Invalid request.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"COMMON400\",\n  \"message\": \"Invalid request.\"\n}"
                             )
                     )),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "존재하지 않는 프로젝트입니다.",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist.",
                     content = @io.swagger.v3.oas.annotations.media.Content(
                             mediaType = "application/json",
                             examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                                     name = "PROJECT404",
-                                    summary = "존재하지 않는 프로젝트입니다.",
-                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"존재하지 않는 프로젝트입니다.\"\n}"
+                                    summary = "The project does not exist.",
+                                    value = "{\n  \"isSuccess\": false,\n  \"code\": \"PROJECT404\",\n  \"message\": \"The project does not exist.\"\n}"
                             )
                     )),
     })
     @GetMapping("/{projectId}/team-members/search")
     public ApiResponse<TeamMemberResponse.UserEmailList> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
         List<AccountTable> accountTables = teamMemberQueryService.searchMember(projectId, email);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailList(accountTables));
+        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromAccounts(accountTables));
     }
 
 }

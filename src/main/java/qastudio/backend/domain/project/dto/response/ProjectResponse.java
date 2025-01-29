@@ -1,6 +1,8 @@
 package qastudio.backend.domain.project.dto.response;
 
 import lombok.*;
+import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
+import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
 
 import java.util.List;
@@ -46,6 +48,22 @@ public class ProjectResponse {
         private String introduction;
         // 프로젝트 분류
         private ViewType viewType;
+        // 프로젝트 스택
+        private ProjectStack developmentSkill;
+        // assistant_id
+        protected String assistantId;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class ProjectCreation {
+        private Long userId;
+        private Long projectId;
+        private String projectName;
+        private String projectImage;
+        private String projectUrl;
+        private List<TeamMemberRequest.MemberEmail> memberEmails;
+    }
 }

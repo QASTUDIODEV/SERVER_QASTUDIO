@@ -1,6 +1,7 @@
 package qastudio.backend.domain.scenario.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
@@ -16,21 +17,19 @@ public class ActionTable extends BaseEntity {
     @Column(name = "action_table_id")
     private Long id;
 
-    @Column(nullable = false, name = "action_name")
-    private String actionName;
+    @Column(nullable = false, name = "action_description")
+    private String actionDescription;
 
     @Column(nullable = false)
     private Integer step;
 
-    @Lob
-    @Column(nullable = false, name = "action_elements", columnDefinition = "TEXT")
-    private String actionElements;
+    @Column(nullable = false, name = "action_type")
+    private String actionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "scenario_id")
     private Scenario scenario;
 
-    public void setActionElements(String actionElements) {
-        this.actionElements = actionElements;
-    }
+    @OneToMany(mappedBy = "action", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feature> features;
 }

@@ -10,45 +10,62 @@ import qastudio.backend.global.apiPayload.code.ErrorReasonDTO;
 @AllArgsConstructor
 public enum ErrorStatus implements BaseErrorCode {
 
-    // 기존 에러들
-    _INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러, 관리자에게 문의 바랍니다."),
-    _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","잘못된 요청입니다."),
-    _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
-    _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
+    // Existing errors
+    _INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "Server error, please contact the administrator."),
+    _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","Invalid request."),
+    _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","Authentication required."),
+    _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "Forbidden request."),
 
     // For test
-    TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트"),
+    TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "This is a test."),
 
-    // Auth 관련 에러
-    INVALID_USER_ID_FORMAT(HttpStatus.BAD_REQUEST, "AUTH400", "유효하지 않은 사용자 ID 형식입니다."),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401", "비밀번호가 잘못되었습니다."),
-    MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "권한 정보가 없는 토큰입니다. 기본 권한이 필요합니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "존재하지 않는 사용자입니다."),
-    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "이미 등록된 이메일입니다."),
+    // Auth-related errors
+    INVALID_USER_ID_FORMAT(HttpStatus.BAD_REQUEST, "AUTH400", "Invalid user ID format."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH401", "Incorrect password."),
+    MISSING_AUTHORITY(HttpStatus.FORBIDDEN, "AUTH403", "The token lacks authority information. Basic authority is required."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "User not found."),
+    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "AUTH409", "Email already registered."),
+    PASSWORD_ALREADY_USED(HttpStatus.CONFLICT, "AUTH410", "Password already in use."),
+    UNSUPPORTED_SOCIAL_TYPE(HttpStatus.NOT_FOUND, "AUTH415", "Unsupported social login type."),
+    ILLEGAL_REGISTRATION_ID(HttpStatus.UNAUTHORIZED, "AUTH422", "Invalid registration ID."),
+    REDIRECTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH500", "Redirection failed due to an internal server error."),
 
-    // 이메일 관련 에러
-    EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "이메일 인증 코드 전송을 실패했습니다."),
+    // Social account linking errors
+    EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH405", "Email not found."),
+    SOCIAL_ACCOUNT_LINK_NOT_ALLOWED(HttpStatus.CONFLICT, "AUTH411", "Social account linking is not allowed."),
+    ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER(HttpStatus.CONFLICT, "AUTH412", "This account is already linked to another user."),
 
-    // 토큰 관련 에러
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "토큰이 유효하지 않습니다."),
-    TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "토큰 처리 중 에러가 발생했습니다."),
+    // Email-related errors
+    EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "Failed to send email verification code."),
 
-    // 프로젝트 관련 에러
-    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "존재하지 않는 프로젝트입니다."),
+    // Token-related errors
+    NULL_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN400", "The token is null."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "The token is invalid."),
+    MISSING_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN404", "Token was not provided."),
+    TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "An error occurred while processing the token."),
 
-    // 역할 관련 에러
-    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "존재하지 않는 역할입니다."),
-    CHARACTER_NOT_IN_PROJECT(HttpStatus.BAD_REQUEST, "CHARACTER400", "프로젝트에 속하지 않는 역할입니다."),
+    // Cookie-related errors
+    MISSING_COOKIES(HttpStatus.UNAUTHORIZED, "COOKIE404", "No cookies found. Please login via social login."),
 
-    // 팀원 관련 에러
-    UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "userId와 이메일 정보가 일치하지 않습니다."),
-    ALREADY_REGISTERED_MEMBER(HttpStatus.CONFLICT, "MEMBER409", "이미 프로젝트에 추가된 유저입니다."),
+    // Project-related errors
+    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "The project does not exist."),
 
-    // 페이지 관련 에러
-    PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "존재하지 않는 페이지입니다."),
+    // Role-related errors
+    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The role does not exist."),
+    CHARACTER_NOT_IN_PROJECT(HttpStatus.BAD_REQUEST, "CHARACTER400", "The role does not belong to the project."),
 
-    // 테스트 관련 에러
-    TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "존재하지 않는 테스트입니다."),
+    // Team member-related errors
+    UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "User ID and email do not match."),
+    ALREADY_REGISTERED_MEMBER(HttpStatus.CONFLICT, "MEMBER409", "The user is already added to the project."),
+
+    // Page-related errors
+    PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The page does not exist."),
+
+    // Test-related errors
+    TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "The test does not exist."),
+
+    // Error-related errors
+    ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),
 
     ;
 

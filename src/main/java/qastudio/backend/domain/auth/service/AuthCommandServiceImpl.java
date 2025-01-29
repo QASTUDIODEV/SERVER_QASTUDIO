@@ -1,5 +1,8 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,14 +14,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.converter.AuthConverter;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
+import qastudio.backend.domain.auth.dto.response.AuthResponse;
+import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-import qastudio.backend.jwt.JwtTokenProvider;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
+import qastudio.backend.global.security.jwt.TokenInfo;
+import qastudio.backend.global.security.oauth.CustomOAuth2UserService;
+import qastudio.backend.global.security.oauth.OAuth2UserInfo;
+
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,28 +39,59 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final AccountTableRepository accountTableRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthQueryService authQueryService;
+    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthConverter signUpRequestConverter;
+    private final AuthConverter authConverter;
 
     @Override
-    public TokenInfo userSignUp(AuthRequest request) {
-        if (authQueryService.existsEmail(request.getEmail())) {
-            throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
-        }
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
+            String email = request.getEmail();
+            EmailType emailType = EmailType.LOCAL;
 
-        User user = signUpRequestConverter.toUser(request);
-        userRepository.save(user);
+            List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+            boolean accountExists = accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType));
 
-        return authenticateAndGenerateToken(request.getEmail(), request.getPassword());
+            if (accountExists) {
+                throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
+            }
+
+            User user;
+            if (accountTables.isEmpty()) {
+                user = authConverter.toUserAccountTable(request);
+                userRepository.save(user);
+            } else {
+                user = accountTables.get(0).getUser();
+                authConverter.toAccountTable(email, request.getPassword(), user);
+            }
+
+            TokenInfo tokenInfo = authenticateAndGenerateToken(email, request.getPassword());
+
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
+
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
     }
 
+
     @Override
-    public TokenInfo localLogin(AuthRequest loginRequest) {
+    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
-            // 비밀번호 검증 포함
-            return authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+            TokenInfo tokenInfo = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
+
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
+
+            User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+
+            return authConverter.toLoginResponse(user);
+
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {
@@ -62,22 +104,41 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     public TokenInfo authenticateAndGenerateToken(String email, String password) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-        // 비밀번호 검증
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
 
-        // 인증 객체 생성
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
                 userDetails.getAuthorities()
         );
 
-        // 사용자 ID 조회
-        Long userId = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
+        User user = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
 
-        // 토큰 생성 및 반환
-        return jwtTokenProvider.generateToken(userId, authentication, false);
+        return tokenInfo;
     }
+
+    @Override
+    public void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest) {
+        Optional<AccountTable> accountTable = accountTableRepository.findByEmailAndEmailType(changePasswordRequest.getEmail(), EmailType.LOCAL);
+
+        if (accountTable.isEmpty()) {
+            throw new AuthException(ErrorStatus.USER_NOT_FOUND);
+        }
+
+        AccountTable account = accountTable.get();
+
+        if (passwordEncoder.matches(changePasswordRequest.getNewPassword(), account.getPassword())) {
+            throw new AuthException(ErrorStatus.PASSWORD_ALREADY_USED);
+        }
+
+        String encodedNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
+        account.updatePassword(encodedNewPassword);
+
+        accountTableRepository.save(account);
+    }
+
 }
+

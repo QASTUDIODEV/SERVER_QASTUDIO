@@ -1,21 +1,22 @@
-package qastudio.backend.global.config;
+package qastudio.backend.global.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import qastudio.backend.jwt.JwtTokenFilter;
+import qastudio.backend.global.security.oauth.handler.OAuth2FailureHandler;
+import qastudio.backend.global.security.oauth.handler.OAuth2SuccessHandler;
+import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 import java.util.List;
 
@@ -26,27 +27,24 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenFilter jwtTokenFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors->cors.configurationSource(corsConfigurationSource()))
-                // CSRF 설정: JWT 기반 인증을 사용할 때는 비활성화 권장
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
-                // 인증 및 인가 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/css/**",
                                 "/images/**",
                                 "/js/**",
                                 "/lib/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/api/v0/auth/sign-up",   // 회원가입 경로 허용
-                                "/api/v0/auth/sign-up/email", // 이메일 인증 경로 허용
-                                "/api/v0/auth/login/local", // 로컬 로그인 경로 허용
+                                "/api/v0/auth/**",
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",
@@ -54,19 +52,15 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-
-                // 세션 관리: JWT 사용 시 세션 비활성화
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-
-                // 기본 로그인 폼 비활성화
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())
-
-                // HTTP 기본 인증 비활성화
                 .httpBasic(httpBasic -> httpBasic.disable())
-
-                // JWT 필터 추가: UsernamePasswordAuthenticationFilter 앞에 실행
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler) // ✅ 성공 핸들러
+                        .failureHandler(oAuth2FailureHandler) // ✅ 실패 핸들러 추가
+                )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -76,28 +70,24 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(
                 List.of(
-                    "http://localhost:*",
-                    "http://localhost",
-                    "https://www.qa-studio.com",
-                    "https://back.qa-studio.com"
+                        "http://localhost:8080",
+                        "http://localhost:3000",
+                        "https://localhost:5173",
+                        "https://www.qa-studio.com",
+                        "https://back.qa-studio.com"
                 )
-        ); // 와일드카드 패턴 사용
+        );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

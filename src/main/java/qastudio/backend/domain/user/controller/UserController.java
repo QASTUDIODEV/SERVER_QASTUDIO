@@ -30,6 +30,20 @@ public class UserController {
     private final UserCommandService userCommandService;
 
     @Operation(
+            summary = "사용자 프로필 조회 (사이드바용) API | by 지지",
+            description = "사이드바용 사용자 닉네임, 프로필 이미지 조회합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
+    })
+    @GetMapping("/profile")
+    public ApiResponse<UserResponse.UserProfile> getProfile(@Auth Long userId) {
+        UserResponse.UserProfile userProfile = userQueryService.getProfile(userId);
+        return ApiResponse.onSuccess(userProfile);
+    }
+
+    @Operation(
             summary = "사용자 프로필 설정 API | by 지지",
             description = "사용자 닉네임, 프로필 이미지 설정합니다."
     )
@@ -38,9 +52,9 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
     })
     @PostMapping("/profile")
-    public ApiResponse<Void> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
-        userCommandService.createProfile(userId, updateUserInfo);
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<UserResponse.UserProfile> createProfile(@Auth Long userId, @RequestBody @Valid UserRequest.CreateUserInfo updateUserInfo) {
+        UserResponse.UserProfile userProfile = userCommandService.createProfile(userId, updateUserInfo);
+        return ApiResponse.onSuccess(userProfile);
     }
 
     @Operation(

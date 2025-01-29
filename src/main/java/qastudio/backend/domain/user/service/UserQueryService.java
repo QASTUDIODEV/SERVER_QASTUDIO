@@ -11,6 +11,8 @@ import java.time.LocalDate;
 public interface UserQueryService {
     User getUser(Long userId);
 
+    UserResponse.UserProfile getProfile(Long userId);
+
     Integer getProjectCount(Long userId);
 
     User updateUser(Long userId, UserRequest.UpdateUserInfo updateUserInfo);

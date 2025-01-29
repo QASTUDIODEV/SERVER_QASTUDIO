@@ -2,9 +2,7 @@ package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import qastudio.backend.domain.project.dto.request.ProjectRequest;
-import qastudio.backend.domain.project.dto.response.ProjectResponse;
+import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
@@ -16,15 +14,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProjectQueryServiceImpl implements ProjectQueryService {
 
     private final UserProjectRepository userProjectRepository;
     private final ProjectRepository projectRepository;
 
-    @Override
-    public Project uploadProjectFile(Long projectId, MultipartFile zipFile) {
-        return null;
-    }
 
     @Override
     public Project getSummarizedProjectInfo(Long projectId) {
@@ -43,15 +38,5 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
         return userProjectList.stream()
                 .map(UserProject::getProject)
                 .toList();
-    }
-
-    @Override
-    public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
-        return null;
-    }
-
-    @Override
-    public ProjectResponse.ProjectDetail createProject(ProjectRequest.CreateProject createProject){
-        return null;
     }
 }

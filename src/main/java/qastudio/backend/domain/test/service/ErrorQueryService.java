@@ -1,7 +1,7 @@
 package qastudio.backend.domain.test.service;
 
-import qastudio.backend.domain.test.dto.response.ErrorResponse;
+import qastudio.backend.domain.test.entity.Error;
 
 public interface ErrorQueryService {
-    ErrorResponse.Error getError(Long testId);
+    Error getError(Long testId);
 }

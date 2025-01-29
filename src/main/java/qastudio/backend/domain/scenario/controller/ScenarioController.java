@@ -34,9 +34,11 @@ public class ScenarioController {
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
             @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
-        System.out.println("request = " + request);
+
+        // 시나리오 저장
         ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
-        System.out.println("scenarioResponse = " + scenarioResponse);
+
+        // 액션 저장
         actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
 
         return ApiResponse.onSuccess(scenarioResponse);
@@ -53,8 +55,8 @@ public class ScenarioController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
     })
     @GetMapping("/{scenarioId}")
-    public ApiResponse<ScenarioDetailResponse> getScenario(@PathVariable Long scenarioId) {
-        ScenarioDetailResponse response = scenarioQueryService.getScenarioById(scenarioId);
+    public ApiResponse<ScenarioDetailResponse> getScenarioDetail(@PathVariable Long scenarioId) {
+        ScenarioDetailResponse response = scenarioQueryService.getScenarioDetail(scenarioId);
         return ApiResponse.onSuccess(response);
     }
 

@@ -1,4 +1,4 @@
-package qastudio.backend.jwt;
+package qastudio.backend.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
+import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import javax.crypto.SecretKey;
@@ -36,14 +37,15 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성 (공통 메서드)
-    public TokenInfo generateToken(Long userId, Authentication authentication, boolean isSocial) {
-        String accessToken = generateAccessToken(userId, authentication, isSocial);
+    public TokenInfo generateToken(Long userId, Authentication authentication) {
+        String accessToken = generateAccessToken(userId, authentication);
         String refreshToken = generateRefreshToken();
+
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
     // Access Token 생성
-    private String generateAccessToken (Long userId, Authentication authentication, boolean isSocial) {
+    private String generateAccessToken (Long userId, Authentication authentication) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + ACCESS_TOKEN_DURATION);
 
@@ -77,7 +79,6 @@ public class JwtTokenProvider {
     // 유효성 검사
     public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
-            log.error("Token is empty or null");
             return false;
         }
 
@@ -104,15 +105,13 @@ public class JwtTokenProvider {
         }
 
         List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
-        String userId = claims.getSubject();
+        String userId = claims.getSubject(); // JWT의 subject를 사용자 ID로 간주
 
-        UserDetails principal = User.builder()
-                .username(userId)
-                .password("")
-                .authorities(authorities)
-                .build();
-
-        return new UsernamePasswordAuthenticationToken(principal, null, authorities);
+        return new UsernamePasswordAuthenticationToken(
+                Long.parseLong(userId), // principal에 userId 설정
+                null,
+                authorities
+        );
     }
 
     // Claims 파싱
@@ -133,5 +132,30 @@ public class JwtTokenProvider {
         return Collections.singletonList(
                 new SimpleGrantedAuthority(claims.get("auth").toString())
         );
+    }
+
+    public Long getUserIdFromToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String subject = claims.getSubject();
+
+            if (subject == null || subject.isBlank()) {
+                return null;
+            }
+
+            try {
+                return Long.parseLong(subject);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

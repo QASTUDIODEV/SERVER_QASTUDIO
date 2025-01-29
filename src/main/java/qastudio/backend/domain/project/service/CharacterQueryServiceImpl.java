@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.entity.Page;
+import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
@@ -19,11 +21,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
 
     private final CharacterTableRepository characterRepository;
     private final CharacterConverter characterConverter;
-
-    @Override
-    public List<CharacterTable> getProjectCharacter(Long projectId) {
-        return List.of();
-    }
+    private final PageRepository pageRepository;
 
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
@@ -35,5 +33,11 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     public CharacterResponse.ScenarioList getScenarioList(Long characterTableId) {
         List<Scenario> scenarios = characterRepository.findAllByCharacterTableId(characterTableId);
         return characterConverter.toScenarioList(scenarios);
+    }
+
+    @Override
+    public CharacterResponse.ProjectPathList getProjectPaths(Long projectId) {
+        List<Page> pages = pageRepository.findAllByProjectId(projectId);
+        return CharacterConverter.toProjectPathList(pages);
     }
 }

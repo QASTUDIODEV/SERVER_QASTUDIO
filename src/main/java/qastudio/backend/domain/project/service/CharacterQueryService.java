@@ -7,9 +7,9 @@ import qastudio.backend.domain.project.entity.CharacterTable;
 import java.util.List;
 
 public interface CharacterQueryService {
-    List<CharacterTable> getProjectCharacter(Long projectId);
-
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
 
     CharacterResponse.ScenarioList getScenarioList(Long characterId);
+
+    CharacterResponse.ProjectPathList getProjectPaths(Long projectId);
 }

@@ -1,38 +1,27 @@
 package qastudio.backend.domain.scenario.dto.response;
 
-
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public class ExecutionResultResponse {
 
-    @Schema(description = "시나리오 ID", example = "1")
-    private Long scenarioId;
-
-    @Schema(description = "시나리오 실행 상태", example = "COMPLETED")
+    @Schema(description = "실행 상태 (SUCCESS / FAILURE)", example = "SUCCESS")
     private String status;
 
-    @Schema(description = "액션 실행 결과 목록")
-    private List<ActionResult> actions;
+    @Schema(description = "실행 로그", example = "[\"Scenario 실행 시작\", \"URL 접근: https://www.wikipedia.org\"]")
+    private List<String> executionLogs;
 
-    @Getter
-    @Builder
-    public static class ActionResult {
-        @Schema(description = "액션 이름", example = "Click")
-        private String actionName;
+    @JsonRawValue  // JSON 내부 개행을 유지하도록 처리
+    @Schema(description = "추출된 HTML", example = "<html>...</html>")
+    private String html;
 
-        @Schema(description = "타겟 요소", example = "#loginButton")
-        private String target;
-
-        @Schema(description = "성공 여부", example = "true")
-        private boolean success;
-
-        @Schema(description = "에러 메시지", example = "null")
-        private String errorMessage;
-    }
+    @JsonRawValue  // JSON 내부 개행을 유지하도록 처리
+    @Schema(description = "추출된 CSS", example = "body { background: red; }")
+    private String css;
 }

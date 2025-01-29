@@ -1,6 +1,7 @@
 package qastudio.backend.domain.test.dto.response;
 
 import lombok.*;
+import qastudio.backend.domain.test.entity.enums.State;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,18 +16,20 @@ public class TestResponse {
         private Long projectId;
         // 프로젝트 이름
         private String projectName;
+        // 프로젝트 대표 이미지
+        private String projectImage;
         // 총 성공 횟수
-        private Integer totalSuccessCnt;
+        private Long totalSuccessCnt;
         // 전날 대비 성공률
         private Double successRate;
         // 총 실패 횟수
-        private Integer totalFailCnt;
+        private Long totalFailCnt;
         // 전날 대비 실패율
         private Double failRate;
         // 프로젝트 참여자 수
         private Integer participant;
         // 전체 테스트 횟수
-        private Integer totalTestCnt;
+        private Long totalTestCnt;
     }
 
     @Getter
@@ -45,11 +48,15 @@ public class TestResponse {
         // 성취도
         private Integer attainment;
         // 성취 여부
-        private String state;
+        private State state;
         // 소요 시간
         private Double time;
         // 닉네임
         private String nickname;
+        // 에러 pk
+        private Long errorId;
+        // 시나리오 기록 (테스트 json)
+        private String scenarioRecord;
     }
 
     @Getter
@@ -62,7 +69,11 @@ public class TestResponse {
         private Integer listSize;
         private Integer totalPage;
         private Long totalElements;
+        private Long offset;
+        private Integer limit;
         private Boolean isFirst;
         private Boolean isLast;
+        private Boolean hasPrevious;
+        private Boolean hasNext;
     }
 }
