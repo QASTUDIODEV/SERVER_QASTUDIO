@@ -95,9 +95,9 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.warn("Token is expired");
+            log.error("Token is expired", e);
         } catch (JwtException e) {
-            log.error("Token validation FAILED");
+            log.error("Token is invalid", e);
         }
 
         return false;
