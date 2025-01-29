@@ -23,7 +23,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
 
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
-        List<CharacterTable> characterTables = characterRepository.findAllByProjectId(projectId);
+        List<CharacterTable> characterTables = characterRepository.findAllByProjectId(projectId); // N+1 문제 해결 필요
         return characterConverter.toDetailCharacterList(characterTables);
     }
 
