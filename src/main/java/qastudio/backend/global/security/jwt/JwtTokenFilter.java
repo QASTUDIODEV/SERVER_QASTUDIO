@@ -31,13 +31,31 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
+        String token = null; // 토큰 변수 추가
         try {
-            processTokenAuthentication(request);
+            token = getToken(request); // 쿠키에서 토큰 추출
+            if (token == null) {
+                throw new TokenException(ErrorStatus.NULL_TOKEN);
+            }
+
+            if (jwtTokenProvider.validateToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                throw new TokenException(ErrorStatus.INVALID_TOKEN);
+            }
         } catch (TokenException e) {
-            log.error("Invalid Token", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: Invalid Token");
             return;
+        }
+
+        // 추가 로그: 인증 정보 확인
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            log.info("🔍 Authentication success");
+        } else {
+            log.warn("⚠ Authentication failed or not present.");
         }
 
         filterChain.doFilter(request, response);
@@ -46,10 +64,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     // 인증 필터 제외 경로
     private boolean isExcluded(HttpServletRequest request) {
         String uri = request.getRequestURI();
+
+        // 기본 인증 제외 경로 처리
         return uri.startsWith("/swagger-ui") ||
                 uri.startsWith("/v3/api-docs") ||
-                uri.startsWith("/api/v0/auth") || // 모든 인증 관련 경로 제외
-                uri.startsWith("/oauth2") ||      // OAuth2 로그인 요청 경로 추가
+                uri.startsWith("/api/v0/auth") || // 인증 경로 추가
                 uri.startsWith("/css") ||
                 uri.startsWith("/js") ||
                 uri.startsWith("/images") ||
@@ -57,33 +76,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 uri.equals("/favicon.ico") ||
                 uri.equals("/health");
     }
-
-    // JWT 토큰 인증 처리
-    private void processTokenAuthentication(HttpServletRequest request) {
-        String token = getToken(request);
-
-        if (jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            return;
-        }
-
-        String clientIp = request.getHeader("X-Forwarded-For");
-        if (clientIp == null) {
-            clientIp = request.getRemoteAddr();
-        }
-
-        throw new TokenException(ErrorStatus.INVALID_TOKEN);
-    }
-
-//    // Authorization 헤더에서 토큰 추출
-//    private String getToken(HttpServletRequest request) {
-//        String bearerToken = request.getHeader("Authorization");
-//        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-//            return bearerToken.substring(7);
-//        }
-//        return null;
-//    }
 
     // 쿠키에서 토큰 추출
     private String getToken(HttpServletRequest request) {

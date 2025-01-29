@@ -4,8 +4,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.AccountTable;
@@ -13,10 +11,10 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-
-import java.util.Optional;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
 
 @Slf4j
 @Service
@@ -26,6 +24,7 @@ public class AuthQueryServiceImpl implements AuthQueryService {
 
     private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public User findUserIdByEmailAndEmailType(String email, EmailType emailType) {
@@ -47,17 +46,22 @@ public class AuthQueryServiceImpl implements AuthQueryService {
     }
 
     @Override
-    public Optional<User> getAuthenticatedUserIfPresent() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty();
-        }
+    public Long findUserIdByEmail(String email, EmailType emailType) {
+        return accountTableRepository.findByEmailAndEmailType(email, emailType)
+                .map(account -> account.getUser().getId())
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
+    }
 
-        try {
-            Long userId = Long.parseLong(authentication.getName());
-            return userRepository.findById(userId);
-        } catch (NumberFormatException e) {
-            return Optional.empty();
+    @Override
+    public String getAccessTokenFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
+        return null;
     }
 }
