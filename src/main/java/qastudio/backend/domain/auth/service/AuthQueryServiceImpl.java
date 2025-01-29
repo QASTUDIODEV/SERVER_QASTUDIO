@@ -13,6 +13,7 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -47,17 +48,30 @@ public class AuthQueryServiceImpl implements AuthQueryService {
     }
 
     @Override
-    public Optional<User> getAuthenticatedUserIfPresent() {
+    public User getAuthenticatedUserIfPresent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional.empty();
+            log.warn("❌ Authentication is null or not authenticated.");
+            return null;
         }
 
         try {
-            Long userId = Long.parseLong(authentication.getName());
-            return userRepository.findById(userId);
+            String userIdString = authentication.getName();
+            log.info("🔍 Retrieved principal (userId): {}", userIdString);
+
+            Long userId = Long.parseLong(userIdString);
+            return userRepository.findById(userId).orElse(null);
         } catch (NumberFormatException e) {
-            return Optional.empty();
+            log.error("❌ Failed to parse principal as userId: {}", authentication.getName(), e);
+            return null;
         }
+    }
+
+    @Override
+    public Long findUserIdByEmail(String email, EmailType emailType) {
+        return accountTableRepository.findByEmailAndEmailType(email, emailType)
+                .map(account -> account.getUser().getId())
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
     }
 }

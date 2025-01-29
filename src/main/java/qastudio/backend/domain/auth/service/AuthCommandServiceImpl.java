@@ -1,6 +1,7 @@
 package qastudio.backend.domain.auth.service;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +25,9 @@ import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestExcept
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.JwtTokenProvider;
 import qastudio.backend.global.security.jwt.TokenInfo;
+import qastudio.backend.global.security.oauth.CustomOAuth2UserService;
+import qastudio.backend.global.security.oauth.OAuth2UserInfo;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +42,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AccountTableRepository accountTableRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthQueryService authQueryService;
+    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
@@ -112,7 +115,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         );
 
         User user = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, false);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
 
         return tokenInfo;
     }
@@ -137,13 +140,5 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         accountTableRepository.save(account);
     }
 
-    @Override
-    public User getOrCreateUser(String email, EmailType emailType) {
-        Optional<AccountTable> existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType);
-        return existingAccount.map(AccountTable::getUser).orElseGet(() -> {
-            User newUser = authConverter.toUser();
-            return newUser;
-        });
-    }
 }
 

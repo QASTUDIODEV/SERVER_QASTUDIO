@@ -1,5 +1,6 @@
 package qastudio.backend.global.security.oauth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import qastudio.backend.domain.auth.service.AuthQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
@@ -62,13 +64,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 현재 로그인된 사용자 확인
         User currentUser = getCurrentAuthenticatedUser();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            log.info("Authenticated user: {}", authentication.getPrincipal());
-        } else {
-            log.warn("No authenticated user found.");
-        }
 
         if (currentUser != null) {
             return linkOrFail(currentUser, email, oAuth2UserInfo, updatedAttributes);
@@ -137,16 +132,21 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         attributes.put("email", email);
         attributes.put("emailType", oAuth2UserInfo.getEmailType().toString());
 
+        // userId를 principal로 사용하도록 설정
+        Long userId = authQueryService.findUserIdByEmail(email, oAuth2UserInfo.getEmailType());
+
+        attributes.put("userId", userId);
+
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "email"
+                "userId" // userId를 principal로 설정
         );
     }
 
     // 현재 로그인된 사용자 가져오기 (없으면 null 반환)
     private User getCurrentAuthenticatedUser() {
-        return authQueryService.getAuthenticatedUserIfPresent().orElse(null);
+        return authQueryService.getAuthenticatedUserIfPresent();
     }
 
     // 이메일 추출

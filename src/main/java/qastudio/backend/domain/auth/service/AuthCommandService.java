@@ -1,5 +1,6 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import qastudio.backend.domain.auth.dto.request.AuthRequest;
 import qastudio.backend.domain.auth.dto.response.AuthResponse;
@@ -14,5 +15,4 @@ public interface AuthCommandService {
     AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response);
     TokenInfo authenticateAndGenerateToken(String email, String password);
     void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest);
-    User getOrCreateUser(String email, EmailType emailType);
 }

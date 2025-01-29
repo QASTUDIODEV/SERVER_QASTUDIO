@@ -48,37 +48,21 @@ public class SecurityConfig {
                                 "/lib/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/v0/auth/sign-up", // 회원가입 제외
-                                "/api/v0/auth/sign-up/email", // 이메일 인증 제외
-                                "/api/v0/auth/login", // 로그인 제외
-                                "/api/v0/auth/update/password", // 비밀번호 변경 제외
-                                "/api/v0/auth/check", // 토큰 확인 제외
+                                "/api/v0/auth/**",
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",
                                 "/health"
                         ).permitAll()
-                        .requestMatchers("/oauth2/authorization/**").access((authentication, context) -> {
-                            // HttpServletRequest를 직접 가져오는 대신 SecurityContext를 활용
-                            boolean skipAuth = context.getRequest().getParameter("skipAuth") != null
-                                    && "true".equals(context.getRequest().getParameter("skipAuth"));
-
-                            // SecurityContext에서 인증 정보 가져오기
-                            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
-
-                            // 인증된 사용자이거나 skipAuth 파라미터가 true이면 허용
-                            boolean allowAccess = skipAuth || (authentication1 != null && authentication1.isAuthenticated());
-                            return new AuthorizationDecision(allowAccess);
-                        })
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
-                .oauth2Login(oauth ->
-                        oauth.userInfoEndpoint(c -> c.userService(customOAuth2UserService))
-                                .successHandler(oAuth2SuccessHandler)
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(c -> c.userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

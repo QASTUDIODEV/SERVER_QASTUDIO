@@ -15,6 +15,7 @@ import qastudio.backend.domain.auth.dto.response.EmailResponse;
 import qastudio.backend.domain.auth.service.AuthCommandService;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 import qastudio.backend.global.security.jwt.TokenInfo;
 
 @RestController

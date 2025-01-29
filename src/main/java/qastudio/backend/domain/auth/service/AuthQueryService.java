@@ -8,7 +8,10 @@ import java.util.Optional;
 
 public interface AuthQueryService {
     User findUserIdByEmailAndEmailType(String email, EmailType emailType);
-    String getCookieValue(HttpServletRequest request, String name);
-    Optional<User> getAuthenticatedUserIfPresent();
-}
 
+    String getCookieValue(HttpServletRequest request, String name);
+
+    User getAuthenticatedUserIfPresent();
+
+    Long findUserIdByEmail(String email, EmailType emailType);
+}
