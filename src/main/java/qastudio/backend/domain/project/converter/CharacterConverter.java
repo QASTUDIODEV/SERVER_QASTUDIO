@@ -3,19 +3,17 @@ package qastudio.backend.domain.project.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.ArrayList;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.user.entity.User;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Component
 public class CharacterConverter {
@@ -39,28 +37,19 @@ public class CharacterConverter {
                 .build();
     }
 
-    public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable, Long projectId) {
-        String author = getAuthorNickname(characterTable, projectId);
-
+    public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable) {
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
-                .author(author)
+                .characterName(characterTable.getCharacterName())
+                .author(characterTable.getUser().getNickname())
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
                 .build();
     }
 
-    private static String getAuthorNickname(CharacterTable characterTable, Long projectId) {
-        Optional<UserProject> userProject = characterTable.getProject().getUserProjects().stream()
-                .filter(up -> up.getProject().getId().equals(projectId))
-                .findFirst();
-
-        return userProject.map(up -> up.getUser().getNickname()).orElse("Unknown");
-    }
-
-    public CharacterResponse.DetailCharacterList toDetailCharacterList(List<CharacterTable> characterTables, Long projectId) {
+    public CharacterResponse.DetailCharacterList toDetailCharacterList(List<CharacterTable> characterTables) {
         List<CharacterResponse.DetailCharacter> detailCharacters = characterTables.stream()
-                .map(characterTable -> toDetailCharacter(characterTable, projectId))
+                .map(this::toDetailCharacter)
                 .collect(Collectors.toList());
         return CharacterResponse.DetailCharacterList.builder()
                 .detailCharacters(detailCharacters)
@@ -68,16 +57,10 @@ public class CharacterConverter {
     }
 
     public CharacterResponse.Scenario toScenario(Scenario scenario) {
-        Optional<UserProject> userProject = scenario.getCharacterTable().getProject().getUserProjects().stream()
-                .filter(up -> up.getProject().getId().equals(scenario.getCharacterTable().getProject().getId()))
-                .findFirst();
-
-        String author = userProject.map(up -> up.getUser().getNickname()).orElse("Unknown");
-
         return CharacterResponse.Scenario.builder()
                 .scenarioId(scenario.getId())
                 .scenarioName(scenario.getScenarioName())
-                .author(author)
+                .author(scenario.getUser().getNickname())
                 .createdAt(scenario.getCreatedAt())
                 .updatedAt(scenario.getUpdatedAt())
                 .build();
