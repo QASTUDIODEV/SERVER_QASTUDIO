@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,10 @@ import qastudio.backend.domain.user.repository.AccountTable.AccountTableReposito
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.JwtTokenProvider;
 import qastudio.backend.global.security.jwt.TokenInfo;
-import qastudio.backend.global.security.oauth.CustomOAuth2UserService;
-import qastudio.backend.global.security.oauth.OAuth2UserInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +42,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AccountTableRepository accountTableRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthQueryService authQueryService;
-    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
@@ -67,7 +66,14 @@ public class AuthCommandServiceImpl implements AuthCommandService {
                 authConverter.toAccountTable(email, request.getPassword(), user);
             }
 
-            TokenInfo tokenInfo = authenticateAndGenerateToken(email, request.getPassword());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getId().toString(),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+             );
+
+
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
 
             Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
             Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
@@ -80,15 +86,20 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     @Override
     public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
-            TokenInfo tokenInfo = authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequest.getEmail());
+
+            if (!passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
+                throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
+            }
+
+            User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+
+            TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), null);
 
             Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
             Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
-
             response.addCookie(accessToken_cookie);
             response.addCookie(refreshToken_cookie);
-
-            User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
 
             return authConverter.toLoginResponse(user);
 
@@ -97,27 +108,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         } catch (BadCredentialsException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
-    }
-
-    // 인증 객체 생성 관련해서 수정 예정
-    @Override
-    public TokenInfo authenticateAndGenerateToken(String email, String password) {
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
-        }
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
-
-        User user = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
-
-        return tokenInfo;
     }
 
     @Override
@@ -139,6 +129,42 @@ public class AuthCommandServiceImpl implements AuthCommandService {
 
         accountTableRepository.save(account);
     }
+
+    @Override
+    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        TokenInfo newTokenInfo = jwtTokenProvider.reissueToken(refreshToken);
+
+        Cookie accessToken_cookie = authConverter.createCookie("accessToken", newTokenInfo.getAccessToken(), 1800);
+        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", newTokenInfo.getRefreshToken(), 604800);
+
+        response.addCookie(accessToken_cookie);
+        response.addCookie(refreshToken_cookie);
+    }
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        jwtTokenProvider.logout(refreshToken);
+
+        // 쿠키 삭제
+        Cookie accessTokenCookie = authConverter.createCookie("accessToken", "", 0);
+        Cookie refreshTokenCookie = authConverter.createCookie("refreshToken", "", 0);
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+    }
+
 
 }
 

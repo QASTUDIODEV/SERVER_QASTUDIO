@@ -45,6 +45,25 @@ public class UserResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class MemberInfo {
+        // 유저 pk
+        private Long userId;
+        // 닉네임
+        private String nickname;
+        // 이메일
+        private String email;
+        // 프로필 이미지
+        private String profileImage;
+        // 배너 이미지
+        private String bannerImage;
+        // 진행 중인 프로젝트 개수
+        private Integer projectCnt;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class UserProject {
         // 프로젝트 pk
         private Long projectId;

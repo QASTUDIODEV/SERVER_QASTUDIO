@@ -2,8 +2,11 @@ package qastudio.backend.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,26 +23,33 @@ import javax.crypto.SecretKey;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
     private static final long ACCESS_TOKEN_DURATION = 1000 * 60 * 30L; // 30분
     private static final long REFRESH_TOKEN_DURATION = 1000 * 60 * 60L * 24 * 7; // 7일
 
     private final SecretKey secretKey;
+    private final StringRedisTemplate redisTemplate;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String key) {
+    @Autowired
+    public JwtTokenProvider(@Value("${jwt.secret}") String key, StringRedisTemplate redisTemplate) {
         byte[] keyBytes = key.getBytes();
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.redisTemplate = redisTemplate;
     }
 
     // 토큰 생성 (공통 메서드)
     public TokenInfo generateToken(Long userId, Authentication authentication) {
         String accessToken = generateAccessToken(userId, authentication);
-        String refreshToken = generateRefreshToken();
+        String refreshToken = generateRefreshToken(userId, authentication);
+
+        redisTemplate.opsForValue().set("refresh:" + userId, refreshToken, REFRESH_TOKEN_DURATION, TimeUnit.MILLISECONDS);
 
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
@@ -72,14 +82,26 @@ public class JwtTokenProvider {
     }
 
     // Refresh Token 생성
-    private String generateRefreshToken() {
+    private String generateRefreshToken(Long userId, Authentication authentication) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + REFRESH_TOKEN_DURATION);
 
-        return Jwts.builder()
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .setSubject(userId.toString())
+                .setIssuedAt(now)
                 .setExpiration(expiredDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(secretKey, SignatureAlgorithm.HS256);
+
+        if (authentication != null) {
+            String authorities = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(","));
+            jwtBuilder.claim("auth", authorities);
+        } else {
+            jwtBuilder.claim("auth", "USER");
+        }
+
+        return jwtBuilder.compact();
     }
 
     // 유효성 검사
@@ -89,10 +111,18 @@ public class JwtTokenProvider {
         }
 
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String userId = claims.getSubject();
+
+            if (redisTemplate.hasKey("logout:" + userId)) {
+                return false;
+            }
+
             return true;
         } catch (ExpiredJwtException e) {
             log.error("Token is expired", e);
@@ -103,13 +133,36 @@ public class JwtTokenProvider {
         return false;
     }
 
+    // refreshToken 검증 후 재발급
+    public TokenInfo reissueToken(String refreshToken) {
+        Claims claims = parseClaims(refreshToken);
+        String userId = claims.getSubject();
+
+        String storedRefreshToken = redisTemplate.opsForValue().get("refresh:" + userId);
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
+        }
+
+        redisTemplate.delete("refresh:" + userId);
+
+        // 새 AccessToken 생성
+        Authentication authentication = getAuthentication(refreshToken);
+        return generateToken(Long.parseLong(userId), authentication);
+    }
+
+    // 로그아웃
+    public void logout(String refreshToken) {
+        Claims claims = parseClaims(refreshToken);
+        String userId = claims.getSubject();
+
+        // Redis에서 리프레시 토큰 삭제 (완전한 로그아웃 처리)
+        redisTemplate.delete("refresh:" + userId);
+        redisTemplate.opsForValue().set("logout:" + userId, "true", ACCESS_TOKEN_DURATION, TimeUnit.MILLISECONDS);
+    }
+
     // 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
-
-        if (claims == null) {
-            throw new TokenException(ErrorStatus.INVALID_TOKEN);
-        }
 
         String subject = claims.getSubject();
         if (subject == null || subject.isBlank()) {
@@ -154,26 +207,16 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+
+        String subject = claims.getSubject();
+        if (subject == null || subject.isBlank()) {
+            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+        }
+
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            String subject = claims.getSubject();
-
-            if (subject == null || subject.isBlank()) {
-                return null;
-            }
-
-            try {
-                return Long.parseLong(subject);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-
-        } catch (JwtException e) {
+            return Long.parseLong(subject);
+        } catch (NumberFormatException e) {
             throw new TokenException(ErrorStatus.INVALID_TOKEN);
         }
     }

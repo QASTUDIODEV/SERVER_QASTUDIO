@@ -27,8 +27,8 @@ public class AuthController {
     private final AuthConverter authConverter;
 
     @Operation(
-            summary = "자체 회원가입 API | by 지지",
-            description = "사용자가 자체 회원가입을 합니다."
+            summary = "일반 회원가입 API | by 지지",
+            description = "사용자가 일반 회원가입을 합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -47,10 +47,10 @@ public class AuthController {
     @PostMapping("/sign-up")
     public ApiResponse<String> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
         authCommandService.userSignUp(authRequest, response);
-        return ApiResponse.onSuccess("회원 가입에 성공하였습니다.");
+        return ApiResponse.onSuccess("회원가입에 성공하였습니다.");
     }
 
-    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "일반 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "Email already registered."),
@@ -64,7 +64,7 @@ public class AuthController {
 
     @Operation(
             summary = "비밀번호 변경 API | by 지지",
-            description = "사용자가 자체 로그인 계정의 비밀번호를 변경합니다."
+            description = "사용자가 일반 로그인 계정의 비밀번호를 변경합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -103,8 +103,28 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "자체 로그인 API | by 지지",
-            description = "사용자가 자체 로그인을 합니다."
+            summary = "accessToken 재발급 API | by 지지",
+            description = "사용자의 refreshToken을 검증하여 accessToken을 재발급합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "TOKEN401",
+                    description = "The token is invalid."
+            )
+    })
+    @PostMapping("/reissue")
+    public ApiResponse<String> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        authCommandService.reissueToken(request, response);
+        return ApiResponse.onSuccess("토큰 재발급에 성공하였습니다.");
+    }
+
+    @Operation(
+            summary = "일반 로그인 API | by 지지",
+            description = "사용자가 일반 로그인을 합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -190,5 +210,23 @@ public class AuthController {
     @GetMapping("/oauth2/authorization/github")
     public void githubLogin() {
     }
-
+    @Operation(
+            summary = "로그아웃 API | by 지지",
+            description = "사용자가 로그아웃하면 refreshToken을 삭제하고 accessToken을 블랙리스트에 추가합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "TOKEN401",
+                    description = "The token is invalid."
+            )
+    })
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        authCommandService.logout(request, response);
+        return ApiResponse.onSuccess("로그아웃 성공하였습니다.");
+    }
 }
