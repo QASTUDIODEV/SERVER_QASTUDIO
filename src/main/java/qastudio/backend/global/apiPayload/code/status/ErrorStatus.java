@@ -52,9 +52,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // Project-related errors
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "The project does not exist."),
 
-    // Role-related errors
-    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The role does not exist."),
-    CHARACTER_NOT_IN_PROJECT(HttpStatus.BAD_REQUEST, "CHARACTER400", "The role does not belong to the project."),
+    // Character-related errors
+    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The character does not exist."),
+    CHARACTER_NOT_IN_PROJECT(HttpStatus.BAD_REQUEST, "CHARACTER400", "The character does not belong to the project."),
 
     // Team member-related errors
     UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "User ID and email do not match."),
@@ -63,6 +63,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // Page-related errors
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The page does not exist."),
     START_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The start page from AI response does not exist in this project."),
+    PAGES_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "Some pages do not exist in this project."),
 
     // Test-related errors
     TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "The test does not exist."),

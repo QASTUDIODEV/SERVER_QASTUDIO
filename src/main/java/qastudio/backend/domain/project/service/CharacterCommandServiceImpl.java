@@ -85,9 +85,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
             List<Page> pages = pageRepository.findAllByPaths(accessPagePath, projectId);
 
             if (pages.isEmpty()) {
-                throw new IllegalArgumentException(
-                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
-                                projectId));
+                throw new BadRequestException(ErrorStatus.PAGES_NOT_FOUND);
             }
 
             for (Page page : pages) {
@@ -116,19 +114,17 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         Project project = projectRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project does not exist."));
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         CharacterTable existingCharacterTable = characterTableRepository.findById(characterId)
-                .orElseThrow(() -> new EntityNotFoundException("Character does not exist."));
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.CHARACTER_NOT_FOUND));
 
         for (String accessPagePath : updateCharacter.getAccessPage()) {
             List<Page> pages = pageRepository.findAllByPaths(accessPagePath, projectId);
             logger.info("pages {}", pages);
 
             if (pages.isEmpty()) {
-                throw new IllegalArgumentException(
-                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
-                                projectId));
+                throw new BadRequestException(ErrorStatus.PAGES_NOT_FOUND);
             }
 
             List<PageRole> existingPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
