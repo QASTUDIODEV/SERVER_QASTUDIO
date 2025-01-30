@@ -16,12 +16,12 @@ import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailChar
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.service.CharacterCommandService;
 import qastudio.backend.domain.project.service.CharacterQueryService;
+import qastudio.backend.domain.scenario.service.ScenarioQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.handler.annotation.Auth;
-import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class CharacterController {
 
     private final CharacterQueryService characterQueryService;
     private final CharacterCommandService characterCommandService;
-
+    private final ScenarioQueryService scenarioQueryService;
 
     @Operation(
             summary = "프로젝트 별 역할 리스트 조회 API | by 챠리",
@@ -58,7 +58,7 @@ public class CharacterController {
     })
     @GetMapping("/characters/{characterId}/scenarios")
     public ApiResponse<CharacterResponse.ScenarioList> getScenarioList (@PathVariable("characterId") Long characterId) {
-        ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
+        ScenarioList scenarioList = scenarioQueryService.getScenarioList(characterId);
         return ApiResponse.onSuccess(scenarioList);
     }
 

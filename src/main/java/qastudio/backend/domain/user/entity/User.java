@@ -39,10 +39,10 @@ public class User extends BaseEntity {
     private List<UserProject> userProjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<CharacterTable> characterTable;
+    private List<CharacterTable> characterTables = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Scenario> scenario;
+    private List<Scenario> scenarios = new ArrayList<>();
 
     public void addAccount(AccountTable accountTable) {
         this.accounts.add(accountTable);

@@ -2,10 +2,12 @@ package qastudio.backend.domain.scenario.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.scenario.converter.ScenarioActionConverter;
+import qastudio.backend.domain.scenario.converter.ScenarioConverter;
 import qastudio.backend.domain.scenario.dto.FeatureData;
 import qastudio.backend.domain.scenario.dto.response.ScenarioDetailResponse;
 import qastudio.backend.domain.scenario.entity.ActionTable;
@@ -29,6 +31,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     private final FeatureRepository featureRepository;
     private final ObjectMapper objectMapper;
     private final ScenarioActionConverter scenarioActionConverter;
+    private final ScenarioConverter scenarioConverter;
 
     @Transactional
     @Override
@@ -119,4 +122,12 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
             throw new RuntimeException("JSON 변환 오류: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CharacterResponse.ScenarioList getScenarioList(Long characterTableId) {
+        List<Scenario> scenarios = scenarioRepository.findAllByCharacterId(characterTableId);
+        return scenarioConverter.toScenarioList(scenarios);
+    }
+
 }
