@@ -31,12 +31,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = null;
         try {
-            token = getToken(request);
+            String token = getToken(request);
 
             if (token == null) {
-                throw new TokenException(ErrorStatus.NULL_TOKEN);
+                throw new TokenException(ErrorStatus.MISSING_TOKEN);
             }
 
             if (!jwtTokenProvider.validateToken(token)) {
@@ -47,7 +46,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (TokenException e) {
-            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+            return;
         } catch (Exception e) {
             throw new BadRequestException(ErrorStatus._INTERNAL_SERVER_ERROR);
         }
