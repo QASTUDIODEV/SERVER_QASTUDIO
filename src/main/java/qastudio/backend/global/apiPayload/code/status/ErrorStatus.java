@@ -62,9 +62,13 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Page-related errors
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The page does not exist."),
+    START_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The start page from AI response does not exist in this project."),
 
     // Test-related errors
     TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "TEST404", "The test does not exist."),
+
+    // Scenario-related errors
+    SCENARIO_NOT_FOUND(HttpStatus.NOT_FOUND, "SCENARIO404", "The scenario does not exist."),
 
     // Error-related errors
     ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),

@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.CreateCharacter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.UpdateCharacter;
@@ -38,11 +40,14 @@ import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AiServerException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+import org.springframework.http.HttpStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 @Service
@@ -189,11 +194,16 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(BodyInserters.fromValue(requestBody))
                     .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError, response ->
+                            response.bodyToMono(String.class)
+                                    .flatMap(errorBody -> Mono.error(new AiServerException("AI 서버 내부 오류: " + errorBody)))
+                    )
                     .bodyToMono(String.class)
                     .block();
-
-        } catch (Exception e){
-            throw new RuntimeException("An error occurred while processing the AI scenario request.", e);
+        } catch (AiServerException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 서버 오류 발생", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류 발생", e);
         }
     }
 
@@ -219,12 +229,12 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
             JsonNode scenariosArray = dataNode.path("scenarios");
 
             if (startPage == null || startPage.isEmpty()) {
-                throw new IllegalArgumentException("Start path is missing or invalid in the AI response.");
+                throw new AiServerException("Start page is missing or invalid in the AI response.");
             }
 
             Page page = pageRepository.findByPath(startPage, project.getId()).orElseThrow(() -> {
                 logger.info("Page not found with path: {} and projectId: {}", startPage, project.getId());
-                return new BadRequestException(ErrorStatus.PAGE_NOT_FOUND);});
+                return new BadRequestException(ErrorStatus.START_PAGE_NOT_FOUND);});
 
             if (scenarioId == null) {
                 scenario = Scenario.builder()
@@ -240,7 +250,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 return scenario;
             } else {
                 Scenario existingScenario = scenarioRepository.findById(scenarioId)
-                        .orElseThrow(() -> new EntityNotFoundException("Scenario does not exist."));
+                        .orElseThrow(() -> new BadRequestException(ErrorStatus.SCENARIO_NOT_FOUND));
                 existingScenario.update(scenarioName, scenarioDescription, characterTable, page);
                 scenarioRepository.save(existingScenario);
 
@@ -251,6 +261,8 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 return existingScenario;
             }
 
+        } catch (BadRequestException | AiServerException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Error processing AI scenario JSON response: {}", e.getMessage(), e);
             throw new RuntimeException("An error occurred while processing the AI scenario JSON response.");
