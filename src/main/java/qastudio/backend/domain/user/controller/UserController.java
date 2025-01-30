@@ -73,7 +73,7 @@ public class UserController {
     }
 
     @Operation(
-            summary = "팀원 정보 조회 API | by 제로",
+            summary = "사용자 정보 조회 API | by 제로",
             description = "마이페이지의 사용자 정보를 조회합니다."
     )
     @ApiResponses({
