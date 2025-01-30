@@ -1,6 +1,7 @@
 package qastudio.backend.domain.scenario.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.entity.Page;
@@ -36,6 +37,9 @@ public class Scenario extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActionTable> actionTables;
 
     public void update (String scenarioName, String scenarioDescription, CharacterTable characterTable, Page page) {
         this.scenarioName = scenarioName;
