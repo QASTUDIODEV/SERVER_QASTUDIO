@@ -71,6 +71,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Scenario-related errors
     SCENARIO_NOT_FOUND(HttpStatus.NOT_FOUND, "SCENARIO404", "The scenario does not exist."),
+    SCENARIOS_NOT_FOUND(HttpStatus.NOT_FOUND, "SCENARIO404", "Some scenarios do not exist."),
 
     // Error-related errors
     ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),
