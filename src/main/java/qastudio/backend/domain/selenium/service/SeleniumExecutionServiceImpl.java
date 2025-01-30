@@ -25,7 +25,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public SeleniumExecutionResponse executeTest(String sessionId, SeleniumExecutionRequest request) {
+    public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
         WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
@@ -54,7 +54,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                     "SUCCESS",
                     (System.currentTimeMillis() - startTime) / 1000.0,
                     null, null, null,
-                    request.getUserId(),
+                    userId,
                     request.getProjectId(),
                     request.getPageId(),
                     scenarioRecord,
@@ -75,7 +75,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                     "FAIL",
                     (System.currentTimeMillis() - startTime) / 1000.0,
                     500, e.getMessage(), null,
-                    request.getUserId(),
+                    userId,
                     request.getProjectId(),
                     request.getPageId(),
                     scenarioRecord,

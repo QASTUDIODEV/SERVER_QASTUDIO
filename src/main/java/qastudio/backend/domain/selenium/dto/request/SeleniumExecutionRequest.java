@@ -12,9 +12,6 @@ public class SeleniumExecutionRequest {
     @Schema(description = "테스트할 사이트의 기본 URL", example = "http://localhost:3000")
     private final String targetUrl;
 
-    @Schema(description = "사용자 ID", example = "1")
-    private final Long userId;
-
     @Schema(description = "프로젝트 ID", example = "2")
     private final Long projectId;
 
@@ -23,9 +20,8 @@ public class SeleniumExecutionRequest {
 
     @Schema(description = "실행할 액션 목록")
     private final List<ActionDetail> actions;
-    public SeleniumExecutionRequest(String targetUrl, Long userId, Long projectId, Long pageId, List<ActionDetail> actions) {
+    public SeleniumExecutionRequest(String targetUrl, Long projectId, Long pageId, List<ActionDetail> actions) {
         this.targetUrl = targetUrl;
-        this.userId = userId;
         this.projectId = projectId;
         this.pageId = pageId;
         this.actions = actions;

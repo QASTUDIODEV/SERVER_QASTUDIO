@@ -16,6 +16,7 @@ import qastudio.backend.domain.scenario.service.ScenarioQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import jakarta.validation.Valid;
+import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,8 +63,8 @@ public class ScenarioController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
     })
     @GetMapping("/{scenarioId}")
-    public ApiResponse<ScenarioDetailResponse> getScenarioDetail(@PathVariable Long scenarioId) {
-        ScenarioDetailResponse response = scenarioQueryService.getScenarioDetail(scenarioId);
+    public ApiResponse<ScenarioDetailResponse> getScenarioDetail(@PathVariable Long scenarioId, @Auth Long userId) {
+        ScenarioDetailResponse response = scenarioQueryService.getScenarioDetail(scenarioId, userId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -76,11 +77,11 @@ public class ScenarioController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
     })
     @GetMapping("/characters/{characterId}")
-    public ApiResponse<ScenarioListDetailResponse> getScenarioListDetailByCharacter(@PathVariable Long characterId) {
+    public ApiResponse<ScenarioListDetailResponse> getScenarioListDetailByCharacter(@PathVariable Long characterId, @Auth Long userId) {
         CharacterResponse.ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
 
         List<ScenarioDetailResponse> scenarioDetails = scenarioList.getScenarioList().stream()
-                .map(scenario -> scenarioQueryService.getScenarioDetail(scenario.getScenarioId()))
+                .map(scenario -> scenarioQueryService.getScenarioDetail(scenario.getScenarioId(), userId))
                 .collect(Collectors.toList());
 
         ScenarioListDetailResponse response = ScenarioListDetailResponse.builder()
