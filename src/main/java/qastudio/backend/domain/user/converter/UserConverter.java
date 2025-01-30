@@ -19,6 +19,7 @@ public class UserConverter {
 
     public static UserResponse.UserProfile toUserProfile(User user) {
         return UserResponse.UserProfile.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImage(user.getProfileImage())
                 .build();
