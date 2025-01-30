@@ -119,7 +119,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), null);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
+
         response.addCookie(authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800));
         response.addCookie(authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800));
         redirectWithSuccess(response, null);

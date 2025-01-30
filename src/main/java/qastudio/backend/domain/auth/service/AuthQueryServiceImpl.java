@@ -10,11 +10,9 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-import qastudio.backend.global.security.jwt.JwtTokenProvider;
 
 @Slf4j
 @Service
@@ -22,9 +20,7 @@ import qastudio.backend.global.security.jwt.JwtTokenProvider;
 @RequiredArgsConstructor
 public class AuthQueryServiceImpl implements AuthQueryService {
 
-    private final UserRepository userRepository;
     private final AccountTableRepository accountTableRepository;
-    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public User findUserIdByEmailAndEmailType(String email, EmailType emailType) {
@@ -52,16 +48,4 @@ public class AuthQueryServiceImpl implements AuthQueryService {
                 .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    @Override
-    public String getAccessTokenFromRequest(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 }

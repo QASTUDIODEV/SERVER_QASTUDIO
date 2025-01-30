@@ -106,7 +106,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private OAuth2User buildErrorOAuth2User(Map<String, Object> updatedAttributes) {
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST")),
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 updatedAttributes,
                 "error"
         );
