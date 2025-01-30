@@ -27,8 +27,8 @@ public class AuthController {
     private final AuthConverter authConverter;
 
     @Operation(
-            summary = "자체 회원가입 API | by 지지",
-            description = "사용자가 자체 회원가입을 합니다."
+            summary = "일반 회원가입 API | by 지지",
+            description = "사용자가 일반 회원가입을 합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -50,7 +50,7 @@ public class AuthController {
         return ApiResponse.onSuccess("회원가입에 성공하였습니다.");
     }
 
-    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
+    @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "일반 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH409", description = "Email already registered."),
@@ -64,7 +64,7 @@ public class AuthController {
 
     @Operation(
             summary = "비밀번호 변경 API | by 지지",
-            description = "사용자가 자체 로그인 계정의 비밀번호를 변경합니다."
+            description = "사용자가 일반 로그인 계정의 비밀번호를 변경합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -123,8 +123,8 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "자체 로그인 API | by 지지",
-            description = "사용자가 자체 로그인을 합니다."
+            summary = "일반 로그인 API | by 지지",
+            description = "사용자가 일반 로그인을 합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

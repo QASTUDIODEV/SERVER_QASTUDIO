@@ -42,6 +42,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NULL_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN400", "The token is null."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "The token is invalid."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN402", "The token has expired."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN403", "The refresh token is invalid or does not exist."),
     MISSING_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN404", "Token was not provided."),
     TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "An error occurred while processing the token."),
 

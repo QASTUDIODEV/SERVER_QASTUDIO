@@ -47,7 +47,7 @@ public class JwtTokenProvider {
     // 토큰 생성 (공통 메서드)
     public TokenInfo generateToken(Long userId, Authentication authentication) {
         String accessToken = generateAccessToken(userId, authentication);
-        String refreshToken = generateRefreshToken();
+        String refreshToken = generateRefreshToken(userId, authentication);
 
         redisTemplate.opsForValue().set("refresh:" + userId, refreshToken, REFRESH_TOKEN_DURATION, TimeUnit.MILLISECONDS);
 
@@ -75,21 +75,33 @@ public class JwtTokenProvider {
                     .collect(Collectors.joining(","));
             jwtBuilder.claim("auth", authorities);
         } else {
-            jwtBuilder.claim("auth", "ROLE_USER");
+            jwtBuilder.claim("auth", "USER");
         }
 
         return jwtBuilder.compact();
     }
 
     // Refresh Token 생성
-    private String generateRefreshToken() {
+    private String generateRefreshToken(Long userId, Authentication authentication) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + REFRESH_TOKEN_DURATION);
 
-        return Jwts.builder()
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .setSubject(userId.toString())
+                .setIssuedAt(now)
                 .setExpiration(expiredDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(secretKey, SignatureAlgorithm.HS256);
+
+        if (authentication != null) {
+            String authorities = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(","));
+            jwtBuilder.claim("auth", authorities);
+        } else {
+            jwtBuilder.claim("auth", "USER");
+        }
+
+        return jwtBuilder.compact();
     }
 
     // 유효성 검사
@@ -108,7 +120,6 @@ public class JwtTokenProvider {
             String userId = claims.getSubject();
 
             if (redisTemplate.hasKey("logout:" + userId)) {
-                log.warn("⛔ This token is blacklisted (Logged out)");
                 return false;
             }
 
@@ -127,13 +138,13 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(refreshToken);
         String userId = claims.getSubject();
 
-        // Redis에서 리프레시 토큰 검증
         String storedRefreshToken = redisTemplate.opsForValue().get("refresh:" + userId);
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new TokenException(ErrorStatus.INVALID_TOKEN);
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
         }
 
         redisTemplate.delete("refresh:" + userId);
+
         // 새 AccessToken 생성
         Authentication authentication = getAuthentication(refreshToken);
         return generateToken(Long.parseLong(userId), authentication);
