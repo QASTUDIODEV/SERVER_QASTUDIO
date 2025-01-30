@@ -119,24 +119,32 @@ public class JwtTokenProvider {
 
             String userId = claims.getSubject();
 
+            // 로그아웃된 토큰인지 확인
             if (redisTemplate.hasKey("logout:" + userId)) {
+                log.warn("🚨 [JwtTokenProvider] 블랙리스트된 Token (Logged Out): {}", token);
                 return false;
             }
 
+            log.info("✅ [JwtTokenProvider] Token 검증 성공: {}", token);
             return true;
-        } catch (ExpiredJwtException e) {
-            log.error("Token is expired", e);
-        } catch (JwtException e) {
-            log.error("Token is invalid", e);
-        }
 
-        return false;
+        } catch (ExpiredJwtException e) {
+            log.error("🚨 [JwtTokenProvider] Token 만료: {}", e.getMessage());
+            return false;
+        } catch (JwtException e) {
+            log.error("🚨 [JwtTokenProvider] 유효하지 않은 Token: {}", e.getMessage());
+            return false;
+        }
     }
 
     // refreshToken 검증 후 재발급
     public TokenInfo reissueToken(String refreshToken) {
         Claims claims = parseClaims(refreshToken);
         String userId = claims.getSubject();
+
+        if (redisTemplate.hasKey("logout:" + userId)) {
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
+        }
 
         String storedRefreshToken = redisTemplate.opsForValue().get("refresh:" + userId);
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
