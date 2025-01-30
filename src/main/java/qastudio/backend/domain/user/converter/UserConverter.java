@@ -38,6 +38,17 @@ public class UserConverter {
                 .build();
     }
 
+    public static UserResponse.MemberInfo toMemberInfo(User user, Integer projectCnt) {
+        return UserResponse.MemberInfo.builder()
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .email(user.getAccounts().get(0).getEmail())
+                .profileImage(user.getProfileImage())
+                .bannerImage(user.getBannerImage())
+                .projectCnt(projectCnt)
+                .build();
+    }
+
     public static UserResponse.UserProject toUserProject(UserProject userProject) {
         Integer participantCnt = userProject.getProject().getUserProjects().size();
 
