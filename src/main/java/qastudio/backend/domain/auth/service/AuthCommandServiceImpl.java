@@ -22,6 +22,7 @@ import qastudio.backend.domain.user.repository.AccountTable.AccountTableReposito
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.JwtTokenProvider;
 import qastudio.backend.global.security.jwt.TokenInfo;
@@ -42,7 +43,6 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AccountTableRepository accountTableRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthQueryService authQueryService;
-    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
 
@@ -138,6 +138,23 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         account.updatePassword(encodedNewPassword);
 
         accountTableRepository.save(account);
+    }
+
+    @Override
+    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        TokenInfo newTokenInfo = jwtTokenProvider.reissueToken(refreshToken);
+
+        Cookie accessToken_cookie = authConverter.createCookie("accessToken", newTokenInfo.getAccessToken(), 1800);
+        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", newTokenInfo.getRefreshToken(), 604800);
+
+        response.addCookie(accessToken_cookie);
+        response.addCookie(refreshToken_cookie);
     }
 
 }

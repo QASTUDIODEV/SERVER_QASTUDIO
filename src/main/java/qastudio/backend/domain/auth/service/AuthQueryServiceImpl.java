@@ -48,16 +48,4 @@ public class AuthQueryServiceImpl implements AuthQueryService {
                 .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    @Override
-    public String getAccessTokenFromRequest(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("accessToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 }

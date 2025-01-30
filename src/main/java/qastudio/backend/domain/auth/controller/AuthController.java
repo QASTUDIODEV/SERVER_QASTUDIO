@@ -47,7 +47,7 @@ public class AuthController {
     @PostMapping("/sign-up")
     public ApiResponse<String> singUpLocal(@RequestBody @Valid AuthRequest.LocalRequest authRequest, HttpServletResponse response) {
         authCommandService.userSignUp(authRequest, response);
-        return ApiResponse.onSuccess("회원 가입에 성공하였습니다.");
+        return ApiResponse.onSuccess("회원가입에 성공하였습니다.");
     }
 
     @Operation(summary = "이메일 인증번호 전송 API | by 지지", description = "자체 회원가입 시, 입력한 이메일로 인증번호를 전송합니다.")
@@ -102,6 +102,25 @@ public class AuthController {
         return ApiResponse.onSuccess(emailResponse);
     }
 
+    @Operation(
+            summary = "accessToken 재발급 API | by 지지",
+            description = "사용자의 refreshToken을 검증하여 accessToken을 재발급합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "TOKEN401",
+                    description = "The token is invalid."
+            )
+    })
+    @PostMapping("/reissue")
+    public ApiResponse<String> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        authCommandService.reissueToken(request, response);
+        return ApiResponse.onSuccess("토큰 재발급에 성공하였습니다.");
+    }
 
     @Operation(
             summary = "자체 로그인 API | by 지지",
