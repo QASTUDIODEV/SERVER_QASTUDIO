@@ -121,18 +121,14 @@ public class JwtTokenProvider {
 
             // 로그아웃된 토큰인지 확인
             if (redisTemplate.hasKey("logout:" + userId)) {
-                log.warn("🚨 [JwtTokenProvider] 블랙리스트된 Token (Logged Out): {}", token);
                 return false;
             }
 
-            log.info("✅ [JwtTokenProvider] Token 검증 성공: {}", token);
             return true;
 
         } catch (ExpiredJwtException e) {
-            log.error("🚨 [JwtTokenProvider] Token 만료: {}", e.getMessage());
             return false;
         } catch (JwtException e) {
-            log.error("🚨 [JwtTokenProvider] 유효하지 않은 Token: {}", e.getMessage());
             return false;
         }
     }
