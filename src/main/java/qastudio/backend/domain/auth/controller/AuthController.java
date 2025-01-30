@@ -102,6 +102,7 @@ public class AuthController {
         return ApiResponse.onSuccess(emailResponse);
     }
 
+
     @Operation(
             summary = "자체 로그인 API | by 지지",
             description = "사용자가 자체 로그인을 합니다."
