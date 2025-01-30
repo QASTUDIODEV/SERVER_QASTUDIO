@@ -163,7 +163,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
 
         if (charactersToDelete.size() != characterIds.size()) {
-            throw new EntityNotFoundException("Some characters do not exist.");
+            throw new BadRequestException(ErrorStatus.CHARACTERS_NOT_FOUND);
         }
 
         characterTableRepository.deleteAll(charactersToDelete);
