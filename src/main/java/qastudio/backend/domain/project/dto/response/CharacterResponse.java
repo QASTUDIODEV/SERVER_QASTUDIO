@@ -43,6 +43,7 @@ public class CharacterResponse {
     public static class DetailCharacter {
         // 역할 detail
         private Long characterId;
+        private String characterName;
         private String author;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
