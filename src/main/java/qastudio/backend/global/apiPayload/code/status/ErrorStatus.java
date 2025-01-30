@@ -28,6 +28,12 @@ public enum ErrorStatus implements BaseErrorCode {
     PASSWORD_ALREADY_USED(HttpStatus.CONFLICT, "AUTH410", "Password already in use."),
     UNSUPPORTED_SOCIAL_TYPE(HttpStatus.NOT_FOUND, "AUTH415", "Unsupported social login type."),
     ILLEGAL_REGISTRATION_ID(HttpStatus.UNAUTHORIZED, "AUTH422", "Invalid registration ID."),
+    REDIRECTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH500", "Redirection failed due to an internal server error."),
+
+    // Social account linking errors
+    EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH405", "Email not found."),
+    SOCIAL_ACCOUNT_LINK_NOT_ALLOWED(HttpStatus.CONFLICT, "AUTH411", "Social account linking is not allowed."),
+    ACCOUNT_ALREADY_LINKED_TO_ANOTHER_USER(HttpStatus.CONFLICT, "AUTH412", "This account is already linked to another user."),
 
     // Email-related errors
     EMAIL_VERIFICATION_SEND_FAILED(HttpStatus.BAD_REQUEST, "EMAIL400", "Failed to send email verification code."),
@@ -35,6 +41,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // Token-related errors
     NULL_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN400", "The token is null."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN401", "The token is invalid."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN402", "The token has expired."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN403", "The refresh token is invalid or does not exist."),
     MISSING_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN404", "Token was not provided."),
     TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN500", "An error occurred while processing the token."),
 

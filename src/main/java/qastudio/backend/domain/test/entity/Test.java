@@ -29,9 +29,6 @@ public class Test extends BaseEntity {
     private String testName;
 
     @Column(nullable = false)
-    private Integer attainment;
-
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private State state;
 

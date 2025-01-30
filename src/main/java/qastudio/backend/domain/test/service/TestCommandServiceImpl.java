@@ -42,7 +42,6 @@ public class TestCommandServiceImpl implements TestCommandService {
         Test test = Test.builder()
                 .testDate(LocalDate.now())
                 .testName(testRequest.getTestName())
-                .attainment(testRequest.getAttainment())
                 .state(State.valueOf(testRequest.getState()))
                 .time(testRequest.getTime())
                 .scenarioRecord(testRequest.getScenarioRecord())

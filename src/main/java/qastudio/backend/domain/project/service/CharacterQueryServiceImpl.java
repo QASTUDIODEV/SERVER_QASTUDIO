@@ -4,11 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.converter.CharacterConverter;
-import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.repository.Page.PageRepository;
-import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
@@ -24,20 +22,9 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     private final PageRepository pageRepository;
 
     @Override
-    public List<CharacterTable> getProjectCharacter(Long projectId) {
-        return List.of();
-    }
-
-    @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
-        List<CharacterTable> characterTables = characterRepository.findAllByProjectId(projectId);
-        return characterConverter.toDetailCharacterList(characterTables, projectId);
-    }
-
-    @Override
-    public CharacterResponse.ScenarioList getScenarioList(Long characterTableId) {
-        List<Scenario> scenarios = characterRepository.findAllByCharacterTableId(characterTableId);
-        return characterConverter.toScenarioList(scenarios);
+        List<CharacterTable> characterTables = characterRepository.findAllByProjectId(projectId); // N+1 문제 해결 필요
+        return characterConverter.toDetailCharacterList(characterTables);
     }
 
     @Override

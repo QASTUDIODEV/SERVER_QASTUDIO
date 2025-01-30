@@ -1,17 +1,26 @@
 package qastudio.backend.domain.project.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 
-import java.util.ArrayList;
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.CreateCharacter;
 import qastudio.backend.domain.project.dto.request.CharacterRequest.UpdateCharacter;
-import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterScenario;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.entity.Page;
@@ -21,10 +30,20 @@ import qastudio.backend.domain.project.repository.CharacterTableRepository.Chara
 import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.project.repository.PageRole.PageRoleRepository;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
+import qastudio.backend.domain.scenario.entity.ActionTable;
+import qastudio.backend.domain.scenario.entity.Feature;
 import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.scenario.repository.ActionTableRepository;
+import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
+import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import reactor.netty.http.client.HttpClient;
 
 @Service
 @RequiredArgsConstructor
@@ -36,84 +55,239 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     private final ScenarioRepository scenarioRepository;
     private final PageRoleRepository pageRoleRepository;
     private final PageRepository pageRepository;
+    private final ActionTableRepository actionTableRepository;
+    private final UserRepository userRepository;
+    private final FeatureRepository featureRepository;
     private final CharacterConverter characterConverter;
+    private static final Logger logger = LoggerFactory.getLogger(CharacterCommandServiceImpl.class);
+
+    @Value("${ai.base-url}")
+    String baseUrl;
+    String createScenarioUrl = "/api/v1/ai/project/character/create";
 
 
     @Override
-    public CharacterScenario createCharacter(Long projectId, CreateCharacter createCharacter) {
+    public CharacterScenario createCharacter(Long userId, Long projectId, CreateCharacter createCharacter, String token) throws JsonProcessingException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
-        CharacterTable characterTable = characterConverter.toCharacter(createCharacter, project);
-
+        CharacterTable characterTable = characterConverter.toCharacter(createCharacter, user, project);
         CharacterTable savedCharacterTable = characterTableRepository.save(characterTable);
 
-        // 시나리오 도메인에서 converter로 분리 필요?
-        for (String accessPage : createCharacter.getAccessPage()) {
-            Scenario scenario = Scenario.builder()
-                    .scenarioName(accessPage)
-                    .scenarioDescription("시나리오 설명")
-                    .characterTable(savedCharacterTable)
-                    .build();
-            scenarioRepository.save(scenario);
+        for (String accessPagePath : createCharacter.getAccessPage()) {
+            List<Page> pages = pageRepository.findAllByPaths(accessPagePath, projectId);
+
+            if (pages.isEmpty()) {
+                throw new IllegalArgumentException(
+                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
+                                projectId));
+            }
+
+            for (Page page : pages) {
+                PageRole pageRole = PageRole.builder()
+                        .characterTable(savedCharacterTable)
+                        .page(page)
+                        .build();
+                pageRoleRepository.save(pageRole);
+            }
         }
 
-        return characterConverter.toCharacterScenario(savedCharacterTable, createCharacter.getAccessPage());
+        Long scenarioId = null; // 시나리오 처음 생성할 때
+        Scenario scenario = createScenario(user, project, characterTable, token, scenarioId);
+        List<ActionTable> actionTables = actionTableRepository.findByScenarioId(scenario.getId());
+
+        return characterConverter.toCharacterScenario(
+                savedCharacterTable,
+                createCharacter.getAccessPage(),
+                scenario,
+                actionTables);
     }
 
     @Override
-    public CharacterScenario updateCharacter(Long characterId, UpdateCharacter updateCharacter) {
-        // accessPage 수정 안 되는 문제 해결 필요
+    public CharacterScenario updateCharacter(Long userId, Long projectId, Long characterId, Long scenarioId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
-        CharacterTable characterTable = characterTableRepository.findById(characterId)
-                .orElseThrow(() -> new EntityNotFoundException("역할이 존재하지 않습니다."));
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project does not exist."));
 
-        characterTable.updateCharacter(
-                updateCharacter.getCharacterName(),
-                updateCharacter.getCharacterDescription()
-        );
+        CharacterTable existingCharacterTable = characterTableRepository.findById(characterId)
+                .orElseThrow(() -> new EntityNotFoundException("Character does not exist."));
 
-        List<String> accessPagePaths = updateCharacter.getAccessPage();
-        List<Page> requestedPages = pageRepository.findAllByPathIn(accessPagePaths);
+        for (String accessPagePath : updateCharacter.getAccessPage()) {
+            List<Page> pages = pageRepository.findAllByPaths(accessPagePath, projectId);
+            logger.info("pages {}", pages);
 
-        List<PageRole> existingPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
-        List<Page> existingPages = existingPageRoles.stream()
-                .map(PageRole::getPage)
-                .toList();
+            if (pages.isEmpty()) {
+                throw new IllegalArgumentException(
+                        String.format("No pages found with path '%s' in project with ID '%d'.", accessPagePath,
+                                projectId));
+            }
 
-        List<Page> pagesToAdd = requestedPages.stream()
-                .filter(page -> !existingPages.contains(page))
-                .toList();
+            List<PageRole> existingPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
+            List<Page> existingPages = existingPageRoles.stream()
+                    .map(PageRole::getPage)
+                    .toList();
+            logger.info("existingPages {}", existingPages);
 
-        for (Page page : pagesToAdd) {
-            PageRole newPageRole = PageRole.builder()
-                    .characterTable(characterTable)
-                    .page(page)
-                    .build();
-            pageRoleRepository.save(newPageRole);
+            List<Page> pagesToAdd = pages.stream()
+                    .filter(page -> !existingPages.contains(page))
+                    .toList();
+            logger.info("pagesToAdd {}", pagesToAdd);
+
+            for (Page page : pagesToAdd) {
+                PageRole newPageRole = PageRole.builder()
+                        .characterTable(existingCharacterTable)
+                        .page(page)
+                        .build();
+                pageRoleRepository.save(newPageRole);
+            }
+
         }
+        existingCharacterTable.update(updateCharacter);
 
-        List<PageRole> rolesToRemove = existingPageRoles.stream()
-                .filter(pageRole -> !requestedPages.contains(pageRole.getPage()))
-                .collect(Collectors.toList());
+        Scenario updatedScenario = createScenario(user, project, existingCharacterTable, token, scenarioId);
+        List<ActionTable> actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
 
-        if (!rolesToRemove.isEmpty()) {
-            pageRoleRepository.deleteAll(rolesToRemove);
-        }
-
-        characterTableRepository.save(characterTable);
-
-        List<PageRole> updatedPageRoles = pageRoleRepository.findAllByCharacterId(characterId);
-        return characterConverter.toCharacterScenarioResponse(characterTable, updatedPageRoles);
+        return characterConverter.toCharacterScenario(
+                existingCharacterTable,
+                updateCharacter.getAccessPage(),
+                updatedScenario,
+                actionTables);
     }
 
     public void deleteCharacters(List<Long> characterIds) {
         List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
 
         if (charactersToDelete.size() != characterIds.size()) {
-            throw new EntityNotFoundException("일부 역할이 존재하지 않습니다.");
+            throw new EntityNotFoundException("Some characters do not exist.");
         }
 
         characterTableRepository.deleteAll(charactersToDelete);
+    }
+
+    private String getAiResponse(String assistantId, String name, String description, String token) {
+        WebClient webClient = WebClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader("Authorization", "Bearer " + token)
+                .clientConnector(new ReactorClientHttpConnector(
+                        HttpClient.create().responseTimeout(Duration.ofSeconds(120))  // 타임아웃을 120초로 설정
+                ))
+                .build();
+
+        try {
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("assistant_id", assistantId);
+            requestBody.put("name", name);
+            requestBody.put("description", description);
+
+            // 비동기 처리 추가 작업 필요
+            return webClient.post()
+                    .uri(createScenarioUrl)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(requestBody))
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+        } catch (Exception e){
+            throw new RuntimeException("An error occurred while processing the AI scenario request.", e);
+        }
+    }
+
+    private Scenario createScenario (User user, Project project, CharacterTable characterTable, String token, Long scenarioId) throws JsonProcessingException {
+
+        String assistantId = project.getAssistantId();
+        String name = characterTable.getCharacterName();
+        String description = characterTable.getCharacterDescription();
+        String aiResponse = getAiResponse(assistantId, name, description, token);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(aiResponse);
+        String dataJson = rootNode.path("data").asText();
+        JsonNode dataNode = objectMapper.readTree(dataJson);
+
+        logger.info(aiResponse);
+
+        Scenario scenario;
+        try {
+            String scenarioName = dataNode.path("title").asText();
+            String scenarioDescription = dataNode.path("description").asText();
+            String startPage = dataNode.path("start_path").asText();
+            JsonNode scenariosArray = dataNode.path("scenarios");
+
+            if (startPage == null || startPage.isEmpty()) {
+                throw new IllegalArgumentException("Start path is missing or invalid in the AI response.");
+            }
+
+            Page page = pageRepository.findByPath(startPage, project.getId()).orElseThrow(() -> {
+                logger.info("Page not found with path: {} and projectId: {}", startPage, project.getId());
+                return new BadRequestException(ErrorStatus.PAGE_NOT_FOUND);});
+
+            if (scenarioId == null) {
+                scenario = Scenario.builder()
+                        .characterTable(characterTable)
+                        .scenarioName(scenarioName)
+                        .scenarioDescription(scenarioDescription)
+                        .page(page)
+                        .user(user)
+                        .build();
+                scenarioRepository.save(scenario);
+                saveActionsAndFeatures(scenario, scenariosArray);
+
+                return scenario;
+            } else {
+                Scenario existingScenario = scenarioRepository.findById(scenarioId)
+                        .orElseThrow(() -> new EntityNotFoundException("Scenario does not exist."));
+                existingScenario.update(scenarioName, scenarioDescription, characterTable, page);
+                scenarioRepository.save(existingScenario);
+
+                List<ActionTable> existingActions = actionTableRepository.findByScenarioId(scenarioId);
+                actionTableRepository.deleteAll(existingActions);
+                saveActionsAndFeatures(existingScenario, scenariosArray);
+
+                return existingScenario;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing AI scenario JSON response: {}", e.getMessage(), e);
+            throw new RuntimeException("An error occurred while processing the AI scenario JSON response.");
+        }
+    }
+
+    private void saveActionsAndFeatures(Scenario scenario, JsonNode scenariosArray) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        for (JsonNode scenarioNode : scenariosArray) {
+            JsonNode element = scenarioNode.path("element");
+            JsonNode locator = element.path("locator");
+            JsonNode action = element.path("action");
+
+            int step = element.path("step").asInt();
+            String actionName = element.path("name").asText();
+            String type = element.path("type").asText();
+
+            ObjectNode featureJsonNode = objectMapper.createObjectNode();
+            featureJsonNode.set("locator", locator);
+            featureJsonNode.set("action", action);
+            String featureJson = objectMapper.writeValueAsString(featureJsonNode);
+
+            ActionTable actionTable = ActionTable.builder()
+                    .step(step)
+                    .actionDescription(actionName)
+                    .actionType(type)
+                    .scenario(scenario)
+                    .build();
+            actionTableRepository.save(actionTable);
+
+            Feature feature = Feature.builder()
+                    .featureJson(featureJson)
+                    .action(actionTable)
+                    .user(null)
+                    .build();
+            featureRepository.save(feature);
+        }
     }
 }

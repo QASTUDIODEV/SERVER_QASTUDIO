@@ -1,9 +1,11 @@
 package qastudio.backend.domain.scenario.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import qastudio.backend.domain.project.entity.CharacterTable;
 import qastudio.backend.domain.project.entity.Page;
+import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 @Entity
@@ -31,4 +33,18 @@ public class Scenario extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "page_id")
     private Page page;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActionTable> actionTables;
+
+    public void update (String scenarioName, String scenarioDescription, CharacterTable characterTable, Page page) {
+        this.scenarioName = scenarioName;
+        this.scenarioDescription = scenarioDescription;
+        this.characterTable = characterTable;
+        this.page = page;
+    }
 }

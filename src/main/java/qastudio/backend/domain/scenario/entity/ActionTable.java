@@ -1,6 +1,7 @@
 package qastudio.backend.domain.scenario.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
@@ -28,4 +29,7 @@ public class ActionTable extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "scenario_id")
     private Scenario scenario;
+
+    @OneToMany(mappedBy = "action", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feature> features;
 }

@@ -1,9 +1,10 @@
-package qastudio.backend.global.config;
+package qastudio.backend.global.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,9 +14,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import qastudio.backend.global.oauth.CustomOAuth2UserService;
-import qastudio.backend.global.oauth.OAuth2SuccessHandler;
-import qastudio.backend.jwt.JwtTokenFilter;
+import qastudio.backend.global.security.oauth.handler.OAuth2FailureHandler;
+import qastudio.backend.global.security.oauth.handler.OAuth2SuccessHandler;
+import qastudio.backend.global.security.jwt.JwtTokenFilter;
 
 import java.util.List;
 
@@ -26,15 +27,16 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenFilter jwtTokenFilter;
-    private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 (JWT 기반 인증 시)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/css/**",
                                 "/images/**",
@@ -43,7 +45,6 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/v0/auth/**",
-                                "/oauth2/**",
                                 "/error",
                                 "/favicon.ico",
                                 "/default-ui.css",
@@ -55,12 +56,11 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
-                .oauth2Login(oauth ->
-                        oauth.userInfoEndpoint(c -> c.userService(customOAuth2UserService))
-                                .successHandler(oAuth2SuccessHandler)
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler) // ✅ 성공 핸들러
+                        .failureHandler(oAuth2FailureHandler) // ✅ 실패 핸들러 추가
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -74,9 +74,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(
                 List.of(
-                        "http://localhost:*",
-                        "http://localhost",
-                        "http://localhost:5173",
+                        "http://localhost:8080",
+                        "http://localhost:3000",
+                        "https://localhost:5173",
                         "https://www.qa-studio.com",
                         "https://back.qa-studio.com"
                 )

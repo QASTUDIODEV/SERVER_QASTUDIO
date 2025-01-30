@@ -1,7 +1,7 @@
 package qastudio.backend.domain.auth.dto.response;
 
 import lombok.*;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
 public class AuthResponse {
     @Getter
@@ -10,8 +10,5 @@ public class AuthResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class LoginResponse {
         private String nickname;
-        private String profileImage;
-
-        private TokenInfo token;
     }
 }

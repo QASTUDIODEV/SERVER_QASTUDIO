@@ -1,10 +1,14 @@
 package qastudio.backend.domain.auth.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,13 +20,13 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
-import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepositoryCustom;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.exception.custom.TokenException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-import qastudio.backend.jwt.JwtTokenProvider;
-import qastudio.backend.jwt.TokenInfo;
+import qastudio.backend.global.security.jwt.JwtTokenProvider;
+import qastudio.backend.global.security.jwt.TokenInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,59 +46,68 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthConverter authConverter;
 
     @Override
-    public AuthResponse.LoginResponse userSignUp(AuthRequest.LocalRequest request) {
-        String email = request.getEmail();
-        EmailType emailType = EmailType.LOCAL;
+    public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
+            String email = request.getEmail();
+            EmailType emailType = EmailType.LOCAL;
 
-        List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+            List<AccountTable> accountTables = accountTableRepository.findByEmail(email);
+            boolean accountExists = accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType));
 
-        if (accountTables.stream().anyMatch(account -> account.getEmailType().equals(emailType))) {
-            throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
-        }
+            if (accountExists) {
+                throw new AuthException(ErrorStatus.ALREADY_EXIST_EMAIL);
+            }
 
-        User user;
-        if (accountTables.isEmpty()) {
-            user = authConverter.toUserAccountTable(request);
-            userRepository.save(user);
-        } else {
-            user = accountTables.get(0).getUser();
-            authConverter.toAccountTable(email, request.getPassword(), user);
-        }
+            User user;
+            if (accountTables.isEmpty()) {
+                user = authConverter.toUserAccountTable(request);
+                userRepository.save(user);
+            } else {
+                user = accountTables.get(0).getUser();
+                authConverter.toAccountTable(email, request.getPassword(), user);
+            }
 
-        return authenticateAndGenerateToken(email, request.getPassword());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getId().toString(),
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+             );
+
+
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication);
+
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
+
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
     }
 
+
     @Override
-    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest) {
+    public AuthResponse.LoginResponse localLogin(AuthRequest.LocalRequest loginRequest, HttpServletResponse response) {
         try {
-            // 비밀번호 검증 포함
-            return authenticateAndGenerateToken(loginRequest.getEmail(), loginRequest.getPassword());
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequest.getEmail());
+
+            if (!passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
+                throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
+            }
+
+            User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+
+            TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), null);
+
+            Cookie accessToken_cookie = authConverter.createCookie("accessToken", tokenInfo.getAccessToken(), 1800);
+            Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", tokenInfo.getRefreshToken(), 604800);
+            response.addCookie(accessToken_cookie);
+            response.addCookie(refreshToken_cookie);
+
+            return authConverter.toLoginResponse(user);
+
         } catch (AuthException ex) {
             throw new BadRequestException(ErrorStatus.USER_NOT_FOUND);
         } catch (BadCredentialsException ex) {
             throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
         }
-    }
-
-    // 인증 객체 생성 관련해서 수정 예정
-    @Override
-    public AuthResponse.LoginResponse authenticateAndGenerateToken(String email, String password) {
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadRequestException(ErrorStatus.INVALID_PASSWORD);
-        }
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
-
-        User user = authQueryService.findUserIdByEmailAndEmailType(email, EmailType.LOCAL);
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), authentication, false);
-
-        return authConverter.toLoginResponse(tokenInfo, user);
     }
 
     @Override
@@ -118,12 +131,40 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     }
 
     @Override
-    public User getOrCreateUser(String email, EmailType emailType) {
-        Optional<AccountTable> existingAccount = accountTableRepository.findByEmailAndEmailType(email, emailType);
-        return existingAccount.map(AccountTable::getUser).orElseGet(() -> {
-            User newUser = authConverter.toUser();
-            return newUser;
-        });
+    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        TokenInfo newTokenInfo = jwtTokenProvider.reissueToken(refreshToken);
+
+        Cookie accessToken_cookie = authConverter.createCookie("accessToken", newTokenInfo.getAccessToken(), 1800);
+        Cookie refreshToken_cookie = authConverter.createCookie("refreshToken", newTokenInfo.getRefreshToken(), 604800);
+
+        response.addCookie(accessToken_cookie);
+        response.addCookie(refreshToken_cookie);
     }
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        jwtTokenProvider.logout(refreshToken);
+
+        // 쿠키 삭제
+        Cookie accessTokenCookie = authConverter.createCookie("accessToken", "", 0);
+        Cookie refreshTokenCookie = authConverter.createCookie("refreshToken", "", 0);
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+    }
+
+
 }
 
