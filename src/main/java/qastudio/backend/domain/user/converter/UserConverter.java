@@ -19,6 +19,7 @@ public class UserConverter {
 
     public static UserResponse.UserProfile toUserProfile(User user) {
         return UserResponse.UserProfile.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImage(user.getProfileImage())
                 .build();
@@ -28,7 +29,7 @@ public class UserConverter {
         return UserResponse.UserInfo.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
-                .email(user.getAccounts().get(0).getEmail())
+                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
                 .profileImage(user.getProfileImage())
                 .bannerImage(user.getBannerImage())
                 .account(user.getAccounts().stream()
@@ -38,13 +39,13 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponse.MemberInfo toMemberInfo(User user, Integer projectCnt) {
+    public static UserResponse.MemberInfo toMemberInfo(User memberUser, Integer projectCnt) {
         return UserResponse.MemberInfo.builder()
-                .userId(user.getId())
-                .nickname(user.getNickname())
-                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
-                .profileImage(user.getProfileImage())
-                .bannerImage(user.getBannerImage())
+                .userId(memberUser.getId())
+                .nickname(memberUser.getNickname())
+                .email(memberUser.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .profileImage(memberUser.getProfileImage())
+                .bannerImage(memberUser.getBannerImage())
                 .projectCnt(projectCnt)
                 .build();
     }

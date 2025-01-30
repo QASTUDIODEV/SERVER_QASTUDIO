@@ -119,24 +119,28 @@ public class JwtTokenProvider {
 
             String userId = claims.getSubject();
 
+            // 로그아웃된 토큰인지 확인
             if (redisTemplate.hasKey("logout:" + userId)) {
                 return false;
             }
 
             return true;
-        } catch (ExpiredJwtException e) {
-            log.error("Token is expired", e);
-        } catch (JwtException e) {
-            log.error("Token is invalid", e);
-        }
 
-        return false;
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (JwtException e) {
+            return false;
+        }
     }
 
     // refreshToken 검증 후 재발급
     public TokenInfo reissueToken(String refreshToken) {
         Claims claims = parseClaims(refreshToken);
         String userId = claims.getSubject();
+
+        if (redisTemplate.hasKey("logout:" + userId)) {
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
+        }
 
         String storedRefreshToken = redisTemplate.opsForValue().get("refresh:" + userId);
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {

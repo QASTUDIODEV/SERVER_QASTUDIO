@@ -35,11 +35,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String token = getToken(request);
 
             if (token == null) {
-                throw new TokenException(ErrorStatus.MISSING_TOKEN);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing Token");
+                return;
             }
 
             if (!jwtTokenProvider.validateToken(token)) {
-                throw new TokenException(ErrorStatus.INVALID_TOKEN);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+                return;
             }
 
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
