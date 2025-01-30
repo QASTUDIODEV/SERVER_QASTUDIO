@@ -42,7 +42,7 @@ public class UserConverter {
         return UserResponse.MemberInfo.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
-                .email(user.getAccounts().get(0).getEmail())
+                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
                 .profileImage(user.getProfileImage())
                 .bannerImage(user.getBannerImage())
                 .projectCnt(projectCnt)
