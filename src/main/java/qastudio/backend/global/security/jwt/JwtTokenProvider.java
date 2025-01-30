@@ -75,7 +75,7 @@ public class JwtTokenProvider {
                     .collect(Collectors.joining(","));
             jwtBuilder.claim("auth", authorities);
         } else {
-            jwtBuilder.claim("auth", "USER");
+            jwtBuilder.claim("auth", "ROLE_USER");
         }
 
         return jwtBuilder.compact();
