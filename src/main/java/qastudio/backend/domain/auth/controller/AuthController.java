@@ -210,5 +210,23 @@ public class AuthController {
     @GetMapping("/oauth2/authorization/github")
     public void githubLogin() {
     }
-
+    @Operation(
+            summary = "로그아웃 API | by 지지",
+            description = "사용자가 로그아웃하면 refreshToken을 삭제하고 accessToken을 블랙리스트에 추가합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "성공했습니다."
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "TOKEN401",
+                    description = "The token is invalid."
+            )
+    })
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        authCommandService.logout(request, response);
+        return ApiResponse.onSuccess("로그아웃 성공하였습니다.");
+    }
 }

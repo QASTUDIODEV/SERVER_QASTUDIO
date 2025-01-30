@@ -12,4 +12,5 @@ public interface AuthCommandService {
     TokenInfo authenticateAndGenerateToken(String email, String password);
     void changePassword(AuthRequest.ChangePasswordRequest changePasswordRequest);
     void reissueToken(HttpServletRequest request,  HttpServletResponse response);
+    void logout(HttpServletRequest request, HttpServletResponse response);
 }

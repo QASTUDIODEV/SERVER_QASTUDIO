@@ -157,5 +157,24 @@ public class AuthCommandServiceImpl implements AuthCommandService {
         response.addCookie(refreshToken_cookie);
     }
 
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = authQueryService.getCookieValue(request, "refreshToken");
+
+        if(refreshToken == null || refreshToken.isEmpty()) {
+            throw new TokenException(ErrorStatus.NULL_TOKEN);
+        }
+
+        jwtTokenProvider.logout(refreshToken);
+
+        // 쿠키 삭제
+        Cookie accessTokenCookie = authConverter.createCookie("accessToken", "", 0);
+        Cookie refreshTokenCookie = authConverter.createCookie("refreshToken", "", 0);
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+    }
+
+
 }
 
