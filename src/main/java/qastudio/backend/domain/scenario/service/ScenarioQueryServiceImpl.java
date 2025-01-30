@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.entity.CharacterTable;
+import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
 import qastudio.backend.domain.scenario.converter.ScenarioActionConverter;
 import qastudio.backend.domain.scenario.converter.ScenarioConverter;
 import qastudio.backend.domain.scenario.dto.FeatureData;
@@ -17,6 +19,8 @@ import qastudio.backend.domain.scenario.repository.ActionTableRepository;
 import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.util.SecurityUtils;
 
 import java.util.List;
@@ -29,6 +33,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     private final ScenarioRepository scenarioRepository;
     private final ActionTableRepository actionRepository;
     private final FeatureRepository featureRepository;
+    private final CharacterTableRepository characterTableRepository;
     private final ObjectMapper objectMapper;
     private final ScenarioActionConverter scenarioActionConverter;
     private final ScenarioConverter scenarioConverter;
@@ -126,6 +131,9 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     @Override
     @Transactional(readOnly = true)
     public CharacterResponse.ScenarioList getScenarioList(Long characterTableId) {
+        CharacterTable characterTable = characterTableRepository.findById(characterTableId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.CHARACTER_NOT_FOUND));
+
         List<Scenario> scenarios = scenarioRepository.findAllByCharacterId(characterTableId);
         return scenarioConverter.toScenarioList(scenarios);
     }
