@@ -9,7 +9,5 @@ import java.util.List;
 public interface CharacterQueryService {
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
 
-    CharacterResponse.ScenarioList getScenarioList(Long characterId);
-
     CharacterResponse.ProjectPathList getProjectPaths(Long projectId);
 }
