@@ -22,7 +22,7 @@ public class FeatureRepositoryImpl implements FeatureRepositoryCustom {
                         feature.action.eq(action),
                         feature.user.id.eq(userId) // 특정 사용자 Feature 조회
                 )
-                .fetchOne();
+                .fetchFirst();
 
         if (userFeature != null) {
             return Optional.of(userFeature);
@@ -33,7 +33,7 @@ public class FeatureRepositoryImpl implements FeatureRepositoryCustom {
                         feature.action.eq(action),
                         feature.user.isNull() // 기본 Feature 조회
                 )
-                .fetchOne();
+                .fetchFirst();
 
         return Optional.ofNullable(defaultFeature);
     }
