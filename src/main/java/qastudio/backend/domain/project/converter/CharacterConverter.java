@@ -18,34 +18,34 @@ import java.util.stream.Collectors;
 @Component
 public class CharacterConverter {
 
-    public static CharacterResponse.ProjectCharacterList toProjectCharacterList(List<CharacterTable> characters) {
+    public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable) {
+        // 시나리오 수와 페이지 수 계산
+        int scenarioCount = characterTable.getScenarios().size();
+        int pageCount = characterTable.getPageRoles().size();
 
-        List<CharacterResponse.ProjectCharacter> projectCharacters = characters.stream()
-                .map(character -> CharacterResponse.ProjectCharacter.builder()
-                        .characterId(character.getId())
-                        .characterName(character.getCharacterName())
-                        .characterDescription(character.getCharacterDescription())
-                        .accessRightCnt(0) // 수정 필요
-                        .roleScenarioCnt(0) // 수정 필요
-                        .accessRightList(List.of()) // 수정 필요
-                        .scenarioList(List.of()) // 수정 필요
-                        .build())
+        // 접근 가능한 페이지 리스트
+        List<String> accessPageList = characterTable.getPageRoles().stream()
+                .map(pageRole -> pageRole.getPage().getPageName())
                 .collect(Collectors.toList());
 
-        return CharacterResponse.ProjectCharacterList.builder()
-                .projectCharacters(projectCharacters)
-                .build();
-    }
+        // 시나리오 리스트
+        List<String> scenarioList = characterTable.getScenarios().stream()
+                .map(Scenario::getScenarioName)
+                .collect(Collectors.toList());
 
-    public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable) {
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
                 .author(characterTable.getUser().getNickname())
+                .pageCnt(pageCount)
+                .scenarioCnt(scenarioCount)
+                .accessPageList(accessPageList)
+                .scenarioList(scenarioList)
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
                 .build();
     }
+
 
     public CharacterResponse.DetailCharacterList toDetailCharacterList(List<CharacterTable> characterTables) {
         List<CharacterResponse.DetailCharacter> detailCharacters = characterTables.stream()

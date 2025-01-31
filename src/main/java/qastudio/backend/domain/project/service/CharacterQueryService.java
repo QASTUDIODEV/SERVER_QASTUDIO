@@ -1,10 +1,7 @@
 package qastudio.backend.domain.project.service;
 
-import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
-import qastudio.backend.domain.project.entity.CharacterTable;
 
-import java.util.List;
 
 public interface CharacterQueryService {
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
