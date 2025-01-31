@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,6 +45,7 @@ public class AuthCommandServiceImpl implements AuthCommandService {
     private final AuthQueryService authQueryService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthConverter authConverter;
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     public void userSignUp(AuthRequest.LocalRequest request, HttpServletResponse response) {
@@ -93,6 +95,8 @@ public class AuthCommandServiceImpl implements AuthCommandService {
             }
 
             User user = authQueryService.findUserIdByEmailAndEmailType(loginRequest.getEmail(), EmailType.LOCAL);
+
+            redisTemplate.delete("logout:" + user.getId());
 
             TokenInfo tokenInfo = jwtTokenProvider.generateToken(user.getId(), null);
 

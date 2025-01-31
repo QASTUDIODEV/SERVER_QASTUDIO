@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +38,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccountTableRepository accountTableRepository;
     private final AuthConverter authConverter;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final StringRedisTemplate redisTemplate;
 
     private static final String REDIRECT_URL = "https://localhost:5173/login/success";
 
@@ -111,6 +113,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     // JWT 생성 및 성공 리다이렉트
     private void generateAndRedirect(HttpServletResponse response, User user) throws IOException {
+        redisTemplate.delete("logout:" + user.getId());
+
         UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
                 .password("")
                 .roles("USER")

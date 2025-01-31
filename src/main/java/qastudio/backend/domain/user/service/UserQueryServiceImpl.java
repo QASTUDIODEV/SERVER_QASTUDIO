@@ -12,6 +12,7 @@ import qastudio.backend.domain.user.dto.request.UserRequest;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -50,7 +51,8 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public Page<UserProject> getUserProjectList(Long userId, Integer page) {
-        User user = userRepository.findByUserId(userId).get();
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(()-> new AuthException(ErrorStatus.USER_NOT_FOUND));
 
         Page<UserProject> UserProjectPage = userRepository.findAllByUser(user, PageRequest.of(page, 7));
 

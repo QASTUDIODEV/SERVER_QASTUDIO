@@ -14,6 +14,8 @@ public class UserResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class UserProfile {
+        // 유저 아이디
+        Long userId;
         // 닉네임
         private String nickname;
         // 프로필 이미지

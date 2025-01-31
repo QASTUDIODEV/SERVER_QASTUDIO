@@ -29,6 +29,8 @@ import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 
 @Service
@@ -70,7 +72,7 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
         List<Scenario> scenarios = scenarioRepository.findAllById(scenarioIds);
 
         if (scenarios.size() != scenarioIds.size()) {
-            throw new EntityNotFoundException("일부 시나리오가 존재하지 않습니다.");
+            throw new BadRequestException(ErrorStatus.SCENARIOS_NOT_FOUND);
         }
 
         scenarioRepository.deleteAll(scenarios);

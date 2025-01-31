@@ -77,6 +77,7 @@ public class SecurityConfig {
                         "http://localhost:8080",
                         "http://localhost:3000",
                         "https://localhost:5173",
+                        "https://dlysp0ocmm6yr.cloudfront.net",
                         "https://www.qa-studio.com",
                         "https://back.qa-studio.com"
                 )
