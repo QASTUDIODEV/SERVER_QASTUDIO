@@ -47,7 +47,7 @@ public class TestCommandServiceImpl implements TestCommandService {
         Test test = Test.builder()
                 .testDate(LocalDate.now())
                 .testName(testRequest.getTestName())
-                .state(State.valueOf(testRequest.getState()))
+                .state(testRequest.getState())
                 .time(testRequest.getTime())
                 .scenarioRecord(testRequest.getScenarioRecord())
                 .totalActionCount(testRequest.getTotalActionCount())

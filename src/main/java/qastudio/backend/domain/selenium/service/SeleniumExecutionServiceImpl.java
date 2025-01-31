@@ -13,6 +13,7 @@ import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.util.SeleniumActionExecutor;
 import qastudio.backend.domain.test.dto.request.TestRequest;
+import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.repository.ErrorRepository;
 import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
@@ -61,7 +62,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
 
-            return new SeleniumExecutionResponse(errorId == null ? "SUCCESS" : "FAIL", executionLogs);
+            return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs);
 
         } catch (Exception e) {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
@@ -102,7 +103,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         return testCommandService.createTest(new TestRequest(
                 "Test Run - " + request.getTargetUrl(),
                 attainment,
-                executionResult.hasError() ? "FAIL" : "SUCCESS",
+                executionResult.hasError() ? State.FAIL : State.SUCCESS,
                 (System.currentTimeMillis() - startTime) / 1000.0,
                 userId,
                 request.getProjectId(),
