@@ -59,7 +59,10 @@ public class CharacterResponse {
         // 역할 detail
         private Long characterId;
         private String characterName;
+        private String characterDescription;
         private String author;
+        private Integer pageCnt;
+        private Integer scenarioCnt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }

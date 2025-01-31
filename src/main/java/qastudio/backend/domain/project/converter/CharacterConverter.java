@@ -38,14 +38,21 @@ public class CharacterConverter {
     }
 
     public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable) {
+        // 시나리오 수와 페이지 수 계산
+        int scenarioCount = characterTable.getScenarios().size();
+        int pageCount = characterTable.getPageRoles().size();
+
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
                 .author(characterTable.getUser().getNickname())
+                .pageCnt(pageCount)
+                .scenarioCnt(scenarioCount)
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
                 .build();
     }
+
 
     public CharacterResponse.DetailCharacterList toDetailCharacterList(List<CharacterTable> characterTables) {
         List<CharacterResponse.DetailCharacter> detailCharacters = characterTables.stream()
