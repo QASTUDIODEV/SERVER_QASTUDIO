@@ -25,7 +25,7 @@ public class CharacterConverter {
 
         // 접근 가능한 페이지 리스트
         List<String> accessPageList = characterTable.getPageRoles().stream()
-                .map(pageRole -> pageRole.getPage().getPageName())
+                .map(pageRole -> pageRole.getPage().getPath())
                 .collect(Collectors.toList());
 
         // 시나리오 리스트
