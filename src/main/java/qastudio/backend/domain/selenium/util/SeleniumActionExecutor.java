@@ -60,13 +60,8 @@ public class SeleniumActionExecutor {
 
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
-
             // 브라우저 화면 캡처 및 S3 업로드
             String imageUrl = captureScreenshotAndUpload(driver);
-            if (imageUrl != null) {
-                logs.add("에러 발생 시 화면 캡처 저장: " + imageUrl);
-            }
-
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
         }
@@ -87,18 +82,31 @@ public class SeleniumActionExecutor {
         if (s3Service == null) return null;
 
         try {
+            // 브라우저 스크린샷을 바이트 배열로 변환
             byte[] screenshotBytes = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
             String fileName = "selenium_error_" + System.currentTimeMillis() + ".png";
-            String presignedUrl = getPresignedUrl(fileName);
 
-            if (presignedUrl == null) return null;
+            // S3에 업로드할 Presigned URL 요청
+            AwsDTO.PresignedUploadRequest uploadRequest = new AwsDTO.PresignedUploadRequest();
+            Field field = AwsDTO.PresignedUploadRequest.class.getDeclaredField("fileName");
+            field.setAccessible(true);
+            field.set(uploadRequest, fileName);
 
-            uploadToS3(presignedUrl, screenshotBytes);
-            return s3Service.generateStaticUrl(fileName);
+            AwsDTO.PresignedUrlUploadResponse uploadResponse = s3Service.getPresignedUrlToUpload(uploadRequest);
+            if (uploadResponse == null || uploadResponse.getUrl() == null) return null;
+
+            // Presigned URL로 S3에 업로드
+            uploadToS3(uploadResponse.getUrl(), screenshotBytes);
+
+            // S3에서 실제 저장된 정적 URL 반환
+            return s3Service.generateStaticUrl(uploadResponse.getKeyName());
+
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
+
 
     private static String getPresignedUrl(String fileName) {
         try {

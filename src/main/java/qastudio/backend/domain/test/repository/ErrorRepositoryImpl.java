@@ -34,7 +34,7 @@ public class ErrorRepositoryImpl implements ErrorRepositoryCustom {
                 .build();
 
         entityManager.persist(errorEntity);
-        entityManager.flush();  // DB 반영
+        entityManager.flush();
         Long errorId = errorEntity.getId();
 
         queryFactory.update(test)
