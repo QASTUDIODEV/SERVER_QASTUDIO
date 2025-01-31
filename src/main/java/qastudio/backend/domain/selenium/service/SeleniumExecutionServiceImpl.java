@@ -3,6 +3,8 @@ package qastudio.backend.domain.selenium.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.stereotype.Service;
@@ -10,8 +12,10 @@ import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.util.SeleniumActionExecutor;
 import qastudio.backend.domain.test.dto.request.TestRequest;
+import qastudio.backend.domain.test.repository.ErrorRepository;
 import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
+import qastudio.backend.global.s3.service.S3Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +26,10 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private final SeleniumWebSocketHandler webSocketHandler;
     private final TestCommandService testCommandService;
+    private final S3Service s3Service;
     private final ObjectMapper objectMapper;
+    private final ErrorRepository errorRepository;
+
 
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
@@ -31,6 +38,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         long startTime = System.currentTimeMillis();
 
         SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
+        SeleniumActionExecutor.setS3Service(s3Service); // S3 업로드 기능 추가
 
         try {
             driver.get(request.getTargetUrl());
@@ -48,7 +56,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             String scenarioRecord = convertActionsToJson(request);
 
             int attainment = (int) (((double) executedActions / totalActions) * 100);
-            testCommandService.createTest(new TestRequest(
+
+            Long testId = testCommandService.createTest(new TestRequest(
                     "Test Run - " + request.getTargetUrl(),
                     attainment,
                     "SUCCESS",
@@ -65,24 +74,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("SUCCESS", executionLogs);
 
         } catch (Exception e) {
-            executionLogs.add("❌ 실행 중 오류 발생: " + e.getMessage());
-
-            String scenarioRecord = convertActionsToJson(request);
-
-            testCommandService.createTest(new TestRequest(
-                    "Test Run - " + request.getTargetUrl(),
-                    0,
-                    "FAIL",
-                    (System.currentTimeMillis() - startTime) / 1000.0,
-                    500, e.getMessage(), null,
-                    userId,
-                    request.getProjectId(),
-                    request.getPageId(),
-                    scenarioRecord,
-                    request.getActions().size(),
-                    0
-            ));
-
+            executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
             return new SeleniumExecutionResponse("FAILURE", executionLogs);
         } finally {
             driver.quit();

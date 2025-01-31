@@ -27,7 +27,7 @@ public class TestCommandServiceImpl implements TestCommandService {
 
     @Transactional
     @Override
-    public void createTest(TestRequest testRequest) {
+    public Long createTest(TestRequest testRequest) {
         User user = userRepository.findById(testRequest.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID: " + testRequest.getUserId()));
 
@@ -52,6 +52,7 @@ public class TestCommandServiceImpl implements TestCommandService {
                 .page(page)
                 .build();
 
-        testRepository.save(test);
+        Test savedTest = testRepository.save(test);
+        return savedTest.getId();
     }
 }
