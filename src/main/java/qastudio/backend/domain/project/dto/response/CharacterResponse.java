@@ -31,6 +31,21 @@ public class CharacterResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class CharacterDetail {
+        // 역할 이름
+        private String characterName;
+        // 역할 설명
+        private String characterDescription;
+        // 접근 가능 페이지
+        private List<String> accessPageList;
+        // 시나리오
+        private List<String> scenarioList;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class ProjectCharacterList {
         // 역할 리스트
         private List<ProjectCharacter> projectCharacters;

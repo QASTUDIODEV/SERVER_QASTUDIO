@@ -7,6 +7,7 @@ import qastudio.backend.domain.project.entity.CharacterTable;
 import static qastudio.backend.domain.project.entity.QCharacterTable.characterTable;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -28,6 +29,5 @@ public class CharacterTableRepositoryImpl implements CharacterTableRepositoryCus
                 .where(characterTable.id.in(ids))
                 .fetch();
     }
-
 
 }

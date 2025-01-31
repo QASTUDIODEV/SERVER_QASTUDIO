@@ -110,4 +110,13 @@ public class CharacterConverter {
                 .projectPaths(paths)
                 .build();
     }
+
+    public static CharacterResponse.CharacterDetail toCharacterDetail(CharacterTable characterTable, List<String> accessPageList,List<String> scenarioList) {
+        return CharacterResponse.CharacterDetail.builder()
+                .characterName(characterTable.getCharacterName())
+                .characterDescription(characterTable.getCharacterDescription())
+                .accessPageList(accessPageList)
+                .scenarioList(scenarioList)
+                .build();
+    }
 }
