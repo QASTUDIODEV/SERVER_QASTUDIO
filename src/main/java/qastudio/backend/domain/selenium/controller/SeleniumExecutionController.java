@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
+import qastudio.backend.global.handler.annotation.Auth;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +19,8 @@ public class SeleniumExecutionController {
     @PostMapping("/execute")
     public SeleniumExecutionResponse executeSeleniumTest(
             @RequestParam String sessionId,
+            @Auth Long userId,
             @RequestBody SeleniumExecutionRequest request) {
-        return seleniumExecutionService.executeTest(sessionId, request);
+        return seleniumExecutionService.executeTest(sessionId, userId, request);
     }
 }

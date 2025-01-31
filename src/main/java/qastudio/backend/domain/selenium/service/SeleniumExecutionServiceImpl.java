@@ -25,7 +25,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public SeleniumExecutionResponse executeTest(String sessionId, SeleniumExecutionRequest request) {
+    public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
         WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
@@ -41,20 +41,20 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
             for (SeleniumExecutionRequest.ActionDetail action : request.getActions()) {
                 executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
-                SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
-                executedActions++;
+                executedActions += SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
             }
 
             executionLogs.add("✅ 테스트 완료");
             String scenarioRecord = convertActionsToJson(request);
 
+            int attainment = (int) (((double) executedActions / totalActions) * 100);
             testCommandService.createTest(new TestRequest(
                     "Test Run - " + request.getTargetUrl(),
-                    (executedActions * 100) / totalActions,
+                    attainment,
                     "SUCCESS",
                     (System.currentTimeMillis() - startTime) / 1000.0,
                     null, null, null,
-                    request.getUserId(),
+                    userId,
                     request.getProjectId(),
                     request.getPageId(),
                     scenarioRecord,
@@ -75,7 +75,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                     "FAIL",
                     (System.currentTimeMillis() - startTime) / 1000.0,
                     500, e.getMessage(), null,
-                    request.getUserId(),
+                    userId,
                     request.getProjectId(),
                     request.getPageId(),
                     scenarioRecord,

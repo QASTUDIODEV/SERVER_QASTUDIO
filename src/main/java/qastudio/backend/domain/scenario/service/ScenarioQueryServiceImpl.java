@@ -40,8 +40,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
 
     @Transactional
     @Override
-    public ScenarioDetailResponse getScenarioDetail(Long scenarioId) {
-        Long userId = SecurityUtils.getCurrentUserId();
+    public ScenarioDetailResponse getScenarioDetail(Long scenarioId, Long userId) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 시나리오를 찾을 수 없습니다. scenarioId: " + scenarioId));
 
@@ -65,9 +64,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
     }
     @Transactional
     @Override
-    public SeleniumExecutionRequest getExecutionRequestByScenarioId(Long scenarioId, String baseUrl) {
-        Long userId = SecurityUtils.getCurrentUserId();
-
+    public SeleniumExecutionRequest getExecutionRequestByScenarioId(Long scenarioId, Long userId, String baseUrl) {
         Scenario scenario = findScenarioById(scenarioId);
 
         String fullTargetUrl = buildTargetUrl(baseUrl, scenario.getPage().getPath());
@@ -78,7 +75,6 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
 
         return new SeleniumExecutionRequest(
                 fullTargetUrl,
-                scenario.getCharacterTable().getId(),
                 scenario.getCharacterTable().getProject().getId(),
                 scenario.getPage().getId(),
                 seleniumActions

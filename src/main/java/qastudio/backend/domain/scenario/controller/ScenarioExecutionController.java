@@ -11,6 +11,7 @@ import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,14 +31,15 @@ public class ScenarioExecutionController {
     public ResponseEntity<ApiResponse<SeleniumExecutionResponse>> executeScenario(
             @PathVariable String sessionId,
             @PathVariable Long scenarioId,
+            @Auth Long userId,
             @RequestBody BaseUrlRequest request
     ) {
         if (request.getBaseUrl() == null || request.getBaseUrl().trim().isEmpty()) {
             throw new IllegalArgumentException("Base URL이 비어 있습니다. 올바른 URL을 입력하세요.");
         }
 
-        SeleniumExecutionRequest executionRequest = scenarioQueryService.getExecutionRequestByScenarioId(scenarioId, request.getBaseUrl());
-        SeleniumExecutionResponse response = seleniumExecutionService.executeTest(sessionId, executionRequest);
+        SeleniumExecutionRequest executionRequest = scenarioQueryService.getExecutionRequestByScenarioId(scenarioId, userId, request.getBaseUrl());
+        SeleniumExecutionResponse response = seleniumExecutionService.executeTest(sessionId, userId, executionRequest);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }

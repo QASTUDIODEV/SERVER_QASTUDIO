@@ -5,7 +5,7 @@ import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
 
 public interface ScenarioCommandService {
-    ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request);
+    ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request, Long userId);
 
     void deleteScenarios(List<Long> scenarioIds);
 }

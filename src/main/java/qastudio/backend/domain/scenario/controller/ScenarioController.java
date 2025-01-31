@@ -4,8 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.service.CharacterQueryService;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioDetailResponse;
+import qastudio.backend.domain.scenario.dto.response.ScenarioListDetailResponse;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
 import qastudio.backend.domain.scenario.service.ActionCommandService;
 import qastudio.backend.domain.scenario.service.ScenarioCommandService;
@@ -13,6 +16,10 @@ import qastudio.backend.domain.scenario.service.ScenarioQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import jakarta.validation.Valid;
+import qastudio.backend.global.handler.annotation.Auth;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +29,7 @@ public class ScenarioController {
     private final ScenarioCommandService scenarioCommandService;
     private final ScenarioQueryService scenarioQueryService;
     private final ActionCommandService actionCommandService;
+    private final CharacterQueryService characterQueryService;
 
     @Operation(
             summary = "시나리오 생성 API | by 준",
@@ -33,10 +41,10 @@ public class ScenarioController {
     })
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
-            @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
+            @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request, @Auth Long userId) {
 
         // 시나리오 저장
-        ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
+        ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request, userId);
 
         // 액션 저장
         actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
@@ -55,8 +63,32 @@ public class ScenarioController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
     })
     @GetMapping("/{scenarioId}")
-    public ApiResponse<ScenarioDetailResponse> getScenarioDetail(@PathVariable Long scenarioId) {
-        ScenarioDetailResponse response = scenarioQueryService.getScenarioDetail(scenarioId);
+    public ApiResponse<ScenarioDetailResponse> getScenarioDetail(@PathVariable Long scenarioId, @Auth Long userId) {
+        ScenarioDetailResponse response = scenarioQueryService.getScenarioDetail(scenarioId, userId);
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(
+            summary = "캐리기터ID로 시나리오 조회 API | by 준",
+            description = "프론트엔드 테스트용 API입니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "시나리오를 찾을 수 없습니다.")
+    })
+    @GetMapping("/characters/{characterId}")
+    public ApiResponse<ScenarioListDetailResponse> getScenarioListDetailByCharacter(@PathVariable Long characterId, @Auth Long userId) {
+        CharacterResponse.ScenarioList scenarioList = characterQueryService.getScenarioList(characterId);
+
+        List<ScenarioDetailResponse> scenarioDetails = scenarioList.getScenarioList().stream()
+                .map(scenario -> scenarioQueryService.getScenarioDetail(scenario.getScenarioId(), userId))
+                .collect(Collectors.toList());
+
+        ScenarioListDetailResponse response = ScenarioListDetailResponse.builder()
+                .characterId(characterId)
+                .scenarios(scenarioDetails)
+                .build();
+
         return ApiResponse.onSuccess(response);
     }
 

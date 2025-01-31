@@ -61,6 +61,7 @@ public class ActionCommandServiceImpl implements ActionCommandService {
                 .step(request.getStep())
                 .actionType(request.getActionType())
                 .scenario(action.getScenario()) // 기존 시나리오 정보 유지
+                .features(action.getFeatures())
                 .build();
 
         actionRepository.save(action);
@@ -68,8 +69,10 @@ public class ActionCommandServiceImpl implements ActionCommandService {
 
     private Feature updateFeature(Feature feature, ActionUpdateRequest request) {
         try {
-            String updatedFeatureJson = objectMapper.writeValueAsString(request);
-            feature = Feature.builder()
+            String updatedFeatureJson = objectMapper.writeValueAsString(Map.of(
+                    "locator", request.getLocator(),
+                    "action", request.getAction()
+            ));            feature = Feature.builder()
                     .id(feature.getId())
                     .featureJson(updatedFeatureJson)
                     .user(feature.getUser()) // 기존 사용자 유지
@@ -83,8 +86,10 @@ public class ActionCommandServiceImpl implements ActionCommandService {
     }
     private Feature createNewFeature(Long userId, ActionTable action, ActionUpdateRequest request) {
         try {
-            String newFeatureJson = objectMapper.writeValueAsString(request);
-
+            String newFeatureJson = objectMapper.writeValueAsString(Map.of(
+                    "locator", request.getLocator(),
+                    "action", request.getAction()
+            ));
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. userId: " + userId));
 
