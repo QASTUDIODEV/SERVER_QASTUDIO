@@ -24,6 +24,8 @@ public class ErrorRepositoryImpl implements ErrorRepositoryCustom {
 
     @Override
     public Error saveError(Integer errorCode, String errorMessage, String errorImage, Long testId) {
+        System.out.println("ErrorRepositoryImpl.saveError");
+        System.out.println("errorCode = " + testId);
         qastudio.backend.domain.test.entity.Error error = qastudio.backend.domain.test.entity.Error.builder()
                 .errorCode(errorCode)
                 .errorMessage(errorMessage)

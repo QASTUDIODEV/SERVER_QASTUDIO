@@ -44,9 +44,10 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
             ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
 
-            executionLogs.add("✅ 테스트 완료");
+            executionLogs.add("테스트 완료");
             int attainment = calculateAttainment(request.getActions().size(), executionResult.getExecutedActions());
 
+            driver.quit();
             // 테스트 데이터 저장
             Long testId = saveTest(request, userId, executionResult, startTime, attainment);
             executionLogs.add("테스트 데이터 저장");
@@ -60,11 +61,11 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
 
-            return new SeleniumExecutionResponse(errorId == null ? "SUCCESS" : "FAILURE", executionLogs);
+            return new SeleniumExecutionResponse(errorId == null ? "SUCCESS" : "FAIL", executionLogs);
 
         } catch (Exception e) {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
-            return new SeleniumExecutionResponse("FAILURE", executionLogs);
+            return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
             driver.quit();
         }
@@ -101,9 +102,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         return testCommandService.createTest(new TestRequest(
                 "Test Run - " + request.getTargetUrl(),
                 attainment,
-                executionResult.hasError() ? "FAILURE" : "SUCCESS",
+                executionResult.hasError() ? "FAIL" : "SUCCESS",
                 (System.currentTimeMillis() - startTime) / 1000.0,
-                null, null, null,
                 userId,
                 request.getProjectId(),
                 request.getPageId(),

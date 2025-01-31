@@ -64,7 +64,7 @@ public class SeleniumActionExecutor {
             // 브라우저 화면 캡처 및 S3 업로드
             String imageUrl = captureScreenshotAndUpload(driver);
             if (imageUrl != null) {
-                logs.add("📸 에러 발생 시 화면 캡처 저장: " + imageUrl);
+                logs.add("에러 발생 시 화면 캡처 저장: " + imageUrl);
             }
 
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)

@@ -12,9 +12,6 @@ public class TestRequest {
     private int attainment;
     private String state;
     private double time;
-    private Integer errorCode;
-    private String errorMessage;
-    private String errorImage;
     private Long userId;
     private Long projectId;
     private Long pageId;
