@@ -36,11 +36,11 @@ public class CharacterConverter {
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
-                .author(characterTable.getUser() != null ? characterTable.getUser().getNickname() : "")
+                .author(characterTable.getUser().getNickname())
                 .pageCnt(pageCount)
                 .scenarioCnt(scenarioCount)
-                .accessPageList(accessPageList)  // 접근 가능한 페이지 리스트 추가
-                .scenarioList(scenarioList)      // 시나리오 리스트 추가
+                .accessPageList(accessPageList)
+                .scenarioList(scenarioList)
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
                 .build();
