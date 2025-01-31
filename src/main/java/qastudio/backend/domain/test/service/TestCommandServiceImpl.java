@@ -24,6 +24,13 @@ public class TestCommandServiceImpl implements TestCommandService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final PageRepository pageRepository;
+    @Override
+    @Transactional
+    public void updateTestErrorId(Long testId, Long errorId) {
+        Test test = testRepository.findById(testId)
+                .orElseThrow(() -> new IllegalArgumentException("Test not found with id: " + testId));
+        test.setErrorId(errorId);
+    }
 
     @Transactional
     @Override

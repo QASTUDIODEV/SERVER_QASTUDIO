@@ -4,9 +4,11 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.entity.enums.ActionType;
 import qastudio.backend.domain.selenium.entity.enums.LocatorType;
+import qastudio.backend.domain.test.repository.ErrorRepository;
 import qastudio.backend.global.s3.dto.AwsDTO;
 import qastudio.backend.global.s3.service.S3Service;
 import qastudio.backend.global.util.HtmlCssFormatter;
@@ -27,40 +29,50 @@ public class SeleniumActionExecutor {
 
     private static SeleniumWebSocketHandler webSocketHandler;
     private static S3Service s3Service;
+    private static ErrorRepository errorRepository;
 
     private SeleniumActionExecutor() {}
 
     public static void setWebSocketHandler(SeleniumWebSocketHandler handler) {
         webSocketHandler = handler;
     }
-
-
     public static void setS3Service(S3Service service) {
         s3Service = service;
     }
-    public static int performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
+    public static void setErrorRepository(ErrorRepository repository) {
+        errorRepository = repository;
+    }
+
+
+    public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             WebElement webElement = findElementSafely(driver, actionDetail);
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
-            // 액션 실행
+
             ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
-            return 1;
+            return new ActionExecutionResult(true, null, null, null);
 
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
+
+            // 브라우저 화면 캡처 및 S3 업로드
             String imageUrl = captureScreenshotAndUpload(driver);
             if (imageUrl != null) {
                 logs.add("📸 에러 발생 시 화면 캡처 저장: " + imageUrl);
             }
-            return 0;
+
+            // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
+            return new ActionExecutionResult(false, 500, e.getMessage(), imageUrl);
         }
     }
+
+
     private static WebElement findElementSafely(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
