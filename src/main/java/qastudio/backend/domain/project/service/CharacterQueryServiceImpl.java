@@ -58,26 +58,4 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
                 .scenarioList(scenarioList)
                 .build();
     }
-
-    @Override
-    public CharacterResponse.CharacterDetail getCharacterDetail(Long characterId) {
-        // 역할 조회
-        CharacterTable characterTable = characterTableRepository.findById(characterId)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.CHARACTER_NOT_FOUND));
-
-        // 접근 가능한 페이지 리스트 조회
-        List<String> accessPageList = characterTable.getPageRoles().stream()
-                .map(pageRole -> pageRole.getPage().getPath())  // Page 엔티티에서 페이지 이름을 가져옵니다.
-                .toList();
-
-        // 시나리오 조회
-        List<Scenario> scenarios = scenarioRepository.findAllByCharacterTableId(characterId);
-
-        // 시나리오 리스트 조회
-        List<String> scenarioList = scenarios.stream()
-                .map(Scenario::getScenarioName)
-                .toList();
-
-        return CharacterConverter.toCharacterDetail(characterTable, accessPageList, scenarioList);
-    }
 }

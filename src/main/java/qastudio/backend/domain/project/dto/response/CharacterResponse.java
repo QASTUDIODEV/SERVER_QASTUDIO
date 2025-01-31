@@ -57,13 +57,25 @@ public class CharacterResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class DetailCharacter {
         // 역할 detail
+        // 역할 id
         private Long characterId;
+        // 역할 이름
         private String characterName;
+        // 역할 설명
         private String characterDescription;
+        // 역할 생성자
         private String author;
+        // 페이지 수
         private Integer pageCnt;
+        // 시나리오 수
         private Integer scenarioCnt;
+        // 접근 가능 페이지
+        private List<String> accessPageList;
+        // 시나리오
+        private List<String> scenarioList;
+        // 생성일
         private LocalDateTime createdAt;
+        // 수정일
         private LocalDateTime updatedAt;
     }
 

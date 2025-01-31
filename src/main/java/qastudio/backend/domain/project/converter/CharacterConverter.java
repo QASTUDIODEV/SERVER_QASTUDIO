@@ -23,12 +23,24 @@ public class CharacterConverter {
         int scenarioCount = characterTable.getScenarios().size();
         int pageCount = characterTable.getPageRoles().size();
 
+        // 접근 가능한 페이지 리스트
+        List<String> accessPageList = characterTable.getPageRoles().stream()
+                .map(pageRole -> pageRole.getPage().getPageName())
+                .collect(Collectors.toList());
+
+        // 시나리오 리스트
+        List<String> scenarioList = characterTable.getScenarios().stream()
+                .map(Scenario::getScenarioName)
+                .collect(Collectors.toList());
+
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
-                .author(characterTable.getUser().getNickname())
+                .author(characterTable.getUser() != null ? characterTable.getUser().getNickname() : "")
                 .pageCnt(pageCount)
                 .scenarioCnt(scenarioCount)
+                .accessPageList(accessPageList)  // 접근 가능한 페이지 리스트 추가
+                .scenarioList(scenarioList)      // 시나리오 리스트 추가
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
                 .build();
@@ -96,15 +108,6 @@ public class CharacterConverter {
 
         return CharacterResponse.ProjectPathList.builder()
                 .projectPaths(paths)
-                .build();
-    }
-
-    public static CharacterResponse.CharacterDetail toCharacterDetail(CharacterTable characterTable, List<String> accessPageList,List<String> scenarioList) {
-        return CharacterResponse.CharacterDetail.builder()
-                .characterName(characterTable.getCharacterName())
-                .characterDescription(characterTable.getCharacterDescription())
-                .accessPageList(accessPageList)
-                .scenarioList(scenarioList)
                 .build();
     }
 }

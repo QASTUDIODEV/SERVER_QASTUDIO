@@ -47,20 +47,6 @@ public class CharacterController {
     }
 
     @Operation(
-            summary = "역할 상세 정보 조회 API | by 노을",
-            description = "역할과 관련된 페이지, 시나리오 정보 조회"
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist."),
-    })
-    @GetMapping("/characters/{characterId}")
-    public ApiResponse<CharacterResponse.CharacterDetail> getCharacterDetail (@PathVariable("characterId") Long characterId) {
-        CharacterResponse.CharacterDetail characterDetail = characterQueryService.getCharacterDetail(characterId);
-        return ApiResponse.onSuccess(characterDetail);
-    }
-
-    @Operation(
             summary = "역할 별 시나리오 리스트 조회 API | by 챠리",
             description = "역할 별로 시나리오 리스트를 조회합니다."
     )
