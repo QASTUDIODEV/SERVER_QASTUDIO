@@ -4,75 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification Code</title>
-    <style>
-        body {
-            font-family: 'Apple SD Gothic Neo', 'sans-serif';
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        .email-container {
-            width: 540px;
-            height: auto;
-            border-top: 4px solid #204B99;
-            margin: 50px auto;
-            padding: 30px;
-            box-sizing: border-box;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .email-header {
-            font-size: 28px;
-            font-weight: 400;
-            margin: 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #204B99;
-        }
-        .email-header span {
-            font-size: 14px;
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-        }
-        .email-header .highlight {
-            color: #204B99;
-            font-weight: bold;
-        }
-        .email-body {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-top: 30px;
-            color: #555;
-        }
-        .verification-code {
-            display: block;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-            text-align: center;
-            color: #ffffff;
-            background: #71A0F5;
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
 </head>
-<body>
-<div class="email-container">
-    <div class="email-header">
-        <span>QASTUDIO</span>
-        <span class="highlight">Verification Code</span> Notification
-    </div>
-    <div class="email-body">
-        Hello, There!<br />
-        Please enter the verification code below to complete your email verification.
-        <div class="verification-code" th:text="${code}"></div>
-        Thank you.<br />
-        Best regards,<br />
-        QASTUDIO Team
-    </div>
-</div>
+<body style="margin: 40px 0; padding: 0; background-color: #f9f9f9; color: #333; font-family: Arial, sans-serif;">
+
+<!-- 전체 컨테이너 -->
+<table width="100%" bgcolor="#f9f9f9" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            <table width="540" cellpadding="0" cellspacing="0"
+                   style="border-top: 4px solid #204B99; background-color: #ffffff; padding: 30px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; text-align: left;">
+
+                <!-- 헤더 -->
+                <tr>
+                    <td align="left" style="font-size: 14px; color: #555; font-weight: normal; padding-bottom: 5px;">
+                        QASTUDIO
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-size: 13px; font-weight: bold; color: #204B99; padding-bottom: 5px;">
+                        Verification Code
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="font-size: 26px; font-weight: normal; color: #222; padding-bottom: 10px;">
+                        Notification
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" style="border-bottom: 2px solid #204B99; padding-bottom: 10px;"></td>
+                </tr>
+
+                <!-- 본문 -->
+                <tr>
+                    <td align="left" style="font-size: 16px; color: #4b296b; padding: 20px 0; line-height: 1.6;">
+                        Hello, There!<br />
+                        Please enter the verification code below to complete your email verification.
+                    </td>
+                </tr>
+
+                <!-- 인증 코드 -->
+                <tr>
+                    <td align="center">
+                        <table cellpadding="0" cellspacing="0"
+                               style="width: 100%; margin: 20px 0; padding: 18px 20px; text-align: center; background: #71A0F5; color: white; font-size: 24px; font-weight: bold; border-radius: 5px;">
+                            <tr>
+                                <td align="center" style="color: white; font-weight: bold;">
+                                    <span th:text="${code}">31331313</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- 푸터 -->
+                <tr>
+                    <td align="left" style="font-size: 14px; color: #555; padding-top: 20px; color: #4b296b; line-height: 1.6;">
+                        Thank you.<br/>Best regards,<br/>QASTUDIO Team
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
