@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 
+import qastudio.backend.domain.user.entity.User;
 
 
 @Service
@@ -38,9 +39,10 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
     private final ScenarioRepository scenarioRepository;
     private final CharacterTableRepository characterTableRepository;
     private final PageRepository pageRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request) {
+    public ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request, Long userId) {
         // Character 및 Page 엔티티 조회
         CharacterTable character = characterTableRepository.findById(request.getCharacterId())
                 .orElseThrow(() -> new EntityNotFoundException("Character not found"));
@@ -48,12 +50,15 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
         Page page = pageRepository.findById(request.getPageId())
                 .orElseThrow(() -> new EntityNotFoundException("Page not found"));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
         // Scenario 저장
         Scenario scenario = Scenario.builder()
                 .scenarioName(request.getScenarioName())
                 .scenarioDescription(request.getScenarioDescription())
                 .characterTable(character)
                 .page(page)
+                .user(user)
                 .build();
         scenarioRepository.save(scenario);
 

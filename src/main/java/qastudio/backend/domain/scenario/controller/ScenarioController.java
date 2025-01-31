@@ -41,10 +41,10 @@ public class ScenarioController {
     })
     @PostMapping
     public ApiResponse<ScenarioResponse> createScenario(
-            @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request) {
+            @RequestBody @Valid ScenarioRequest.CreateScenarioRequest request, @Auth Long userId) {
 
         // 시나리오 저장
-        ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request);
+        ScenarioResponse scenarioResponse = scenarioCommandService.createScenario(request, userId);
 
         // 액션 저장
         actionCommandService.createActionsForScenario(scenarioResponse.getId(), request.getActions());
