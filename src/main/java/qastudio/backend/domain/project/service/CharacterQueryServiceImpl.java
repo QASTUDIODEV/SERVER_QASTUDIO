@@ -30,7 +30,6 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     private final PageRepository pageRepository;
     private final ScenarioRepository scenarioRepository;
     private final ProjectRepository projectRepository;
-    private final CharacterTableRepository characterTableRepository;
 
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
