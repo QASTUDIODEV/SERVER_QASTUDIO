@@ -36,6 +36,7 @@ public class CharacterConverter {
         return CharacterResponse.DetailCharacter.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
+                .characterDescription(characterTable.getCharacterDescription())
                 .author(characterTable.getUser().getNickname())
                 .pageCnt(pageCount)
                 .scenarioCnt(scenarioCount)
