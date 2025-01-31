@@ -56,7 +56,7 @@ public class SeleniumActionExecutor {
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
-            return new ActionExecutionResult(true, null, null, null);
+            return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
@@ -68,7 +68,7 @@ public class SeleniumActionExecutor {
             }
 
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
-            return new ActionExecutionResult(false, 500, e.getMessage(), imageUrl);
+            return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
         }
     }
 

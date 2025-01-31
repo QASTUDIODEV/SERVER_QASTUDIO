@@ -44,8 +44,6 @@ public class TestCommandServiceImpl implements TestCommandService {
         Page page = pageRepository.findById(testRequest.getPageId())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 페이지 ID: " + testRequest.getPageId()));
 
-        System.out.println("recordJson: " + testRequest.getScenarioRecord());
-
         Test test = Test.builder()
                 .testDate(LocalDate.now())
                 .testName(testRequest.getTestName())
