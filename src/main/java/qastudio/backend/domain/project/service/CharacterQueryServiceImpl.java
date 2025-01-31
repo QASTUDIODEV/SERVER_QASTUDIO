@@ -10,7 +10,11 @@ import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.project.entity.CharacterTable;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
+import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.scenario.repository.ScenarioRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     private final CharacterTableRepository characterRepository;
     private final CharacterConverter characterConverter;
     private final PageRepository pageRepository;
+    private final ScenarioRepository scenarioRepository;
 
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {
@@ -31,5 +36,17 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     public CharacterResponse.ProjectPathList getProjectPaths(Long projectId) {
         List<Page> pages = pageRepository.findAllByProjectId(projectId);
         return CharacterConverter.toProjectPathList(pages);
+    }
+    @Override
+    public CharacterResponse.ScenarioList getScenarioList(Long characterId) {
+        List<Scenario> scenarios = scenarioRepository.findAllByCharacterTableId(characterId);
+        List<CharacterResponse.Scenario> scenarioList = scenarios.stream()
+                .map(scenario -> CharacterResponse.Scenario.builder()
+                        .scenarioId(scenario.getId())
+                        .build())
+                .collect(Collectors.toList());
+        return CharacterResponse.ScenarioList.builder()
+                .scenarioList(scenarioList)
+                .build();
     }
 }

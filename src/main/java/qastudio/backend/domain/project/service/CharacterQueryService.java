@@ -10,4 +10,5 @@ public interface CharacterQueryService {
     CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId);
 
     CharacterResponse.ProjectPathList getProjectPaths(Long projectId);
+    CharacterResponse.ScenarioList getScenarioList(Long characterId);
 }
