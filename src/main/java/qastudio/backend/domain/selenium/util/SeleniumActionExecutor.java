@@ -1,9 +1,6 @@
 package qastudio.backend.domain.selenium.util;
 
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -24,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class SeleniumActionExecutor {
 
@@ -40,29 +38,22 @@ public class SeleniumActionExecutor {
     public static void setS3Service(S3Service service) {
         s3Service = service;
     }
-
     public static int performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
-            LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
-
-            // 웹 요소 찾기
-            WebElement webElement = new WebDriverWait(driver, Duration.ofSeconds(10))
-                    .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, actionDetail.getLocator().getValue())));
-
-            // 액션 유효성 검사
+            WebElement webElement = findElementSafely(driver, actionDetail);
+            if (webElement == null) {
+                throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
+            }
+            // 액션 실행
             ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
-            LocatorActionValidator.validate(locatorType, actionType);
-
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 셀레니움 액션 실행
+            LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs);
-            Thread.sleep(1500); // TODO: WebDriverWait로 대체
-
             return 1;
+
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
-
-            // 브라우저 화면 캡처 및 S3 업로드
             String imageUrl = captureScreenshotAndUpload(driver);
             if (imageUrl != null) {
                 logs.add("📸 에러 발생 시 화면 캡처 저장: " + imageUrl);
@@ -70,42 +61,48 @@ public class SeleniumActionExecutor {
             return 0;
         }
     }
-
-    private static String captureScreenshotAndUpload(WebDriver driver) {
-        if (s3Service == null) {
+    private static WebElement findElementSafely(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail) {
+        try {
+            LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
+            return new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, actionDetail.getLocator().getValue())));
+        } catch (TimeoutException e) {
             return null;
         }
+    }
+
+    private static String captureScreenshotAndUpload(WebDriver driver) {
+        if (s3Service == null) return null;
 
         try {
-            //  현재 화면을 캡처하여 메모리에 저장 (바이트 배열로 변환)
             byte[] screenshotBytes = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
             String fileName = "selenium_error_" + System.currentTimeMillis() + ".png";
+            String presignedUrl = getPresignedUrl(fileName);
 
-            // S3에 업로드할 Presigned URL 요청
+            if (presignedUrl == null) return null;
+
+            uploadToS3(presignedUrl, screenshotBytes);
+            return s3Service.generateStaticUrl(fileName);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String getPresignedUrl(String fileName) {
+        try {
             AwsDTO.PresignedUploadRequest uploadRequest = new AwsDTO.PresignedUploadRequest();
             Field field = AwsDTO.PresignedUploadRequest.class.getDeclaredField("fileName");
             field.setAccessible(true);
             field.set(uploadRequest, fileName);
 
             AwsDTO.PresignedUrlUploadResponse uploadResponse = s3Service.getPresignedUrlToUpload(uploadRequest);
-
-            if (uploadResponse == null || uploadResponse.getUrl() == null) {
-                return null;
-            }
-
-            // Presigned URL로 메모리에서 바로 S3 업로드
-            uploadFileToS3(uploadResponse.getUrl(), screenshotBytes);
-
-            // S3에 실제 저장된 정적 URL 반환
-            return s3Service.generateStaticUrl(uploadResponse.getKeyName());
-
+            return uploadResponse != null ? uploadResponse.getUrl() : null;
         } catch (Exception e) {
             return null;
         }
     }
 
-
-    private static void uploadFileToS3(String presignedUrl, byte[] fileBytes) throws IOException {
+    private static void uploadToS3(String presignedUrl, byte[] fileBytes) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(presignedUrl).openConnection();
         connection.setDoOutput(true);
         connection.setRequestMethod("PUT");
@@ -120,7 +117,6 @@ public class SeleniumActionExecutor {
             throw new IOException("S3 업로드 실패 - 응답 코드: " + responseCode);
         }
     }
-
 
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
         if (webSocketHandler != null) {
