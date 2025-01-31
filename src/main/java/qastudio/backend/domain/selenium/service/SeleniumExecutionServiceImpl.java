@@ -113,13 +113,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         ));
     }
     private Long saveError(ActionExecutionResult executionResult, Long testId) {
-        qastudio.backend.domain.test.entity.Error error = errorRepository.saveError(
+        return errorRepository.saveErrorAndGetId(
                 executionResult.getErrorCode(),
                 executionResult.getErrorMessage(),
                 executionResult.getErrorImage(),
                 testId
         );
-        return error.getId();
     }
     private int calculateAttainment(int totalActions, int executedActions) {
         return (int) (((double) executedActions / totalActions) * 100);
