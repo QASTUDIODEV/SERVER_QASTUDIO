@@ -3,6 +3,7 @@ package qastudio.backend.domain.test.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import qastudio.backend.domain.test.entity.enums.State;
 
 @Getter
 @NoArgsConstructor
@@ -10,11 +11,8 @@ import lombok.NoArgsConstructor;
 public class TestRequest {
     private String testName;
     private int attainment;
-    private String state;
+    private State state;
     private double time;
-    private Integer errorCode;
-    private String errorMessage;
-    private String errorImage;
     private Long userId;
     private Long projectId;
     private Long pageId;

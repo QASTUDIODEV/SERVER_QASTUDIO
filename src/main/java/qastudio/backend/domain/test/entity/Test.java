@@ -59,4 +59,9 @@ public class Test extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "error_id")
     private Error error;
+
+
+    public void setErrorId(Long errorId) {
+        this.error = Error.builder().id(errorId).build();
+    }
 }
