@@ -3,15 +3,21 @@ package qastudio.backend.domain.selenium.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.stereotype.Service;
+import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.util.SeleniumActionExecutor;
 import qastudio.backend.domain.test.dto.request.TestRequest;
+import qastudio.backend.domain.test.entity.enums.State;
+import qastudio.backend.domain.test.repository.ErrorRepository;
 import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
+import qastudio.backend.global.s3.service.S3Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,72 +28,105 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private final SeleniumWebSocketHandler webSocketHandler;
     private final TestCommandService testCommandService;
+    private final S3Service s3Service;
     private final ObjectMapper objectMapper;
-
+    private final ErrorRepository errorRepository;
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
         WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
-        SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
+        initializeSelenium(sessionId);
 
         try {
             driver.get(request.getTargetUrl());
             executionLogs.add("URL 접근: " + request.getTargetUrl());
 
-            int totalActions = request.getActions().size();
-            int executedActions = 0;
+            ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
 
-            for (SeleniumExecutionRequest.ActionDetail action : request.getActions()) {
-                executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
-                executedActions += SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
+            executionLogs.add("테스트 완료");
+            int attainment = calculateAttainment(request.getActions().size(), executionResult.getExecutedActions());
+
+            driver.quit();
+            // 테스트 데이터 저장
+            Long testId = saveTest(request, userId, executionResult, startTime, attainment);
+            executionLogs.add("테스트 데이터 저장");
+
+            // 오류 발생 시 error 테이블에 저장
+            Long errorId = executionResult.hasError() ? saveError(executionResult, testId) : null;
+            executionLogs.add("오류 데이터 저장");
+
+            // 테스트 정보 업데이트 (errorId 저장)
+            if (errorId != null) {
+                testCommandService.updateTestErrorId(testId, errorId);
             }
 
-            executionLogs.add("✅ 테스트 완료");
-            String scenarioRecord = convertActionsToJson(request);
-
-            int attainment = (int) (((double) executedActions / totalActions) * 100);
-            testCommandService.createTest(new TestRequest(
-                    "Test Run - " + request.getTargetUrl(),
-                    attainment,
-                    "SUCCESS",
-                    (System.currentTimeMillis() - startTime) / 1000.0,
-                    null, null, null,
-                    userId,
-                    request.getProjectId(),
-                    request.getPageId(),
-                    scenarioRecord,
-                    totalActions,
-                    executedActions
-            ));
-
-            return new SeleniumExecutionResponse("SUCCESS", executionLogs);
+            return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs);
 
         } catch (Exception e) {
-            executionLogs.add("❌ 실행 중 오류 발생: " + e.getMessage());
-
-            String scenarioRecord = convertActionsToJson(request);
-
-            testCommandService.createTest(new TestRequest(
-                    "Test Run - " + request.getTargetUrl(),
-                    0,
-                    "FAIL",
-                    (System.currentTimeMillis() - startTime) / 1000.0,
-                    500, e.getMessage(), null,
-                    userId,
-                    request.getProjectId(),
-                    request.getPageId(),
-                    scenarioRecord,
-                    request.getActions().size(),
-                    0
-            ));
-
-            return new SeleniumExecutionResponse("FAILURE", executionLogs);
+            executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
+            return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
             driver.quit();
         }
     }
+
+    private void initializeSelenium(String sessionId) {
+        SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
+        SeleniumActionExecutor.setS3Service(s3Service);
+        SeleniumActionExecutor.setErrorRepository(errorRepository);
+    }
+
+    private ActionExecutionResult executeActions(WebDriver driver, SeleniumExecutionRequest request, String sessionId, List<String> executionLogs) {
+        int executedActions = 0;
+        Integer errorCode = null;
+        String errorMessage = null;
+        String errorImage = null;
+
+        for (SeleniumExecutionRequest.ActionDetail action : request.getActions()) {
+            executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
+            ActionExecutionResult result = SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
+
+            if (result.hasError()) {
+                errorCode = result.getErrorCode();
+                errorMessage = result.getErrorMessage();
+                errorImage = result.getErrorImage();
+            } else {
+                executedActions++;
+            }
+        }
+
+        return new ActionExecutionResult(executedActions, errorCode, errorMessage, errorImage);
+    }
+    private Long saveTest(SeleniumExecutionRequest request, Long userId, ActionExecutionResult executionResult, long startTime, int attainment) {
+        return testCommandService.createTest(new TestRequest(
+                "Test Run - " + request.getTargetUrl(),
+                attainment,
+                executionResult.hasError() ? State.FAIL : State.SUCCESS,
+                (System.currentTimeMillis() - startTime) / 1000.0,
+                userId,
+                request.getProjectId(),
+                request.getPageId(),
+                convertActionsToJson(request),
+                request.getActions().size(),
+                executionResult.getExecutedActions()
+        ));
+    }
+    private Long saveError(ActionExecutionResult executionResult, Long testId) {
+        return errorRepository.saveErrorAndGetId(
+                executionResult.getErrorCode(),
+                executionResult.getErrorMessage(),
+                executionResult.getErrorImage(),
+                testId
+        );
+    }
+    private int calculateAttainment(int totalActions, int executedActions) {
+        return (int) (((double) executedActions / totalActions) * 100);
+    }
+
+
+
 
     private String convertActionsToJson(SeleniumExecutionRequest request) {
         try {

@@ -69,7 +69,7 @@ public class ScenarioController {
     }
 
     @Operation(
-            summary = "캐리기터ID로 시나리오 조회 API | by 준",
+            summary = "캐릭터ID로 시나리오 조회 API | by 준",
             description = "프론트엔드 테스트용 API입니다."
     )
     @ApiResponses({
