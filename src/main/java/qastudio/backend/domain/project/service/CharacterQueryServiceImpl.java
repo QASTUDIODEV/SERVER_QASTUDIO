@@ -1,8 +1,10 @@
 package qastudio.backend.domain.project.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
 import qastudio.backend.domain.project.converter.CharacterConverter;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
 import qastudio.backend.domain.project.entity.Page;
@@ -30,6 +32,17 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
     private final PageRepository pageRepository;
     private final ScenarioRepository scenarioRepository;
     private final ProjectRepository projectRepository;
+
+    @Override
+    public CharacterResponse.CharacterList getCharacterList(Long projectId, Integer page) {
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(page, 5);
+
+        org.springframework.data.domain.Page<CharacterTable> characterTables = characterRepository.findAllByProjectIdWithPage(projectId, pageable);
+        return characterConverter.toCharacterList(characterTables);
+    }
 
     @Override
     public CharacterResponse.DetailCharacterList getDetailCharacterList(Long projectId) {

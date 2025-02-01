@@ -3,6 +3,7 @@ package qastudio.backend.domain.project.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterScenario;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.DetailCharacterList;
 import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
@@ -44,6 +46,25 @@ public class CharacterController {
     public ApiResponse<CharacterResponse.DetailCharacterList> getCharacterDetailList (@PathVariable("projectId") Long projectId) {
         DetailCharacterList detailCharacterList = characterQueryService.getDetailCharacterList(projectId);
         return ApiResponse.onSuccess(detailCharacterList);
+    }
+
+    @Operation(
+            summary = "프로젝트 별 역할 리스트 조회 with 페이지네이션 API | by 챠리",
+            description = "프로젝트 별로 역할 리스트를 조회합니다. (페이지네이션 포함)"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "PROJECT404", description = "The project does not exist."),
+    })
+    @Parameters({
+            @Parameter(name = "page", description = "페이지 번호, 0번이 1 페이지입니다.")
+    })
+    @GetMapping("/{projectId}/characters/paged")
+    public ApiResponse<CharacterResponse.CharacterList> getCharacterList (
+            @PathVariable("projectId") Long projectId,
+            @RequestParam(name = "page", defaultValue = "0") Integer page) {
+        CharacterList characterList = characterQueryService.getCharacterList(projectId, page);
+        return ApiResponse.onSuccess(characterList);
     }
 
     @Operation(
