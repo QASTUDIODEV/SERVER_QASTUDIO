@@ -3,8 +3,6 @@ package qastudio.backend.domain.selenium.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.stereotype.Service;
@@ -86,6 +84,10 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         String errorImage = null;
 
         for (SeleniumExecutionRequest.ActionDetail action : request.getActions()) {
+            if (webSocketHandler.shouldStopExecution(sessionId)) {
+                executionLogs.add("실행이 중지되었습니다.");
+                break;
+            }
             executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
             ActionExecutionResult result = SeleniumActionExecutor.performAction(driver, action, sessionId, executionLogs);
 
