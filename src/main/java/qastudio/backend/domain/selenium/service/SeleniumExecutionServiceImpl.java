@@ -49,6 +49,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             int attainment = calculateAttainment(request.getActions().size(), executionResult.getExecutedActions());
 
             driver.quit();
+
             // 테스트 데이터 저장
             Long testId = saveTest(request, userId, executionResult, startTime, attainment);
             executionLogs.add("테스트 데이터 저장");
@@ -92,6 +93,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 errorCode = result.getErrorCode();
                 errorMessage = result.getErrorMessage();
                 errorImage = result.getErrorImage();
+                break;
             } else {
                 executedActions++;
             }

@@ -24,6 +24,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) {
         log.info("WebSocket 연결됨: {}", session.getId());
         sessions.put(session.getId(), session);
+        sendSessionId(session);
     }
 
     @Override
@@ -52,6 +53,39 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
             return objectMapper.writeValueAsString(response);
         } catch (IOException e) {
             throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);
+        }
+    }
+
+    private void sendSessionId(WebSocketSession session) {
+        if (session != null && session.isOpen()) {
+            try {
+                String jsonMessage = createSessionIdResponse(session.getId());
+                session.sendMessage(new TextMessage(jsonMessage));
+                log.info("WebSocket 세션 ID 전송 완료: {}", session.getId());
+            } catch (IOException e) {
+                log.error("❌ WebSocket 세션 ID 전송 실패: {}", e.getMessage());
+                throw new WebSocketException(ErrorStatus.WEBSOCKET_MESSAGE_SEND_FAIL);
+            }
+        }
+    }
+
+    private String createSessionIdResponse(String sessionId) {
+        try {
+            return objectMapper.writeValueAsString(new SessionIdResponse(sessionId));
+        } catch (IOException e) {
+            throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);
+        }
+    }
+
+    private static class SessionIdResponse {
+        private final String sessionId;
+
+        public SessionIdResponse(String sessionId) {
+            this.sessionId = sessionId;
+        }
+
+        public String getSessionId() {
+            return sessionId;
         }
     }
 }

@@ -107,21 +107,6 @@ public class SeleniumActionExecutor {
         }
     }
 
-
-    private static String getPresignedUrl(String fileName) {
-        try {
-            AwsDTO.PresignedUploadRequest uploadRequest = new AwsDTO.PresignedUploadRequest();
-            Field field = AwsDTO.PresignedUploadRequest.class.getDeclaredField("fileName");
-            field.setAccessible(true);
-            field.set(uploadRequest, fileName);
-
-            AwsDTO.PresignedUrlUploadResponse uploadResponse = s3Service.getPresignedUrlToUpload(uploadRequest);
-            return uploadResponse != null ? uploadResponse.getUrl() : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private static void uploadToS3(String presignedUrl, byte[] fileBytes) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(presignedUrl).openConnection();
         connection.setDoOutput(true);
