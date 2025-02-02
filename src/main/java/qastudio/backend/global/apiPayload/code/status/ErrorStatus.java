@@ -56,6 +56,7 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The character does not exist."),
     CHARACTER_NOT_IN_PROJECT(HttpStatus.BAD_REQUEST, "CHARACTER400", "The character does not belong to the project."),
     CHARACTERS_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "Some characters do not exist in this project."),
+    INVALID_CHARACTER_IDS(HttpStatus.BAD_REQUEST, "CHARACTER400", "Invalid character Id request."),
 
     // Team member-related errors
     UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "User ID and email do not match."),
@@ -72,6 +73,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // Scenario-related errors
     SCENARIO_NOT_FOUND(HttpStatus.NOT_FOUND, "SCENARIO404", "The scenario does not exist."),
     SCENARIOS_NOT_FOUND(HttpStatus.NOT_FOUND, "SCENARIO404", "Some scenarios do not exist."),
+    INVALID_SCENARIO_IDS(HttpStatus.BAD_REQUEST, "SCENARIO400", "Invalid scenario Id request."),
 
     // Error-related errors
     ERROR_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR404", "The error does not exist."),

@@ -1,11 +1,8 @@
-
 package qastudio.backend.domain.scenario.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,21 +11,13 @@ import qastudio.backend.domain.project.entity.Page;
 import qastudio.backend.domain.project.repository.CharacterTableRepository.CharacterTableRepository;
 import qastudio.backend.domain.project.repository.Page.PageRepository;
 import org.springframework.transaction.annotation.Transactional;
-import qastudio.backend.domain.scenario.dto.request.ActionRequest;
 import qastudio.backend.domain.scenario.dto.request.ScenarioRequest;
 import qastudio.backend.domain.scenario.dto.response.ScenarioResponse;
-import qastudio.backend.domain.scenario.entity.ActionTable;
-import qastudio.backend.domain.scenario.entity.Feature;
 import qastudio.backend.domain.scenario.entity.Scenario;
-import qastudio.backend.domain.scenario.repository.ActionTableRepository;
-import qastudio.backend.domain.scenario.repository.FeatureRepository;
 import qastudio.backend.domain.scenario.repository.ScenarioRepository;
-import qastudio.backend.domain.scenario.service.ScenarioCommandService;
-import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 
-import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -70,6 +59,13 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
     @Override
     public void deleteScenarios(List<Long> scenarioIds) {
         List<Scenario> scenarios = scenarioRepository.findAllById(scenarioIds);
+        if (scenarioIds == null || scenarioIds.isEmpty()) {
+            throw new BadRequestException(ErrorStatus.INVALID_SCENARIO_IDS);
+        }
+
+        if (scenarios == null) {
+            scenarios = Collections.emptyList();
+        }
 
         if (scenarios.size() != scenarioIds.size()) {
             throw new BadRequestException(ErrorStatus.SCENARIOS_NOT_FOUND);

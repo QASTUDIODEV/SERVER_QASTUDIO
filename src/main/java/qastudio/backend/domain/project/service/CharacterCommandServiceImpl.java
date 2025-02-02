@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.persistence.EntityNotFoundException;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,6 +161,13 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
     public void deleteCharacters(List<Long> characterIds) {
         List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
+        if (characterIds == null || characterIds.isEmpty()) {
+            throw new BadRequestException(ErrorStatus.INVALID_CHARACTER_IDS);
+        }
+
+        if (charactersToDelete == null) {
+            charactersToDelete = Collections.emptyList();
+        }
 
         if (charactersToDelete.size() != characterIds.size()) {
             throw new BadRequestException(ErrorStatus.CHARACTERS_NOT_FOUND);
