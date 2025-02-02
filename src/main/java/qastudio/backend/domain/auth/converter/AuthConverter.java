@@ -112,10 +112,10 @@ public class AuthConverter {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setMaxAge(maxAge);
 
-        cookie.setAttribute("SameSite", "None");
+//        cookie.setAttribute("SameSite", "None");
 
         return cookie;
     }
