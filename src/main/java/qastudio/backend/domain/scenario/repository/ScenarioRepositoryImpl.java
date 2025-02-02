@@ -26,6 +26,7 @@ public class ScenarioRepositoryImpl implements ScenarioRepositoryCustom{
         return jpaQueryFactory
                 .selectFrom(scenario)
                 .where(scenario.characterTable.id.eq(characterId))
+                .orderBy(scenario.updatedAt.desc())
                 .fetch();
     }
 
