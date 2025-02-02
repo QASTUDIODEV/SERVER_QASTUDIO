@@ -4,6 +4,7 @@ package qastudio.backend.domain.scenario.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +71,13 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
     @Override
     public void deleteScenarios(List<Long> scenarioIds) {
         List<Scenario> scenarios = scenarioRepository.findAllById(scenarioIds);
+        if (scenarioIds == null || scenarioIds.isEmpty()) {
+            throw new BadRequestException(ErrorStatus.INVALID_SCENARIO_IDS);
+        }
+
+        if (scenarios == null) {
+            scenarios = Collections.emptyList();
+        }
 
         if (scenarios.size() != scenarioIds.size()) {
             throw new BadRequestException(ErrorStatus.SCENARIOS_NOT_FOUND);
