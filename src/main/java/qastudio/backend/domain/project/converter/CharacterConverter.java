@@ -18,6 +18,31 @@ import java.util.stream.Collectors;
 @Component
 public class CharacterConverter {
 
+    public CharacterResponse.Character toCharacter(CharacterTable characterTable) {
+        return CharacterResponse.Character.builder()
+                .characterId(characterTable.getId())
+                .characterName(characterTable.getCharacterName())
+                .characterDescription(characterTable.getCharacterDescription())
+                .author(characterTable.getUser().getNickname())
+                .createdAt(characterTable.getCreatedAt())
+                .updatedAt(characterTable.getUpdatedAt())
+                .build();
+    }
+
+    public CharacterResponse.CharacterList toCharacterList(org.springframework.data.domain.Page<CharacterTable> characterTablePage) {
+        List<CharacterResponse.Character> characterList = characterTablePage.stream()
+                .map(this::toCharacter).toList();
+
+        return CharacterResponse.CharacterList.builder()
+                .characters(characterList)
+                .listSize(characterList.size())
+                .totalPage(characterTablePage.getTotalPages())
+                .totalElements(characterTablePage.getTotalElements())
+                .isFirst(characterTablePage.isFirst())
+                .isLast(characterTablePage.isLast())
+                .build();
+    }
+
     public CharacterResponse.DetailCharacter toDetailCharacter(CharacterTable characterTable) {
         // 시나리오 수와 페이지 수 계산
         int scenarioCount = characterTable.getScenarios().size();
