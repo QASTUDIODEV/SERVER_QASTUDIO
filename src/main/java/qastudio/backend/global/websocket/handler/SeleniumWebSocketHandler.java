@@ -18,12 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Boolean> stopExecutionFlags = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 직렬화
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         log.info("WebSocket 연결됨: {}", session.getId());
         sessions.put(session.getId(), session);
+        stopExecutionFlags.put(session.getId(), false);
         sendSessionId(session);
     }
 
@@ -31,8 +33,22 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         log.info("WebSocket 연결 종료: {}", session.getId());
         sessions.remove(session.getId());
+        stopExecutionFlags.remove(session.getId());
+    }
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        String payload = message.getPayload();
+        log.info("WebSocket 메시지 수신: {}", payload);
+
+        if ("STOP".equalsIgnoreCase(payload.trim())) {
+            log.info("실행 중지 요청 수신 - 세션 ID: {}", session.getId());
+            stopExecutionFlags.put(session.getId(), true);
+        }
     }
 
+    public boolean shouldStopExecution(String sessionId) {
+        return stopExecutionFlags.getOrDefault(sessionId, false);
+    }
     public void sendHtmlAndCss(String sessionId, String html, String css) {
         WebSocketSession session = sessions.get(sessionId);
         if (session != null && session.isOpen()) {
