@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.service;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -39,9 +40,19 @@ public class CharacterQueryServiceImpl implements CharacterQueryService{
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(page, 5);
-
         org.springframework.data.domain.Page<CharacterTable> characterTables = characterRepository.findAllByProjectIdWithPage(projectId, pageable);
-        return characterConverter.toCharacterList(characterTables);
+
+        List<Long> characterIds = characterTables.stream()
+                .map(CharacterTable::getId)
+                .toList();
+
+        Map<Long, List<Scenario>> scenarioMap = scenarioRepository.findAllByCharacterIdIn(characterIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        scenario -> scenario.getCharacterTable().getId()
+                ));
+
+        return characterConverter.toCharacterList(characterTables, scenarioMap);
     }
 
     @Override

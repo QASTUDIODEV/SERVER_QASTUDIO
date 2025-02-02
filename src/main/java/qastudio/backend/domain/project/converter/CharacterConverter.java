@@ -3,10 +3,15 @@ package qastudio.backend.domain.project.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 import qastudio.backend.domain.project.dto.request.CharacterRequest;
 import qastudio.backend.domain.project.dto.response.CharacterResponse;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.Character;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.CharacterList;
+import qastudio.backend.domain.project.dto.response.CharacterResponse.ScenarioList;
 import qastudio.backend.domain.project.entity.*;
+import qastudio.backend.domain.scenario.converter.ScenarioConverter;
 import qastudio.backend.domain.scenario.entity.ActionTable;
 import qastudio.backend.domain.scenario.entity.Scenario;
 import qastudio.backend.domain.user.entity.User;
@@ -17,23 +22,36 @@ import java.util.stream.Collectors;
 
 @Component
 public class CharacterConverter {
+    private final ScenarioConverter scenarioConverter;
 
-    public CharacterResponse.Character toCharacter(CharacterTable characterTable) {
-        return CharacterResponse.Character.builder()
+    public CharacterConverter(ScenarioConverter scenarioConverter) {
+        this.scenarioConverter = scenarioConverter;
+    }
+
+    public Character toCharacterAndScenario(CharacterTable characterTable, List<Scenario> scenarios) {
+        ScenarioList scenarioList = scenarioConverter.toScenarioList(scenarios);
+        
+        return Character.builder()
                 .characterId(characterTable.getId())
                 .characterName(characterTable.getCharacterName())
                 .characterDescription(characterTable.getCharacterDescription())
                 .author(characterTable.getUser().getNickname())
                 .createdAt(characterTable.getCreatedAt())
                 .updatedAt(characterTable.getUpdatedAt())
+                .scenarios(scenarioList)
                 .build();
     }
 
-    public CharacterResponse.CharacterList toCharacterList(org.springframework.data.domain.Page<CharacterTable> characterTablePage) {
-        List<CharacterResponse.Character> characterList = characterTablePage.stream()
-                .map(this::toCharacter).toList();
+    public CharacterList toCharacterList(org.springframework.data.domain.Page<CharacterTable> characterTablePage, Map<Long, List<Scenario>> scenarioMap) {
+        List<Character> characterList = characterTablePage.stream()
+                .map(characterTable -> {
+                    // 캐릭터 ID별 시나리오 리스트 가져오기
+                    List<Scenario> scenarios = scenarioMap.getOrDefault(characterTable.getId(), new ArrayList<>());
+                    return toCharacterAndScenario(characterTable, scenarios);
+                })
+                .collect(Collectors.toList());
 
-        return CharacterResponse.CharacterList.builder()
+        return CharacterList.builder()
                 .characters(characterList)
                 .listSize(characterList.size())
                 .totalPage(characterTablePage.getTotalPages())

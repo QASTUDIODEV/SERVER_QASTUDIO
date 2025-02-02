@@ -6,4 +6,5 @@ import qastudio.backend.domain.scenario.entity.Scenario;
 public interface ScenarioRepositoryCustom {
     List<Scenario> findAllById(List<Long> ids);
     List<Scenario> findAllByCharacterId(Long characterId);
+    List<Scenario> findAllByCharacterIdIn(List<Long> characterIds);
 }
