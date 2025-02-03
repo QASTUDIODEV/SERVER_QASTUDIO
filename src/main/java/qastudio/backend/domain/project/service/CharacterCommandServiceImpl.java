@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -160,12 +161,21 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     }
 
     public void deleteCharacters(List<Long> characterIds) {
-        List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
         if (characterIds == null || characterIds.isEmpty()) {
             throw new BadRequestException(ErrorStatus.INVALID_CHARACTER_IDS);
         }
 
-        if (charactersToDelete == null) {
+        // Null 값을 제거하여 안전한 ID 리스트 만들기
+        List<Long> filteredCharacterIds = characterIds.stream()
+                .filter(Objects::nonNull)
+                .toList();
+        if (filteredCharacterIds.isEmpty()) {
+            throw new BadRequestException(ErrorStatus.INVALID_CHARACTER_IDS);
+        }
+
+        List<CharacterTable> charactersToDelete = characterTableRepository.findAllById(characterIds);
+
+        if (charactersToDelete == null || charactersToDelete.isEmpty()) {
             charactersToDelete = Collections.emptyList();
         }
 
