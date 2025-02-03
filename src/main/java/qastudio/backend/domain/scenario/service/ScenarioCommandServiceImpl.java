@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.project.entity.CharacterTable;
@@ -58,12 +59,21 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
     @Override
     public void deleteScenarios(List<Long> scenarioIds) {
-        List<Scenario> scenarios = scenarioRepository.findAllById(scenarioIds);
         if (scenarioIds == null || scenarioIds.isEmpty()) {
             throw new BadRequestException(ErrorStatus.INVALID_SCENARIO_IDS);
         }
 
-        if (scenarios == null) {
+        // Null 값을 제거하여 안전한 ID 리스트 만들기
+        List<Long> filteredScenarioIds = scenarioIds.stream()
+                .filter(Objects::nonNull)
+                .toList();
+        if (filteredScenarioIds.isEmpty()) {
+            throw new BadRequestException(ErrorStatus.INVALID_SCENARIO_IDS);
+        }
+
+        List<Scenario> scenarios = scenarioRepository.findAllById(scenarioIds);
+
+        if (scenarios == null || scenarios.isEmpty()) {
             scenarios = Collections.emptyList();
         }
 
