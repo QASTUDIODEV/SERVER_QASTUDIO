@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.time.Duration;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -186,7 +186,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         characterTableRepository.deleteAll(charactersToDelete);
     }
 
-    private String getAiResponse(String assistantId, String name, String description, String token) {
+    private String getAiResponse(String assistantId, String name, String description, List<String> pathList, String token) {
         WebClient webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + token)
@@ -196,10 +196,19 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 .build();
 
         try {
-            Map<String, String> requestBody = new HashMap<>();
+            ObjectMapper objectMapper = new ObjectMapper();
+            String pathListJson = objectMapper.writeValueAsString(pathList);
+
+            Map<String, String> requestBody = new LinkedHashMap<>();
             requestBody.put("assistant_id", assistantId);
             requestBody.put("name", name);
             requestBody.put("description", description);
+            requestBody.put("path_list", pathListJson);
+
+            logger.info(requestBody.toString());
+            String json = objectMapper.writeValueAsString(requestBody);
+            logger.info(json);  // JSON 형식으로 출력
+
 
             // 비동기 처리 추가 작업 필요
             return webClient.post()
@@ -214,9 +223,11 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                     .bodyToMono(String.class)
                     .block();
         } catch (AiServerException e) {
+            logger.error(String.valueOf(e));
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 서버 오류 발생", e);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류 발생", e);
+            logger.error(String.valueOf(e));
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버 통신 중 알 수 없는 오류 발생", e);
         }
     }
 
@@ -225,7 +236,11 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         String assistantId = project.getAssistantId();
         String name = characterTable.getCharacterName();
         String description = characterTable.getCharacterDescription();
-        String aiResponse = getAiResponse(assistantId, name, description, token);
+        List<Page> pages = pageRepository.findAllByProjectId(project.getId());
+        List<String> pathList = pages.stream()
+                .map(Page::getPath)
+                .toList();
+        String aiResponse = getAiResponse(assistantId, name, description, pathList, token);
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(aiResponse);
