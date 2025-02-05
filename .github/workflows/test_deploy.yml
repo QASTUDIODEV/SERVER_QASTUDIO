@@ -74,14 +74,6 @@ jobs:
               echo "Stopping existing container: $CONTAINER_ID"
               sudo docker stop $CONTAINER_ID
             fi
-            
-            SELENIUM_CONTAINER=$(sudo docker ps -q --filter "name=selenium_chrome")
-            if [ -z "$SELENIUM_CONTAINER" ]; then
-              echo "Starting Selenium Standalone Chrome container..."
-              sudo docker run -d --name selenium_chrome -p 4444:4444 --shm-size=2g selenium/standalone-chrome
-            else
-              echo "Selenium container is already running."
-            fi
 
             # Pull the latest image from Docker Hubs
             echo "Pulling latest image: ${{ env.DOCKER_IMAGE_NAME }}"
