@@ -79,7 +79,8 @@ public class SecurityConfig {
                         "https://localhost:5173",
                         "https://dlysp0ocmm6yr.cloudfront.net",
                         "https://www.qa-studio.com",
-                        "https://dev.qa-studio.com"
+                        "https://dev.qa-studio.com",
+                        "https://qa-studio.com"
                 )
         );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
