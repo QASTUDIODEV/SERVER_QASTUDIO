@@ -197,13 +197,11 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String pathListJson = objectMapper.writeValueAsString(pathList);
-
-            Map<String, String> requestBody = new LinkedHashMap<>();
+            Map<String, Object> requestBody = new LinkedHashMap<>();
             requestBody.put("assistant_id", assistantId);
             requestBody.put("name", name);
             requestBody.put("description", description);
-            requestBody.put("path_list", pathListJson);
+            requestBody.put("path_list", pathList);
 
             logger.info(requestBody.toString());
             String json = objectMapper.writeValueAsString(requestBody);
