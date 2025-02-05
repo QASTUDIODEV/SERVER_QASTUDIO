@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
@@ -17,6 +19,8 @@ import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 import qastudio.backend.global.s3.service.S3Service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +33,10 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final ErrorRepository errorRepository;
+
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-        WebDriver driver = new ChromeDriver();
+        WebDriver driver = createRemoteWebDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -68,6 +73,16 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
             driver.quit();
+        }
+    }
+
+
+    private WebDriver createRemoteWebDriver() {
+        ChromeOptions options = new ChromeOptions();
+        try {
+            return new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid remote WebDriver URL", e);
         }
     }
 
