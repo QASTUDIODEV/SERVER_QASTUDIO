@@ -137,54 +137,78 @@ public class SeleniumActionExecutor {
         }
     }
 
-    private static String getCurrentPageCss(WebDriver driver) {
-        String css = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+    public static String getCurrentPageCss(WebDriver driver) {
+        String rawCss = extractCssFromPage(driver);
+        return processCss(rawCss);
+    }
+
+    /**
+     * 웹 페이지에서 CSS를 추출
+     */
+    private static String extractCssFromPage(WebDriver driver) {
+        return (String) ((JavascriptExecutor) driver).executeScript(
                 "let css = ''; " +
                         "document.querySelectorAll('style').forEach(style => { " +
                         "    css += style.innerHTML + '\\n'; " +
                         "}); " +
                         "document.querySelectorAll('*').forEach(element => { " +
                         "    let computedStyle = window.getComputedStyle(element); " +
+                        "    let styles = ''; " +
                         "    for (let i = 0; i < computedStyle.length; i++) { " +
-                        "        css += element.tagName + '{' + computedStyle[i] + ':' + computedStyle.getPropertyValue(computedStyle[i]) + ';}\\n'; " +
+                        "        styles += computedStyle[i] + ':' + computedStyle.getPropertyValue(computedStyle[i]) + ';'; " +
                         "    } " +
+                        "    if (styles) { css += element.tagName.toLowerCase() + '{' + styles + '}\\n'; } " +
                         "}); " +
                         "return css;"
         );
+    }
 
-        // 중복된 태그를 하나로 합치는 로직 추가
-        StringBuilder processedCss = new StringBuilder();
+    /**
+     * 중복된 CSS 속성을 제거하고 최적화
+     */
+    private static String processCss(String css) {
+        if (css == null || css.isEmpty()) {
+            return "";
+        }
+
         Map<String, Map<String, String>> cssMap = new HashMap<>();
 
         for (String rule : css.split("\\n")) {
-            if (rule.contains("{") && rule.contains("}")) {
-                String tag = rule.substring(0, rule.indexOf('{')).trim();
-                String properties = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim();
+            if (!rule.contains("{") || !rule.contains("}")) {
+                continue;
+            }
 
-                cssMap.putIfAbsent(tag, new HashMap<>());
-                Map<String, String> propertyMap = cssMap.get(tag);
+            String tag = rule.substring(0, rule.indexOf('{')).trim();
+            String properties = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim();
 
-                for (String property : properties.split(";")) {
-                    if (!property.trim().isEmpty()) {
-                        String[] keyValue = property.split(":");
-                        if (keyValue.length == 2) {
-                            propertyMap.put(keyValue[0].trim(), keyValue[1].trim());
-                        }
-                    }
+            cssMap.putIfAbsent(tag, new HashMap<>());
+            Map<String, String> propertyMap = cssMap.get(tag);
+
+            for (String property : properties.split(";")) {
+                String[] keyValue = property.split(":");
+                if (keyValue.length == 2) {
+                    propertyMap.put(keyValue[0].trim(), keyValue[1].trim());
                 }
             }
         }
 
+        return generateCssString(cssMap);
+    }
+
+    /**
+     * 정리된 CSS 데이터를 문자열로
+     */
+    private static String generateCssString(Map<String, Map<String, String>> cssMap) {
+        StringBuilder processedCss = new StringBuilder();
+
         for (Map.Entry<String, Map<String, String>> entry : cssMap.entrySet()) {
-            processedCss.append(entry.getKey()).append("{");
+            processedCss.append(entry.getKey()).append(" { ");
             for (Map.Entry<String, String> property : entry.getValue().entrySet()) {
-                processedCss.append(property.getKey()).append(":").append(property.getValue()).append(";");
+                processedCss.append(property.getKey()).append(": ").append(property.getValue()).append("; ");
             }
             processedCss.append("}\n");
         }
 
         return processedCss.toString();
     }
-
-
 }
