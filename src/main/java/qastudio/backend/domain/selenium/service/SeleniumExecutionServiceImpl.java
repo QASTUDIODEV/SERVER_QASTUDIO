@@ -84,7 +84,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--remote-allow-origins=*");
         try {
-            return new RemoteWebDriver(new URL("http://host.docker.internal:4444/wd/hub"), options);
+            return new RemoteWebDriver(new URL("https://dev.qa-studio.com/wd/"), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
         }
