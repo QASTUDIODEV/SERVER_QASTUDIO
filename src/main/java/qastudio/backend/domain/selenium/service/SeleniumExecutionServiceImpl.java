@@ -38,6 +38,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
         WebDriver driver = createRemoteWebDriver();
+
 //        WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
@@ -94,13 +95,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--ignore-certificate-errors");
         options.addArguments("--remote-debugging-port=9222");
         try {
-            String username = "qa-username";
-            String password = "qa-pw";
-            String remoteUrl = "https://" + username + ":" + password + "@dev.qa-studio.com/wd/hub";
-
+            String remoteUrl = "https://selenium_chrome.com/wd/hub";
             return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
-            System.out.println(e);
             throw new RuntimeException("Invalid remote WebDriver URL", e);
         }
     }

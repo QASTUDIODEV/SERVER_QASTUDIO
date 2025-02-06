@@ -78,7 +78,7 @@ jobs:
             SELENIUM_CONTAINER=$(sudo docker ps -q --filter "name=selenium_chrome")
             if [ -z "$SELENIUM_CONTAINER" ]; then
               echo "Starting Selenium Standalone Chrome container..."
-              sudo docker run -d --name selenium_chrome -p 4444:4444 --shm-size=2g -e SE_OPTS="--enable-auth --username qa-username --password qa-pw" selenium/standalone-chrome
+              sudo docker run -d --name selenium_chrome -p 4444:4444 --shm-size=2g -e SE_OPTS="--disable-auth" selenium/standalone-chrome
             else
               echo "Selenium container is already running."
             fi
