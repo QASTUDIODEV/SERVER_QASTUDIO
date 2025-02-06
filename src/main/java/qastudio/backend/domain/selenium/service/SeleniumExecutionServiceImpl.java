@@ -86,6 +86,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         try {
             return new RemoteWebDriver(new URL("https://dev.qa-studio.com/wd/hub"), options);
         } catch (MalformedURLException e) {
+            System.out.println(e);
             throw new RuntimeException("Invalid remote WebDriver URL", e);
         }
     }
