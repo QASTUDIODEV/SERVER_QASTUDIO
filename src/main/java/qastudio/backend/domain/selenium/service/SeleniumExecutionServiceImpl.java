@@ -56,15 +56,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
 //            driver.quit();
 
-            // 테스트 데이터 저장
             Long testId = saveTest(request, userId, executionResult, startTime, attainment);
             executionLogs.add("테스트 데이터 저장");
 
-            // 오류 발생 시 error 테이블에 저장
             Long errorId = executionResult.hasError() ? saveError(executionResult, testId) : null;
             executionLogs.add("오류 데이터 저장");
 
-            // 테스트 정보 업데이트 (errorId 저장)
             if (errorId != null) {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
@@ -82,6 +79,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
+        options.setBrowserVersion("132.0");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
@@ -95,7 +93,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--ignore-certificate-errors");
         options.addArguments("--remote-debugging-port=9222");
         try {
-            String remoteUrl = "https://selenium_chrome.com/wd/hub";
+            String remoteUrl = "https://dev.qa-studio.com/wd/hub ";
             return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
