@@ -82,7 +82,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--remote-allow-origins=*");
+//        options.addArguments("--remote-allow-origins=*");
         try {
             return new RemoteWebDriver(new URL("https://dev.qa-studio.com/wd/hub"), options);
         } catch (MalformedURLException e) {
