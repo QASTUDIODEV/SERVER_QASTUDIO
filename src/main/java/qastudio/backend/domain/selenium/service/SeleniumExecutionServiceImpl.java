@@ -37,8 +37,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-//        WebDriver driver = createRemoteWebDriver();
-        WebDriver driver = new ChromeDriver();
+        WebDriver driver = createRemoteWebDriver();
+//        WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -81,13 +81,24 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--disable-popup-blocking");
+        options.addArguments("--disable-default-apps");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--single-process");
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--ignore-ssl-errors=yes");
+        options.addArguments("--ignore-certificate-errors");
+        options.addArguments("--remote-debugging-port=9222");
         try {
-            return new RemoteWebDriver(new URL("http://host.docker.internal:4444/wd/hub"), options);
+            String username = "qa-username";
+            String password = "qa-pw";
+            String remoteUrl = "https://" + username + ":" + password + "@dev.qa-studio.com/wd/hub";
 
+            return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             System.out.println(e);
             throw new RuntimeException("Invalid remote WebDriver URL", e);
