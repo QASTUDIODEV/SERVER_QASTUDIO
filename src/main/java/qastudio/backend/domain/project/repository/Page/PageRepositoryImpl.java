@@ -34,6 +34,7 @@ public class PageRepositoryImpl implements PageRepositoryCustom {
 
         return jpaQueryFactory
                 .selectFrom(page)
+                .distinct()
                 .leftJoin(page.pageScenarios, pageScenario).fetchJoin()
                 .leftJoin(page.pageRoles, pageRole).fetchJoin()
                 .leftJoin(pageRole.characterTable, characterTable).fetchJoin()
