@@ -22,6 +22,7 @@ import qastudio.backend.global.s3.service.S3Service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -82,9 +83,13 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-//        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--remote-allow-origins=*");
         try {
-            return new RemoteWebDriver(new URL("https://dev.qa-studio.com/wd/hub"), options);
+            String username = "qastudio";
+            String password = "1234";
+            String remoteUrl = "https://" + username + ":" + password + "@dev.qa-studio.com/wd/hub";
+
+            return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             System.out.println(e);
             throw new RuntimeException("Invalid remote WebDriver URL", e);
