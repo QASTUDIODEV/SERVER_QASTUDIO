@@ -19,7 +19,9 @@ import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 public class SeleniumActionExecutor {
@@ -123,8 +125,8 @@ public class SeleniumActionExecutor {
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
         if (webSocketHandler != null) {
             try {
-                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
-                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
+                String formattedHtml = "`" + HtmlCssFormatter.formatHtml(driver.getPageSource()) + "`";
+                String formattedCss = "`" + HtmlCssFormatter.formatCss(getCurrentPageCss(driver)) + "`";
 
 
                 logs.add("실시간 HTML & CSS 전송");
@@ -136,7 +138,7 @@ public class SeleniumActionExecutor {
     }
 
     private static String getCurrentPageCss(WebDriver driver) {
-        return (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+        String css = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
                 "let css = ''; " +
                         "document.querySelectorAll('style').forEach(style => { " +
                         "    css += style.innerHTML + '\\n'; " +
@@ -149,6 +151,39 @@ public class SeleniumActionExecutor {
                         "}); " +
                         "return css;"
         );
+
+        // 중복된 태그를 하나로 합치는 로직 추가
+        StringBuilder processedCss = new StringBuilder();
+        Map<String, Map<String, String>> cssMap = new HashMap<>();
+
+        for (String rule : css.split("\\n")) {
+            if (rule.contains("{") && rule.contains("}")) {
+                String tag = rule.substring(0, rule.indexOf('{')).trim();
+                String properties = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim();
+
+                cssMap.putIfAbsent(tag, new HashMap<>());
+                Map<String, String> propertyMap = cssMap.get(tag);
+
+                for (String property : properties.split(";")) {
+                    if (!property.trim().isEmpty()) {
+                        String[] keyValue = property.split(":");
+                        if (keyValue.length == 2) {
+                            propertyMap.put(keyValue[0].trim(), keyValue[1].trim());
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<String, Map<String, String>> entry : cssMap.entrySet()) {
+            processedCss.append(entry.getKey()).append("{");
+            for (Map.Entry<String, String> property : entry.getValue().entrySet()) {
+                processedCss.append(property.getKey()).append(":").append(property.getValue()).append(";");
+            }
+            processedCss.append("}\n");
+        }
+
+        return processedCss.toString();
     }
 
 

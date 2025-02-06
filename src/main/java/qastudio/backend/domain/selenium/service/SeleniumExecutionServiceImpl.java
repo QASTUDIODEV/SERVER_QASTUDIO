@@ -37,7 +37,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-        WebDriver driver = createRemoteWebDriver();
+//        WebDriver driver = createRemoteWebDriver();
+        WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -85,11 +86,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--remote-allow-origins=*");
         try {
-            String username = "qastudio";
-            String password = "1234";
-            String remoteUrl = "https://" + username + ":" + password + "@dev.qa-studio.com/wd/hub";
+            return new RemoteWebDriver(new URL("http://host.docker.internal:4444/wd/hub"), options);
 
-            return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             System.out.println(e);
             throw new RuntimeException("Invalid remote WebDriver URL", e);
