@@ -51,7 +51,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             executionLogs.add("테스트 완료");
             int attainment = calculateAttainment(request.getActions().size(), executionResult.getExecutedActions());
 
-            driver.quit();
+//            driver.quit();
 
             // 테스트 데이터 저장
             Long testId = saveTest(request, userId, executionResult, startTime, attainment);
@@ -79,8 +79,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--remote-allow-origins=*");
         try {
-            return new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
+            return new RemoteWebDriver(new URL("https://dev.qa-studio.com/wd/"), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
         }
