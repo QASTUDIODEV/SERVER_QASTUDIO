@@ -93,7 +93,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--ignore-certificate-errors");
         options.addArguments("--remote-debugging-port=9222");
         try {
-            String remoteUrl = "https://dev.qa-studio.com ";
+            String remoteUrl = "http://selenium_chrome:4444/wd/hub";
             return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
