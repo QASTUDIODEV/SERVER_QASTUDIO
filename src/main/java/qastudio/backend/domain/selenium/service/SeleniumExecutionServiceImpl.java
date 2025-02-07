@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import qastudio.backend.global.s3.service.S3Service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -93,7 +91,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--ignore-certificate-errors");
 //        options.addArguments("--remote-debugging-port=9222");
         try {
-            String remoteUrl = "http://selenium_chrome:4444/wd/hub";
+            String remoteUrl = "http://selenium-chrome:4444/wd/hub";
             return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
