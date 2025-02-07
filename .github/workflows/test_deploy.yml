@@ -97,7 +97,7 @@ jobs:
             
             # Run the new container
             echo "Starting new container: ${{ env.CONTAINER_NAME }}"
-            sudo docker run --name $NEW_CONTAINER_NAME --network selenium_net -d -p 8080:8080 -e TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
+            sudo docker run --name $NEW_CONTAINER_NAME --network selenium-net -d -p 8080:8080 -e TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
             
             # Perform health check
             echo "Performing health check on the new container..."
