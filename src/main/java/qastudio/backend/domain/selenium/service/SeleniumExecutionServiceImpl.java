@@ -84,7 +84,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
         options.addArguments("--disable-blink-features=AutomationControlled");
-        options.addArguments("--remote-allow-origins=*");
+//        options.addArguments("--remote-allow-origins=*");
 //        options.addArguments("--single-process");
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
