@@ -51,40 +51,6 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final InviteTokenProvider inviteTokenProvider;
-    private final EmailQueryService emailQueryService;
-
-    @Override
-    public void inviteMembers(Long projectId, List<TeamMemberRequest.MemberEmail> memberEmailList) {
-
-        // 프로젝트 조회
-        Project project = projectRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
-
-        memberEmailList
-                .forEach(memberEmail -> {
-                    Long userId = memberEmail.getUserId();
-                    String email = memberEmail.getEmail();
-
-                    // userId로 user 조회
-                    User user = userRepository.findByUserId(userId)
-                            .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
-
-                    // user의 이메일 정보가 요청을 보낸 이메일과 맞는지 확인
-                    boolean match = accountTableRepository.existsByUserIdAndEmail(userId, email);
-                    if (!match) {
-                        throw new BadRequestException(ErrorStatus.UNMATCHED_USER);
-                    }
-
-                    // 중복 초대 체크
-                    boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(user.getId(), projectId);
-                    if (isAlreadyInvited) {
-                        throw new TeamMemberException(ErrorStatus.ALREADY_REGISTERED_MEMBER);
-                    }
-
-                    // 팀원 초대
-                    inviteMemberWithEmail(email, project.getProjectName(), formattedExpirationDate(), generateInvitationLink(projectId, userId, email));
-                });
-    }
 
     @Override
     public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
@@ -135,36 +101,6 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         userProjectRepository.save(userProject);
 
         return projectId;
-    }
-
-    private void inviteMemberWithEmail(String email, String projectName, String expirationDate, String invitationLink) {
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("teamProjectName", projectName);
-        variables.put("invitationLink", invitationLink);
-        variables.put("expirationDate", expirationDate);
-
-        try {
-            emailQueryService.sendInviteEmail(email, variables);
-            log.info("Invitation email sent successfully.");
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            log.info("Failed to send invitation email.");
-        }
-    }
-
-    private String generateInvitationLink(Long projectId, Long userId, String email) {
-        // JWT 토큰 생성
-        String token = inviteTokenProvider.generateToken(projectId, userId, email);
-
-        // 초대 링크 생성
-        return "https://www.qa-studio.com/invite?=" + token;
-    }
-
-    private String formattedExpirationDate() {
-        // 현재 날짜로부터 7일 후
-        LocalDate expirationDate = LocalDate.now().plusDays(7);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return expirationDate.format(formatter);
     }
 
 }
