@@ -10,7 +10,9 @@ import qastudio.backend.global.apiPayload.code.exception.custom.WebSocketExcepti
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -102,6 +104,29 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
         public String getSessionId() {
             return sessionId;
+        }
+    }
+
+    public void sendImage(String sessionId, String base64Image) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("type", "image");
+        message.put("image", base64Image);
+
+        sendMessage(sessionId, message);
+    }
+    private void sendMessage(String sessionId, Map<String, Object> message) {
+        WebSocketSession session = sessions.get(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                String jsonMessage = objectMapper.writeValueAsString(message);
+                session.sendMessage(new TextMessage(jsonMessage));
+                log.info("WebSocket 메시지 전송 성공: {}", sessionId);
+            } catch (IOException e) {
+                log.error("❌ WebSocket 메시지 전송 실패: {}", e.getMessage());
+                throw new WebSocketException(ErrorStatus.WEBSOCKET_MESSAGE_SEND_FAIL);
+            }
+        } else {
+            log.warn("⚠️ WebSocket 세션을 찾을 수 없거나 닫혀 있음: {}", sessionId);
         }
     }
 }
