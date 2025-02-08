@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,14 +62,15 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         // email에 해당하는 account 조회
         List<AccountTable> matchingAccounts = accountTableRepository.findByEmail(email);
 
-        // email에 해당하는 User의 id 리스트
-        List<Long> matchingUserIds = matchingAccounts.stream()
-                .map(accountTable -> accountTable.getUser().getId())
-                .toList();
+        // 중복된 (userId, email) 조합 제거
+        Set<String> uniqueUserEmailPairs = matchingAccounts.stream()
+                .map(accountTable -> accountTable.getUser().getId() + ":" + accountTable.getEmail())
+                .collect(Collectors.toSet());
 
         // UserProject에 해당하지 않는 User의 account 리스트 리턴
         return matchingAccounts.stream()
-                .filter(accountTable -> !existingMemberIds.contains(accountTable.getUser().getId()))
+                .filter(accountTable -> uniqueUserEmailPairs.remove(accountTable.getUser().getId() + ":" + accountTable.getEmail()))  // 중복 제거
+                .filter(accountTable -> !existingMemberIds.contains(accountTable.getUser().getId()))  // 기존 회원 제외
                 .toList();
     }
 
