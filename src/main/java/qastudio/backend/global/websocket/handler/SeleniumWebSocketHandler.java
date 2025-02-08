@@ -136,25 +136,6 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
             log.warn("WebSocket 세션을 찾을 수 없거나 닫혀 있음: {}", sessionId);
         }
     }
-    public void sendImageBinary(String sessionId, WebDriver driver) {
-        WebSocketSession session = sessions.get(sessionId);
-        if (session != null && session.isOpen()) {
-            try {
-                File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-                BufferedImage bufferedImage = ImageIO.read(screenshotFile);
-
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                ImageIO.write(bufferedImage, "jpg", outputStream); // PNG 대신 JPG로 저장하여 크기 줄이기
-                byte[] imageBytes = outputStream.toByteArray();
-
-                session.sendMessage(new BinaryMessage(imageBytes));
-                log.info("WebSocket 바이너리 이미지 전송 성공: {}", sessionId);
-
-            } catch (Exception e) {
-                log.error("❌ WebSocket 바이너리 메시지 전송 실패: {}", e.getMessage());
-            }
-        }
-    }
 
     public void sendImageBinaryWithMetadata(String sessionId, WebDriver driver) {
         WebSocketSession session = sessions.get(sessionId);
@@ -182,6 +163,19 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
             } catch (Exception e) {
                 log.error("❌ WebSocket 바이너리 메시지 전송 실패: {}", e.getMessage());
+            }
+        }
+    }
+
+    public void closeSession(String sessionId) {
+        WebSocketSession session = sessions.get(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                session.close();
+                sessions.remove(sessionId);
+                log.info("WebSocket session closed: {}", sessionId);
+            } catch (Exception e) {
+                log.error("Failed to close WebSocket session: {}", sessionId, e);
             }
         }
     }

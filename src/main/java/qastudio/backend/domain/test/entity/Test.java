@@ -28,6 +28,8 @@ public class Test extends BaseEntity {
     @Column(nullable = false, name = "test_name")
     private String testName;
 
+    private Integer attainment;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private State state;
