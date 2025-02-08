@@ -18,6 +18,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.List;
@@ -29,6 +30,9 @@ import org.openqa.selenium.WebDriver;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SeleniumActionExecutor {
 
     private static SeleniumWebSocketHandler webSocketHandler;
@@ -49,6 +53,7 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
+        sendHtmlAndCssUpdate(driver, sessionId, logs);
         try {
             WebElement webElement = findElementSafely(driver, actionDetail);
             if (webElement == null) {
@@ -59,8 +64,8 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-            webSocketHandler.sendImageBinaryWithMetadata(sessionId, driver);
-//            sendImageUpdate(driver, sessionId, logs);
+//            webSocketHandler.sendImageBinaryWithMetadata(sessionId, driver);
+//            sendHtmlAndCssUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
@@ -86,43 +91,6 @@ public class SeleniumActionExecutor {
             return null;
         }
     }
-
-    private static void sendImageUpdate(WebDriver driver, String sessionId, List<String> logs) {
-        if (webSocketHandler != null) {
-            try {
-                String base64Image = captureScreenshotAsBase64(driver);
-                if (base64Image != null) {
-                    logs.add("실시간 스크린샷 전송");
-                    webSocketHandler.sendImage(sessionId, base64Image);
-                } else {
-                    logs.add("❌ 스크린샷 캡처 실패");
-                }
-            } catch (Exception e) {
-                logs.add("❌ 이미지 전송 실패: " + e.getMessage());
-            }
-        }
-    }
-    private static String captureScreenshotAsBase64(WebDriver driver) {
-        try {
-            // PNG 대신 JPG로 변환하여 압축률 증가
-            File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-            BufferedImage bufferedImage = ImageIO.read(screenshotFile);
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(bufferedImage, "jpg", outputStream); // PNG 대신 JPG로 저장
-
-            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
-
-
-
-
 
     private static String captureScreenshotAndUpload(WebDriver driver) {
         if (s3Service == null) return null;
@@ -183,79 +151,23 @@ public class SeleniumActionExecutor {
             }
         }
     }
-
     public static String getCurrentPageCss(WebDriver driver) {
-        String rawCss = extractCssFromPage(driver);
-        return processCss(rawCss);
-    }
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
-    /**
-     * 웹 페이지에서 CSS를 추출
-     */
-    private static String extractCssFromPage(WebDriver driver) {
-        return (String) ((JavascriptExecutor) driver).executeScript(
-                "let css = ''; " +
-                        "document.querySelectorAll('style').forEach(style => { " +
-                        "    css += style.innerHTML + '\\n'; " +
-                        "}); " +
-                        "document.querySelectorAll('*').forEach(element => { " +
-                        "    let computedStyle = window.getComputedStyle(element); " +
-                        "    let styles = ''; " +
-                        "    for (let i = 0; i < computedStyle.length; i++) { " +
-                        "        styles += computedStyle[i] + ':' + computedStyle.getPropertyValue(computedStyle[i]) + ';'; " +
-                        "    } " +
-                        "    if (styles) { css += element.tagName.toLowerCase() + '{' + styles + '}\\n'; } " +
-                        "}); " +
-                        "return css;"
+        // 현재 DOM에서 적용된 스타일만 가져오기
+        String css = (String) js.executeScript(
+                "let extractedCss = ''; " +
+                        "for (let sheet of document.styleSheets) { " +
+                        "    try { " +
+                        "        for (let rule of sheet.cssRules) { " +
+                        "            extractedCss += rule.cssText + '\\n'; " +
+                        "        } " +
+                        "    } catch (e) { console.log('CSS Access Denied: ' + e.message); } " +
+                        "} " +
+                        "return extractedCss;"
         );
+
+        return css;
     }
 
-    /**
-     * 중복된 CSS 속성을 제거하고 최적화
-     */
-    private static String processCss(String css) {
-        if (css == null || css.isEmpty()) {
-            return "";
-        }
-
-        Map<String, Map<String, String>> cssMap = new HashMap<>();
-
-        for (String rule : css.split("\\n")) {
-            if (!rule.contains("{") || !rule.contains("}")) {
-                continue;
-            }
-
-            String tag = rule.substring(0, rule.indexOf('{')).trim();
-            String properties = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim();
-
-            cssMap.putIfAbsent(tag, new HashMap<>());
-            Map<String, String> propertyMap = cssMap.get(tag);
-
-            for (String property : properties.split(";")) {
-                String[] keyValue = property.split(":");
-                if (keyValue.length == 2) {
-                    propertyMap.put(keyValue[0].trim(), keyValue[1].trim());
-                }
-            }
-        }
-
-        return generateCssString(cssMap);
-    }
-
-    /**
-     * 정리된 CSS 데이터를 문자열로
-     */
-    private static String generateCssString(Map<String, Map<String, String>> cssMap) {
-        StringBuilder processedCss = new StringBuilder();
-
-        for (Map.Entry<String, Map<String, String>> entry : cssMap.entrySet()) {
-            processedCss.append(entry.getKey()).append(" { ");
-            for (Map.Entry<String, String> property : entry.getValue().entrySet()) {
-                processedCss.append(property.getKey()).append(": ").append(property.getValue()).append("; ");
-            }
-            processedCss.append("}\n");
-        }
-
-        return processedCss.toString();
-    }
 }
