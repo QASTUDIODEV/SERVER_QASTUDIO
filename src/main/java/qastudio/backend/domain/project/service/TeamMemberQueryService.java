@@ -15,4 +15,6 @@ public interface TeamMemberQueryService {
     List<AccountTable> searchMember(Long projectId, String email);
 
     List<UserProject> getTeamMemberExceptLeader(Long projectId);
+
+    void inviteMembers(Long projectId, List<TeamMemberRequest.MemberEmail> memberEmailList);
 }

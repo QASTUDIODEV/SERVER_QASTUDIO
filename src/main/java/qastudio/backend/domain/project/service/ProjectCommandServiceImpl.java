@@ -50,6 +50,7 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     private final ProjectConverter projectConverter;
     private final UserRepository userRepository;
     private final UserProjectRepository userProjectRepository;
+    private final TeamMemberQueryService teamMemberQueryService;
 
     @Value("${ai.base-url}")
     String baseUrl;
@@ -170,7 +171,7 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
 
         // 팀원 초대
         List<TeamMemberRequest.MemberEmail> memberEmailList = createProject.getMemberEmailList();
-        teamMemberCommandService.inviteMembers(newProject.getId(), memberEmailList);
+        teamMemberQueryService.inviteMembers(newProject.getId(), memberEmailList);
 
         return projectConverter.toProjectCreationResponse(userProject, memberEmailList, savedProject);
     }
