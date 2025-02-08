@@ -27,8 +27,6 @@ public class ProjectRequest {
         private String projectName;
         @NotBlank(message = "projectUrl 은 필수 입력 값입니다.")
         private String projectUrl;
-        // 이메일 리스트
-        @NotEmpty(message = "emailList 는 필수 입력 값입니다.")
         private List<TeamMemberRequest.@Valid MemberEmail> memberEmailList;
     }
 }
