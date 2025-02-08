@@ -33,6 +33,8 @@ import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Thread.sleep;
+
 public class SeleniumActionExecutor {
 
     private static SeleniumWebSocketHandler webSocketHandler;
@@ -53,9 +55,11 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
-        sendHtmlAndCssUpdate(driver, sessionId, logs);
         try {
             WebElement webElement = findElementSafely(driver, actionDetail);
+            sendHtmlAndCssUpdate(driver, sessionId, logs);
+            sleep(1000);
+
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
@@ -64,6 +68,7 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
+            sendHtmlAndCssUpdate(driver, sessionId, logs);
 //            webSocketHandler.sendImageBinaryWithMetadata(sessionId, driver);
 //            sendHtmlAndCssUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
