@@ -107,6 +107,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
                     FeatureData featureData = parseFeatureJson(feature.getFeatureJson());
 
                     return SeleniumExecutionRequest.ActionDetail.builder()
+                            .actionId(action.getId())
                             .actionDescription(action.getActionDescription())
                             .step(action.getStep())
                             .actionType(action.getActionType())
