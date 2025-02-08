@@ -23,7 +23,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class InviteTokenProvider {
 
-    private static final long REFRESH_TOKEN_DURATION = 1000 * 60 * 60L * 24 * 7; // 7일
+    private static final long INVITATION_TOKEN_DURATION = 1000 * 60 * 60L * 24 * 7; // 7일
 
     private final SecretKey secretKey;
     private final StringRedisTemplate redisTemplate;
@@ -43,7 +43,7 @@ public class InviteTokenProvider {
 
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
-        Date expiryDate = new Date(nowMillis + REFRESH_TOKEN_DURATION);
+        Date expiryDate = new Date(nowMillis + INVITATION_TOKEN_DURATION);
 
         return Jwts.builder()
                 .setClaims(claims)
