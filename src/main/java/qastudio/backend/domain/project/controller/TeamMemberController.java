@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
@@ -26,7 +27,7 @@ public class TeamMemberController {
 
     @Operation(
             summary = "팀원 초대 API | by 노을",
-            description = "이메일을 통해 팀원을 프로젝트에 초대합니다."
+            description = "이메일을 통해 팀원을 프로젝트에 초대합니다. 이메일을 통해 받은 토큰 값으로 팀원이 초대에 수락합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -77,9 +78,9 @@ public class TeamMemberController {
                     ))
     })
     @PostMapping("/team-members/invite")
-    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
-        return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
+    public ApiResponse<Void> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
+        teamMemberCommandService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
@@ -207,4 +208,13 @@ public class TeamMemberController {
         return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromAccounts(accountTables));
     }
 
+    @Operation(
+            summary = "팀원 초대 수락 API | by 노을",
+            description = "토큰을 입력하여 초대를 수락합니다."
+    )
+    @GetMapping("/team-members/invite")
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
+        Long projectId = teamMemberCommandService.inviteMember(token);
+        return ApiResponse.onSuccess(TeamMemberConverter.toAcceptInvitation(projectId));
+    }
 }
