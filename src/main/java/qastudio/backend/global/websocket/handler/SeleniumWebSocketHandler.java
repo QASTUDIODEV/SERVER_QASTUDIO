@@ -2,6 +2,9 @@ package qastudio.backend.global.websocket.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -9,6 +12,10 @@ import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
 import qastudio.backend.global.apiPayload.code.exception.custom.WebSocketException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -126,7 +133,57 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
                 throw new WebSocketException(ErrorStatus.WEBSOCKET_MESSAGE_SEND_FAIL);
             }
         } else {
-            log.warn("⚠️ WebSocket 세션을 찾을 수 없거나 닫혀 있음: {}", sessionId);
+            log.warn("WebSocket 세션을 찾을 수 없거나 닫혀 있음: {}", sessionId);
         }
     }
+    public void sendImageBinary(String sessionId, WebDriver driver) {
+        WebSocketSession session = sessions.get(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+                BufferedImage bufferedImage = ImageIO.read(screenshotFile);
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                ImageIO.write(bufferedImage, "jpg", outputStream); // PNG 대신 JPG로 저장하여 크기 줄이기
+                byte[] imageBytes = outputStream.toByteArray();
+
+                session.sendMessage(new BinaryMessage(imageBytes));
+                log.info("WebSocket 바이너리 이미지 전송 성공: {}", sessionId);
+
+            } catch (Exception e) {
+                log.error("❌ WebSocket 바이너리 메시지 전송 실패: {}", e.getMessage());
+            }
+        }
+    }
+
+    public void sendImageBinaryWithMetadata(String sessionId, WebDriver driver) {
+        WebSocketSession session = sessions.get(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                // 메타데이터(JSON) 전송 (이미지 ID, 설명)
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("type", "image"); // 식별자
+                metadata.put("imageId", System.currentTimeMillis()); // 유니크한 ID
+                metadata.put("description", "Selenium 캡처 이미지");
+
+                String jsonMetadata = new ObjectMapper().writeValueAsString(metadata);
+                session.sendMessage(new TextMessage(jsonMetadata)); // JSON 메타데이터 전송
+
+                // 바이너리 데이터(스크린샷) 전송
+                File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+                BufferedImage bufferedImage = ImageIO.read(screenshotFile);
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                ImageIO.write(bufferedImage, "jpg", outputStream); // PNG 대신 JPG 저장
+                byte[] imageBytes = outputStream.toByteArray();
+
+                session.sendMessage(new BinaryMessage(imageBytes)); // 📌 이미지 바이너리 전송
+                log.info("WebSocket 바이너리 이미지 전송 완료: {}", sessionId);
+
+            } catch (Exception e) {
+                log.error("❌ WebSocket 바이너리 메시지 전송 실패: {}", e.getMessage());
+            }
+        }
+    }
+
 }

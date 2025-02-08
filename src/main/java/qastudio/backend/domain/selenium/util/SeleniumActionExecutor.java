@@ -14,16 +14,23 @@ import qastudio.backend.global.s3.service.S3Service;
 import qastudio.backend.global.util.HtmlCssFormatter;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 public class SeleniumActionExecutor {
 
     private static SeleniumWebSocketHandler webSocketHandler;
@@ -54,7 +61,8 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-            sendImageUpdate(driver, sessionId, logs);
+            webSocketHandler.sendImageBinaryWithMetadata(sessionId, driver);
+//            sendImageUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
@@ -94,12 +102,21 @@ public class SeleniumActionExecutor {
     }
     private static String captureScreenshotAsBase64(WebDriver driver) {
         try {
-            return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+            // PNG 대신 JPG로 변환하여 압축률 증가
+            File screenshotFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            BufferedImage bufferedImage = ImageIO.read(screenshotFile);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpg", outputStream); // PNG 대신 JPG로 저장
+
+            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
+
 
 
 
