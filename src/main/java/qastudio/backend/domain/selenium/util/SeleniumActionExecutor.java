@@ -27,9 +27,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.util.Base64;
 public class SeleniumActionExecutor {
 
@@ -71,6 +69,10 @@ public class SeleniumActionExecutor {
             String imageUrl = captureScreenshotAndUpload(driver);
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+        } finally {
+            if (webSocketHandler != null) {
+                webSocketHandler.closeSession(sessionId);
+            }
         }
     }
 
