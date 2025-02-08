@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -17,6 +18,8 @@ import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestExcept
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -118,5 +121,23 @@ public class EmailQueryServiceImpl implements EmailQueryService {
                 .ifPresent(account -> {
                     throw new BadRequestException(ErrorStatus.ALREADY_EXIST_EMAIL);
                 });
+    }
+
+    @Override
+    public void sendInviteEmail(String toEmail, Map<String, Object> variables) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+
+        // 타임리프
+        Context context = new Context();
+        context.setVariables(variables);
+
+        String html = templateEngine.process("invite", context);
+
+        helper.setTo(toEmail);
+        helper.setSubject(variables.get("teamProjectName") + " Project Invitation");
+        helper.setText(html, true);
+
+        emailSender.send(message);
     }
 }
