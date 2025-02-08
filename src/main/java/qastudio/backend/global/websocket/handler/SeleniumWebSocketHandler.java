@@ -58,11 +58,11 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     public boolean shouldStopExecution(String sessionId) {
         return stopExecutionFlags.getOrDefault(sessionId, false);
     }
-    public void sendHtmlAndCss(String sessionId, String html, String css) {
+    public void sendHtmlAndCss(String sessionId, String html, String css, Long actionId) {
         WebSocketSession session = sessions.get(sessionId);
         if (session != null && session.isOpen()) {
             try {
-                String jsonMessage = createExecutionResultResponse(html, css);
+                String jsonMessage = createExecutionResultResponse(html, css, actionId);
                 session.sendMessage(new TextMessage(jsonMessage));
                 log.info("WebSocket 메시지 전송 완료: {}", sessionId);
             } catch (IOException e) {
@@ -72,9 +72,9 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private String createExecutionResultResponse(String html, String css) {
+    private String createExecutionResultResponse(String html, String css, Long actionId) {
         try {
-            ExecutionResultResponse response = new ExecutionResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css);
+            ExecutionResultResponse response = new ExecutionResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
             return objectMapper.writeValueAsString(response);
         } catch (IOException e) {
             throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);

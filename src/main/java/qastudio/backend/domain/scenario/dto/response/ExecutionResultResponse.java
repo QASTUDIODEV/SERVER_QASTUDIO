@@ -24,4 +24,6 @@ public class ExecutionResultResponse {
     @JsonRawValue  // JSON 내부 개행을 유지하도록 처리
     @Schema(description = "추출된 CSS", example = "body { background: red; }")
     private String css;
+
+    private Long actionId;
 }

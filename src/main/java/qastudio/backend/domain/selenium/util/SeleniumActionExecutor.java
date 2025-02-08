@@ -33,6 +33,8 @@ import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Thread.sleep;
+
 public class SeleniumActionExecutor {
 
     private static SeleniumWebSocketHandler webSocketHandler;
@@ -53,9 +55,11 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
-        sendHtmlAndCssUpdate(driver, sessionId, logs);
         try {
             WebElement webElement = findElementSafely(driver, actionDetail);
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
+            sleep(1000);
+
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
@@ -64,7 +68,7 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-//            webSocketHandler.sendImageBinaryWithMetadata(sessionId, driver);
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
 //            sendHtmlAndCssUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
 
@@ -137,7 +141,7 @@ public class SeleniumActionExecutor {
         }
     }
 
-    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
+    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId) {
         if (webSocketHandler != null) {
             try {
                 String formattedHtml = "`" + HtmlCssFormatter.formatHtml(driver.getPageSource()) + "`";
@@ -145,7 +149,7 @@ public class SeleniumActionExecutor {
 
 
                 logs.add("실시간 HTML & CSS 전송");
-                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss);
+                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId);
             } catch (Exception e) {
                 logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
             }
