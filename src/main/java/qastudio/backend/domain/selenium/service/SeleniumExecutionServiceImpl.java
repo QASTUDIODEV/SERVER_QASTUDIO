@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-        WebDriver driver = createRemoteWebDriver();
+//        WebDriver driver = createRemoteWebDriver();
 
-//        WebDriver driver = new ChromeDriver();
+        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 

@@ -54,7 +54,7 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-            sendHtmlAndCssUpdate(driver, sessionId, logs);
+            sendImageUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
@@ -76,6 +76,34 @@ public class SeleniumActionExecutor {
             return null;
         }
     }
+
+    private static void sendImageUpdate(WebDriver driver, String sessionId, List<String> logs) {
+        if (webSocketHandler != null) {
+            try {
+                String base64Image = captureScreenshotAsBase64(driver);
+                if (base64Image != null) {
+                    logs.add("실시간 스크린샷 전송");
+                    webSocketHandler.sendImage(sessionId, base64Image);
+                } else {
+                    logs.add("❌ 스크린샷 캡처 실패");
+                }
+            } catch (Exception e) {
+                logs.add("❌ 이미지 전송 실패: " + e.getMessage());
+            }
+        }
+    }
+    private static String captureScreenshotAsBase64(WebDriver driver) {
+        try {
+            return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+
 
     private static String captureScreenshotAndUpload(WebDriver driver) {
         if (s3Service == null) return null;
