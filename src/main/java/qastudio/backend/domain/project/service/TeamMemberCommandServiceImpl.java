@@ -125,7 +125,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
-        // 중복 초대되었다면 생성하지 않고 projectList 응답
+        // 중복 초대되었다면 생성하지 않고 projectId 응답
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
         if (isAlreadyInvited) {
             return projectId;
