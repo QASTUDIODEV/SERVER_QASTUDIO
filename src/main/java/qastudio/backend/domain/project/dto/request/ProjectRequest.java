@@ -2,12 +2,9 @@ package qastudio.backend.domain.project.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
-import qastudio.backend.domain.project.entity.enums.ViewType;
 
 public class ProjectRequest {
 
@@ -27,8 +24,6 @@ public class ProjectRequest {
         private String projectName;
         @NotBlank(message = "projectUrl 은 필수 입력 값입니다.")
         private String projectUrl;
-        // 이메일 리스트
-        @NotEmpty(message = "emailList 는 필수 입력 값입니다.")
         private List<TeamMemberRequest.@Valid MemberEmail> memberEmailList;
     }
 }
