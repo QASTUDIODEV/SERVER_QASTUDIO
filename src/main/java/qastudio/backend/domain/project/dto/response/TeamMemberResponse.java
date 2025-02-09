@@ -57,7 +57,6 @@ public class TeamMemberResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class AcceptInvitation {
         private Long projectId;
-        private Long userId;
     }
 
     @Getter

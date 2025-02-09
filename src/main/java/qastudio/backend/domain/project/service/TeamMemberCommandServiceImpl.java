@@ -92,7 +92,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         Long userId = claims.get("userId", Long.class);
 
         if (userId == -1) {
-            return TeamMemberConverter.toAcceptInvitation(projectId, null);
+            return TeamMemberConverter.toAcceptInvitation(projectId);
         }
 
         String email = claims.get("email", String.class);
@@ -113,13 +113,13 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         // 중복 초대되었다면 생성하지 않고 projectId 응답
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
         if (isAlreadyInvited) {
-            return TeamMemberConverter.toAcceptInvitation(projectId, userId);
+            return TeamMemberConverter.toAcceptInvitation(projectId);
         }
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
 
-        return TeamMemberConverter.toAcceptInvitation(projectId, userId);
+        return TeamMemberConverter.toAcceptInvitation(projectId);
     }
 
     @Override
