@@ -29,7 +29,7 @@ public class AccountTableRepositoryImpl implements AccountTableRepositoryCustom{
     public List<AccountTable> findByEmail(String email) {
         return jpaQueryFactory
                 .selectFrom(accountTable)
-                .where(accountTable.email.startsWithIgnoreCase(email)) // 이메일 검색 조건 (부분 매칭 허용)
+                .where(accountTable.email.eq(email))
                 .fetch();
     }
 
