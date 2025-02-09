@@ -79,7 +79,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-sync");
-        options.addArguments("--disable-gpu");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
@@ -87,9 +86,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--blink-settings=imagesEnabled=false");
+        options.addArguments("--disk-cache-size=104857600");
         options.addArguments("--ignore-ssl-errors=yes");
         options.addArguments("--ignore-certificate-errors");
-        options.addArguments("--disable-extensions");
         options.addArguments("--disable-component-extensions-with-background-pages");
         options.addArguments("--disable-translate");
         options.addArguments("--disable-features=TranslateUI");

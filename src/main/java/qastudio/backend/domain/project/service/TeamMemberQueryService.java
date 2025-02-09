@@ -12,7 +12,7 @@ import java.util.List;
 public interface TeamMemberQueryService {
     List<UserProject> getTeamMemberList(Long projectId);
 
-    List<AccountTable> searchMember(Long projectId, String email);
+    boolean searchMember(Long projectId, String email);
 
     List<UserProject> getTeamMemberExceptLeader(Long projectId);
 
