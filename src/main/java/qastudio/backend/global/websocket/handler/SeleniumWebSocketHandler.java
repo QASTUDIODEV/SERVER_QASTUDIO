@@ -8,7 +8,7 @@ import org.openqa.selenium.WebDriver;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import qastudio.backend.domain.scenario.dto.response.ExecutionResultResponse;
+import qastudio.backend.domain.selenium.dto.response.PageResultResponse;
 import qastudio.backend.global.apiPayload.code.exception.custom.WebSocketException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
@@ -74,7 +74,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
     private String createExecutionResultResponse(String html, String css, Long actionId) {
         try {
-            ExecutionResultResponse response = new ExecutionResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
+            PageResultResponse response = new PageResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
             return objectMapper.writeValueAsString(response);
         } catch (IOException e) {
             throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);

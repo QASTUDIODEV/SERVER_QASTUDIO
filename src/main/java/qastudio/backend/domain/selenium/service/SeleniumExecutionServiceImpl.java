@@ -27,6 +27,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static qastudio.backend.global.util.MemoryUtils.logMemoryUsage;
+
 @Service
 @RequiredArgsConstructor
 public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
@@ -36,12 +38,36 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final ErrorRepository errorRepository;
-
-    @Override
-    public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
+    public SeleniumExecutionResponse fetchPageSource(Long userId, String targetUrl) {
         WebDriver driver = createRemoteWebDriver();
 
-//        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
+//        WebDriver driver = new ChromeDriver();
+        List<String> executionLogs = new ArrayList<>();
+
+        try {
+            logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
+            driver.get(targetUrl);
+            String html = driver.getPageSource();
+            String css = SeleniumActionExecutor.getCurrentPageCss(driver);
+            executionLogs.add("HTML 및 CSS 코드 수집 완료");
+            return new SeleniumExecutionResponse("SUCCESS", executionLogs, html, css);
+        } catch (Exception e) {
+            executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
+            return new SeleniumExecutionResponse("FAIL", executionLogs, null, null);
+        } finally {
+            if (driver != null) {
+                driver.quit();
+                driver = null;
+                System.gc(); // JVM 가비지 컬렉션 강제 실행
+                logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
+            }
+        }
+    }
+    @Override
+    public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
+//        WebDriver driver = createRemoteWebDriver();
+
+        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -114,16 +140,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
 
 
-    private void logMemoryUsage(String message) {
-        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
-        MemoryUsage nonHeapMemoryUsage = memoryMXBean.getNonHeapMemoryUsage();
-
-        System.out.println(message);
-        System.out.println("Heap 메모리 사용량: " + (heapMemoryUsage.getUsed() / 1024 / 1024) + " MB");
-        System.out.println("Non-Heap 메모리 사용량: " + (nonHeapMemoryUsage.getUsed() / 1024 / 1024) + " MB");
-        System.out.println("------------------------------------------------");
-    }
     private void initializeSelenium(String sessionId) {
         SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
         SeleniumActionExecutor.setS3Service(s3Service);

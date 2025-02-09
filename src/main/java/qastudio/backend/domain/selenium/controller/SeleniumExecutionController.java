@@ -23,4 +23,12 @@ public class SeleniumExecutionController {
             @RequestBody SeleniumExecutionRequest request) {
         return seleniumExecutionService.executeTest(sessionId, userId, request);
     }
+
+    @Operation(summary = "페이지 소스 가져오기 |by 준", description = "입력된 URL을 기반으로 페이지의 HTML과 CSS를 가져옵니다.")
+    @PostMapping("/fetchPageSource")
+    public SeleniumExecutionResponse fetchPageSource(
+            @Auth Long userId,
+            @RequestParam String targetUrl) {
+        return seleniumExecutionService.fetchPageSource(userId, targetUrl);
+    }
 }
