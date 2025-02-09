@@ -5,6 +5,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -81,11 +82,16 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public Long inviteMember(String token) {
+    public TeamMemberResponse.AcceptInvitation inviteMember(String token) {
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
         Long userId = claims.get("userId", Long.class);
+
+        if (userId == -1) {
+            return TeamMemberConverter.toAcceptInvitation(projectId, null);
+        }
+
         String email = claims.get("email", String.class);
 
         // 프로젝트 조회
@@ -99,13 +105,13 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         // 중복 초대되었다면 생성하지 않고 projectId 응답
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
         if (isAlreadyInvited) {
-            return projectId;
+            return TeamMemberConverter.toAcceptInvitation(projectId, userId);
         }
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
 
-        return projectId;
+        return TeamMemberConverter.toAcceptInvitation(projectId, userId);
     }
 
 }

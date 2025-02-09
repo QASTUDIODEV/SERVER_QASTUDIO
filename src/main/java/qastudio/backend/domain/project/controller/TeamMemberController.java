@@ -214,7 +214,7 @@ public class TeamMemberController {
     )
     @GetMapping("/team-members/invite")
     public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
-        Long projectId = teamMemberCommandService.inviteMember(token);
-        return ApiResponse.onSuccess(TeamMemberConverter.toAcceptInvitation(projectId));
+        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMember(token);
+        return ApiResponse.onSuccess(acceptInvitation);
     }
 }

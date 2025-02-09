@@ -77,9 +77,10 @@ public class TeamMemberConverter {
                 .build();
     }
 
-    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId) {
+    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId, Long userId) {
         return TeamMemberResponse.AcceptInvitation.builder()
                 .projectId(projectId)
+                .userId(userId)
                 .build();
     }
 
