@@ -19,6 +19,9 @@ import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 import qastudio.backend.global.s3.service.S3Service;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         initializeSelenium(sessionId);
 
         try {
+            logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
             driver.get(request.getTargetUrl());
             executionLogs.add("URL 접근: " + request.getTargetUrl());
 
@@ -71,7 +75,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
             return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
-            driver.quit();
+            if (driver != null) {
+                driver.quit();
+                driver = null;
+                System.gc(); // JVM 가비지 컬렉션 강제 실행
+                logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
+            }
         }
     }
 
@@ -102,6 +111,17 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         }
     }
 
+
+    private void logMemoryUsage(String message) {
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+        MemoryUsage nonHeapMemoryUsage = memoryMXBean.getNonHeapMemoryUsage();
+
+        System.out.println(message);
+        System.out.println("Heap 메모리 사용량: " + (heapMemoryUsage.getUsed() / 1024 / 1024) + " MB");
+        System.out.println("Non-Heap 메모리 사용량: " + (nonHeapMemoryUsage.getUsed() / 1024 / 1024) + " MB");
+        System.out.println("------------------------------------------------");
+    }
     private void initializeSelenium(String sessionId) {
         SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
         SeleniumActionExecutor.setS3Service(s3Service);
