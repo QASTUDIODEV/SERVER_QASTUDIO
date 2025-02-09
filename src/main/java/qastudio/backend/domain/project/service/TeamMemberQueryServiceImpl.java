@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
-import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;

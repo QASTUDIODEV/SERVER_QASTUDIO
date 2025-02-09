@@ -1,24 +1,11 @@
 package qastudio.backend.domain.project.service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import qastudio.backend.domain.auth.converter.EmailConverter;
-import qastudio.backend.domain.auth.dto.request.EmailRequest;
-import qastudio.backend.domain.auth.dto.response.EmailResponse;
-import qastudio.backend.domain.auth.service.AuthQueryService;
-import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
@@ -29,7 +16,6 @@ import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
-import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
@@ -37,11 +23,7 @@ import qastudio.backend.global.apiPayload.code.exception.custom.TeamMemberExcept
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.InviteTokenProvider;
 
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
