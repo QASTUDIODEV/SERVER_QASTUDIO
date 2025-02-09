@@ -3,11 +3,11 @@ package qastudio.backend.domain.project.service;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
-import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +42,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     private final ProjectRepository projectRepository;
     private final InviteTokenProvider inviteTokenProvider;
     private final EmailQueryService emailQueryService;
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     public List<UserProject> getTeamMemberList(Long projectId) {
@@ -99,6 +101,8 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                     .findFirst()
                     .orElse(-1L);
 
+            saveInvitationEmail(projectId, email, 604800000); // 7일동안 유효
+
 
             // 중복 초대 체크
             boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
@@ -140,5 +144,11 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         LocalDate expirationDate = LocalDate.now().plusDays(7);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return expirationDate.format(formatter);
+    }
+
+    // 프로젝트별 초대 이메일 redis 저장
+    private void saveInvitationEmail(Long projectId, String email, long expirationMillis) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        redisTemplate.opsForValue().set(redisKey, email, expirationMillis, TimeUnit.MILLISECONDS);
     }
 }

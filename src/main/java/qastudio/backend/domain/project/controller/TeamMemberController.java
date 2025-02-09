@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
@@ -214,7 +215,21 @@ public class TeamMemberController {
     )
     @GetMapping("/team-members/invite")
     public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
-        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMember(token);
+        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMemberWithToken(token);
         return ApiResponse.onSuccess(acceptInvitation);
     }
+
+    @Operation(
+            summary = "projectId와 email을 통해 팀원 초대 수락 API | by 노을",
+            description = "projectId와 email을 입력하여 초대를 수락합니다."
+    )
+    @PostMapping("/team-members/email-invite")
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail) {
+        teamMemberCommandService.inviteMemberWithEmailAndProjectId(
+                inviteWithEmail.getEmail(),
+                inviteWithEmail.getProjectId()
+        );
+        return ApiResponse.onSuccess(null);
+    }
+
 }
