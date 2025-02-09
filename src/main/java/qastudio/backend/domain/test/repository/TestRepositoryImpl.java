@@ -1,5 +1,6 @@
 package qastudio.backend.domain.test.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -9,13 +10,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
-import qastudio.backend.domain.test.entity.QTest;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
+import static qastudio.backend.domain.project.entity.QProject.project;
+import static qastudio.backend.domain.project.entity.QUserProject.userProject;
+import static qastudio.backend.domain.test.entity.QTest.test;
 
 
 @Repository
@@ -24,8 +29,6 @@ public class TestRepositoryImpl implements TestRepositoryCustom{
     private final JPAQueryFactory jpaQueryFactory;
     @PersistenceContext
     private EntityManager entityManager;
-
-    private static final QTest test = QTest.test;
 
     @Override
     public Page<Test> findAllByProject(Project project, String testName, LocalDate date, String pageName, State state, PageRequest pageRequest) {
@@ -65,16 +68,22 @@ public class TestRepositoryImpl implements TestRepositoryCustom{
         return new PageImpl<>(tests, pageRequest, totalCount);
     }
 
+
     @Override
-    public Long countByTestDateAndState(Long projectId, LocalDate testDate, State state) {
+    public List<Tuple> countTestsByProject(Long projectId) {
         return jpaQueryFactory
-                .select(test.count())
+                .select(
+                        test.testDate,
+                        test.count(),
+                        test.state.when(State.SUCCESS).then(1).otherwise(0).sum().coalesce(0),
+                        test.state.when(State.FAIL).then(1).otherwise(0).sum().coalesce(0)
+                )
                 .from(test)
                 .where(
-                        test.project.id.eq(projectId)
-                                .and(testDate != null ? test.testDate.eq(testDate) : null)
-                                .and(state != null ? test.state.eq(state) : null)
+                        test.project.id.eq(projectId),
+                        test.testDate.in(LocalDate.now(), LocalDate.now().minusDays(1))
                 )
-                .fetchOne();
+                .groupBy(test.testDate)
+                .fetch();
     }
 }
