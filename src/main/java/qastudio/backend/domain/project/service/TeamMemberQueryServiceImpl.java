@@ -97,7 +97,8 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                     .map(AccountTable::getUser)
                     .map(User::getId)
                     .findFirst()
-                    .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+                    .orElse(-1L);
+
 
             // 중복 초대 체크
             boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
@@ -131,7 +132,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         String token = inviteTokenProvider.generateToken(projectId, userId, email);
 
         // 초대 링크 생성
-        return "https://www.qa-studio.com/invite?=" + token;
+        return "http://localhost:5173/invite?=" + token;
     }
 
     private String formattedExpirationDate() {
