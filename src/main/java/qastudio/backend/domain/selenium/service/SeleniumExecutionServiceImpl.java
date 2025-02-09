@@ -78,19 +78,19 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
-//        options.setBrowserVersion("132.0");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
         options.addArguments("--disable-blink-features=AutomationControlled");
-//        options.addArguments("--remote-allow-origins=*");
-//        options.addArguments("--single-process");
         options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--blink-settings=imagesEnabled=false");
+        options.addArguments("--disk-cache-size=104857600");
         options.addArguments("--ignore-ssl-errors=yes");
         options.addArguments("--ignore-certificate-errors");
-//        options.addArguments("--remote-debugging-port=9222");
         try {
             String remoteUrl = "http://selenium-chrome:4444/wd/hub";
             return new RemoteWebDriver(new URL(remoteUrl), options);
