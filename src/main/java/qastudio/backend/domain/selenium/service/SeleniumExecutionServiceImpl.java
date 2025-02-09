@@ -39,9 +39,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final ObjectMapper objectMapper;
     private final ErrorRepository errorRepository;
     public SeleniumExecutionResponse fetchPageSource(Long userId, String targetUrl) {
-//        WebDriver driver = createRemoteWebDriver();
+        WebDriver driver = createRemoteWebDriver();
 
-        WebDriver driver = new ChromeDriver();
+//        WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
 
         try {
@@ -65,9 +65,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-//        WebDriver driver = createRemoteWebDriver();
+        WebDriver driver = createRemoteWebDriver();
 
-        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
+//        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
