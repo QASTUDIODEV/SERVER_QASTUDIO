@@ -11,7 +11,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import qastudio.backend.domain.selenium.dto.response.PageResultResponse;
 import qastudio.backend.global.apiPayload.code.exception.custom.WebSocketException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
-
+import org.apache.commons.text.StringEscapeUtils;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -74,7 +74,13 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
     private String createExecutionResultResponse(String html, String css, Long actionId) {
         try {
-            PageResultResponse response = new PageResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
+            PageResultResponse response = new PageResultResponse(
+                    "SUCCESS",
+                    List.of("실시간 HTML & CSS 업데이트"),
+                    "\"" + StringEscapeUtils.escapeJson(html) + "\"",
+                    "\"" + StringEscapeUtils.escapeJson(css) + "\"",
+                    actionId
+            );
             return objectMapper.writeValueAsString(response);
         } catch (IOException e) {
             throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);
@@ -84,7 +90,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     private void sendSessionId(WebSocketSession session) {
         if (session != null && session.isOpen()) {
             try {
-                String jsonMessage = createSessionIdResponse(session.getId());
+                String jsonMessage = createSessionIdResponse(session.getId()+ "_\"extraValue\"");
                 session.sendMessage(new TextMessage(jsonMessage));
                 log.info("WebSocket 세션 ID 전송 완료: {}", session.getId());
             } catch (IOException e) {
