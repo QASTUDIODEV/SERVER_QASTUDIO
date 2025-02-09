@@ -39,9 +39,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final ObjectMapper objectMapper;
     private final ErrorRepository errorRepository;
     public SeleniumExecutionResponse fetchPageSource(Long userId, String targetUrl) {
-        WebDriver driver = createRemoteWebDriver();
+//        WebDriver driver = createRemoteWebDriver();
 
-//        WebDriver driver = new ChromeDriver();
+        WebDriver driver = new ChromeDriver();
         List<String> executionLogs = new ArrayList<>();
 
         try {
