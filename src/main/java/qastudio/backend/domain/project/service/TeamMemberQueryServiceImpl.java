@@ -99,6 +99,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
                     .findFirst()
                     .orElse(-1L);
 
+
             // 중복 초대 체크
             boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
             if (isAlreadyInvited) {

@@ -89,4 +89,10 @@ public class TeamMemberConverter {
                 .isQastudioMember(isMember)
                 .build();
     }
+
+    public static TeamMemberResponse.SearchEmail toSearchEmail(boolean isMember) {
+        return TeamMemberResponse.SearchEmail.builder()
+                .isQastudioMember(isMember)
+                .build();
+    }
 }
