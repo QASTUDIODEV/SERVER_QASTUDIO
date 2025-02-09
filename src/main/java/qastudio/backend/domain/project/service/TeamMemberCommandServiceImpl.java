@@ -8,6 +8,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,8 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final InviteTokenProvider inviteTokenProvider;
+    private final StringRedisTemplate redisTemplate;
+
 
     @Override
     public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
@@ -82,7 +85,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public TeamMemberResponse.AcceptInvitation inviteMember(String token) {
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token) {
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
@@ -93,6 +96,11 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         }
 
         String email = claims.get("email", String.class);
+
+        // 로그인한 유저와 projectId redis에 있는지 확인
+        if (!isInvitationValid(projectId, email)) {
+            throw new TeamMemberException(ErrorStatus.INVALID_INVITATION);
+        }
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
@@ -112,6 +120,45 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         userProjectRepository.save(userProject);
 
         return TeamMemberConverter.toAcceptInvitation(projectId, userId);
+    }
+
+    @Override
+    public void inviteMemberWithEmailAndProjectId(String email, Long projectId) {
+        // 초대하고자 하는 유저
+        Long userId = accountTableRepository.findByEmail(email).stream()
+                .map(AccountTable::getUser)
+                .map(User::getId)
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        // 중복 초대되었는지 확인
+        boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
+        if (isAlreadyInvited) {
+            throw new TeamMemberException(ErrorStatus.ALREADY_REGISTERED_MEMBER);
+        }
+
+        // 로그인한 유저와 projectId redis에 있는지 확인
+        if (!isInvitationValid(projectId, email)) {
+            throw new TeamMemberException(ErrorStatus.INVALID_INVITATION);
+        }
+
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // 유저 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
+        userProjectRepository.save(userProject);
+
+    }
+
+    // 프로젝트별 초대 이메일 검증
+    private boolean isInvitationValid(Long projectId, String email) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        return redisTemplate.opsForValue().get(redisKey) != null;
     }
 
 }

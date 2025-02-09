@@ -13,5 +13,6 @@ import java.util.List;
 
 public interface TeamMemberCommandService {
     void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember);
-    TeamMemberResponse.AcceptInvitation inviteMember(String token);
+    TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token);
+    void inviteMemberWithEmailAndProjectId(String email, Long projectId);
 }
