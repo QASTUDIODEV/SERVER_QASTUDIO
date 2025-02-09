@@ -77,9 +77,16 @@ public class TeamMemberConverter {
                 .build();
     }
 
-    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId) {
+    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId, Long userId) {
         return TeamMemberResponse.AcceptInvitation.builder()
                 .projectId(projectId)
+                .userId(userId)
+                .build();
+    }
+
+    public static TeamMemberResponse.SearchEmail toSearchEmail(boolean isMember) {
+        return TeamMemberResponse.SearchEmail.builder()
+                .isQastudioMember(isMember)
                 .build();
     }
 }
