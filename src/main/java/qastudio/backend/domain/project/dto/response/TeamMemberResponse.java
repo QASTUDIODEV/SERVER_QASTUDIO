@@ -59,4 +59,12 @@ public class TeamMemberResponse {
         private Long projectId;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class SearchEmail {
+        private boolean isQastudioMember;
+    }
+
 }

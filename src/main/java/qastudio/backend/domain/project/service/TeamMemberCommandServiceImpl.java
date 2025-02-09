@@ -25,6 +25,7 @@ import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.entity.enums.Role;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
+import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
@@ -54,10 +55,14 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
     @Override
     public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
+        String email = deleteMember.getEmail();
 
         // 삭제하고자 하는 유저
-        Long userId = deleteMember.getUserId();
-        String email = deleteMember.getEmail();
+        Long userId = accountTableRepository.findByEmail(email).stream()
+                .map(AccountTable::getUser)
+                .map(User::getId)
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         // user의 이메일 정보가 요청을 보낸 이메일과 맞는지 확인
         boolean match = accountTableRepository.existsByUserIdAndEmail(userId, email);

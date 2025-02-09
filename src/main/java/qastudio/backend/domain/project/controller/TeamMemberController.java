@@ -179,7 +179,7 @@ public class TeamMemberController {
 
     @Operation(
             summary = "팀원 이메일 검색 API | by 노을",
-            description = "초대하고자 하는 유저의 이메일을 검색합니다."
+            description = "초대하고자 하는 유저가 프로젝트에 가입되어있는지 boolean 값으로 응답합니다. true이면 이미 가입된 유저, false이면 가입되지 않은 유저입니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -203,9 +203,9 @@ public class TeamMemberController {
                     )),
     })
     @GetMapping("/{projectId}/team-members/search")
-    public ApiResponse<TeamMemberResponse.UserEmailList> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
-        List<AccountTable> accountTables = teamMemberQueryService.searchMember(projectId, email);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromAccounts(accountTables));
+    public ApiResponse<TeamMemberResponse.SearchEmail> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
+        boolean isMember = teamMemberQueryService.searchMember(projectId, email);
+        return ApiResponse.onSuccess(TeamMemberConverter.toSearchEmail(isMember));
     }
 
     @Operation(
