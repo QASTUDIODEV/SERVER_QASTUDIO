@@ -1,7 +1,6 @@
 package qastudio.backend.domain.selenium.util;
 
 import org.openqa.selenium.*;
-import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
@@ -18,20 +17,13 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.*;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.util.Base64;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.lang.Thread.sleep;
 
@@ -55,8 +47,9 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
+        WebElement webElement = null;
         try {
-            WebElement webElement = findElementSafely(driver, actionDetail);
+            webElement = findElementSafely(driver, actionDetail);
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
             sleep(3000);
 
@@ -79,9 +72,11 @@ public class SeleniumActionExecutor {
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
         } finally {
+            webElement = null; // 메모리 해제
             if (webSocketHandler != null) {
                 webSocketHandler.closeSession(sessionId);
             }
+            System.gc(); // 가비지 컬렉션 실행
         }
     }
 
