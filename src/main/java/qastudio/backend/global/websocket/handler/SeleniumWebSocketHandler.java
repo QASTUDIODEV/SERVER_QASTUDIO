@@ -90,7 +90,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     private void sendSessionId(WebSocketSession session) {
         if (session != null && session.isOpen()) {
             try {
-                String jsonMessage = createSessionIdResponse(session.getId()+ "_\"extraValue\"");
+                String jsonMessage = createSessionIdResponse(session.getId());
                 session.sendMessage(new TextMessage(jsonMessage));
                 log.info("WebSocket 세션 ID 전송 완료: {}", session.getId());
             } catch (IOException e) {
