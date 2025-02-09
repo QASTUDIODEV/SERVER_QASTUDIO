@@ -139,8 +139,8 @@ public class SeleniumActionExecutor {
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId) {
         if (webSocketHandler != null) {
             try {
-                String formattedHtml = "\"" + HtmlCssFormatter.formatHtml(driver.getPageSource()) + "\"";
-                String formattedCss = "\"" + HtmlCssFormatter.formatCss(getCurrentPageCss(driver)) + "\"";
+                String formattedHtml = "\"\"\"" + HtmlCssFormatter.formatHtml(driver.getPageSource()) + "\"\"\"";
+                String formattedCss = "\"\"\"" + HtmlCssFormatter.formatCss(getCurrentPageCss(driver)) + "\"\"\"";
 
                 logs.add("실시간 HTML & CSS 전송");
                 webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId);
