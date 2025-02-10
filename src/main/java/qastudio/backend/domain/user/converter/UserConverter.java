@@ -80,4 +80,10 @@ public class UserConverter {
                 .isLast(userProjectList.isLast())
                 .build();
     }
+
+    public static UserResponse.UserEmail toUserEmail(User user) {
+        return UserResponse.UserEmail.builder()
+                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .build();
+    }
 }
