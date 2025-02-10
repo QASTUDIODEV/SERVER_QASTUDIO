@@ -67,7 +67,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token) {
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token, Long userId) {
         if (token == null || token.trim().isEmpty()) {
             throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
         }
@@ -75,10 +75,14 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
-        Long userId = claims.get("userId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
 
-        if (userId == -1) {
+        if (tokenUserId == -1) {
             return TeamMemberConverter.toAcceptInvitation(projectId);
+        }
+
+        if (!tokenUserId.equals(userId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
         }
 
         String email = claims.get("email", String.class);
@@ -109,22 +113,26 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public void inviteMemberWithEmailAndToken(String email, String token) {
+    public void inviteMemberWithEmailAndToken(String email, String token, Long userId) {
         if (token == null || token.trim().isEmpty()) {
             throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
         }
 
         Claims claims = inviteTokenProvider.validateToken(token);
         Long projectId = claims.get("projectId", Long.class);
-        Long userId = claims.get("userId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
 
-        if (userId == -1) {
+        if (tokenUserId == -1) {
             // 초대하고자 하는 유저
-            userId = accountTableRepository.findByEmail(email).stream()
+            tokenUserId = accountTableRepository.findByEmail(email).stream()
                     .map(AccountTable::getUser)
                     .map(User::getId)
                     .findFirst()
                     .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+        }
+
+        if (!userId.equals(tokenUserId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
         }
 
         // 중복 초대되었는지 확인

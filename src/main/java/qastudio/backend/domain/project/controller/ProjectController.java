@@ -118,8 +118,8 @@ public class ProjectController {
                     )),
     })
     @GetMapping("/{projectId}")
-    public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId) {
-        Project project = projectQueryService.getSummarizedProjectInfo(projectId);
+    public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId, @Auth Long userId) {
+        Project project = projectQueryService.getSummarizedProjectInfo(projectId, userId);
         return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 

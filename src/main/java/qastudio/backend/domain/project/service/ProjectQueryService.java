@@ -5,7 +5,7 @@ import qastudio.backend.domain.project.entity.Project;
 import java.util.List;
 
 public interface ProjectQueryService {
-    Project getSummarizedProjectInfo(Long projectId);
+    Project getSummarizedProjectInfo(Long projectId, Long userId);
 
     List<Project> getProjectList(Long userId);
 }

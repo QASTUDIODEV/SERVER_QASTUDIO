@@ -22,7 +22,13 @@ public class ProjectQueryServiceImpl implements ProjectQueryService {
 
 
     @Override
-    public Project getSummarizedProjectInfo(Long projectId) {
+    public Project getSummarizedProjectInfo(Long projectId, Long userId) {
+        boolean invitedStatus = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
+
+        // 가입되어있지 않은 프로젝트를 조회할 경우 예외
+        if(!invitedStatus) {
+            throw new BadRequestException(ErrorStatus.UNAUTHORIZED_PROJECT);
+        }
 
         // 프로젝트 조회
         return projectRepository.findByProjectId(projectId)
