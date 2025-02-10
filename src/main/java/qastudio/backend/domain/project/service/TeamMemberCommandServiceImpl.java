@@ -68,6 +68,10 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
     @Override
     public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
