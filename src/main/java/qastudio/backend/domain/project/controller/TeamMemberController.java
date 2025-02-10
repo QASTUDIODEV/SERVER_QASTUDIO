@@ -225,9 +225,9 @@ public class TeamMemberController {
     )
     @PostMapping("/team-members/email-invite")
     public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail) {
-        teamMemberCommandService.inviteMemberWithEmailAndProjectId(
+        teamMemberCommandService.inviteMemberWithEmailAndToken(
                 inviteWithEmail.getEmail(),
-                inviteWithEmail.getProjectId()
+                inviteWithEmail.getToken()
         );
         return ApiResponse.onSuccess(null);
     }

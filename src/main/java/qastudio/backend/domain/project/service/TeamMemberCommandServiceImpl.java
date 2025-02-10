@@ -109,13 +109,23 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public void inviteMemberWithEmailAndProjectId(String email, Long projectId) {
-        // 초대하고자 하는 유저
-        Long userId = accountTableRepository.findByEmail(email).stream()
-                .map(AccountTable::getUser)
-                .map(User::getId)
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+    public void inviteMemberWithEmailAndToken(String email, String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
+        Claims claims = inviteTokenProvider.validateToken(token);
+        Long projectId = claims.get("projectId", Long.class);
+        Long userId = claims.get("userId", Long.class);
+
+        if (userId == -1) {
+            // 초대하고자 하는 유저
+            userId = accountTableRepository.findByEmail(email).stream()
+                    .map(AccountTable::getUser)
+                    .map(User::getId)
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+        }
 
         // 중복 초대되었는지 확인
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
