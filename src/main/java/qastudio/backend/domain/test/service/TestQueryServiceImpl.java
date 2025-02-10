@@ -1,5 +1,6 @@
 package qastudio.backend.domain.test.service;
 
+import com.querydsl.core.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
-import qastudio.backend.domain.test.dto.response.TestResponse;
 import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.repository.TestRepository;
@@ -15,6 +15,7 @@ import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestExcept
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,60 +41,62 @@ public class TestQueryServiceImpl implements TestQueryService{
     }
 
     @Override
-    public Project getTestStatistics(Long projectId) {
-        return projectRepository.findByProjectId(projectId)
+    public Project getProjectDetail(Long projectId) {
+        return testRepository.findAllByProjectId(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
     }
 
-    // 전체 테스트 수
     @Override
-    public Long getTotalTests(Long projectId) {
-        return testRepository.countByTestDateAndState(projectId, null, null);
-    }
-
-    // 성공 테스트 수
-    @Override
-    public Long getTotalSuccessTests(Long projectId) {
-        return testRepository.countByTestDateAndState(projectId, null, State.SUCCESS);
-    }
-
-    // 실패 테스트 수
-    @Override
-    public Long getTotalFailTests(Long projectId) {
-        return testRepository.countByTestDateAndState(projectId, null, State.FAIL);
+    public List<Tuple> getTestCounts(Long projectId) {
+        return testRepository.countTestsByProject(projectId);
     }
 
     // 전날 대비 성공률
     @Override
-    public Double getSuccessRate(Long projectId) {
-        return calculateRate(projectId, State.SUCCESS);
+    public Double getSuccessRate(List<Tuple> testCounts) {
+        return calculateRate(testCounts, State.SUCCESS);
     }
 
     // 전날 대비 실패율
     @Override
-    public Double getFailRate(Long projectId) {
-        return calculateRate(projectId, State.FAIL);
+    public Double getFailRate(List<Tuple> testCounts) {
+        return calculateRate(testCounts, State.FAIL);
     }
 
-    private Double calculateRate(Long projectId, State state) {
-        Long todayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), null);
-        Long todayStateTests = testRepository.countByTestDateAndState(projectId, LocalDate.now(), state);
+    private Double calculateRate(List<Tuple> counts, State state) {
+        Long todayTotal = 0L, todayStateCount = 0L;
+        Long yesterdayTotal = 0L, yesterdayStateCount = 0L;
 
-        Long yesterdayTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), null);
-        Long yesterdayStateTests = testRepository.countByTestDateAndState(projectId, LocalDate.now().minusDays(1), state);
+        for (Tuple tuple : counts) {
+            LocalDate date = tuple.get(0, LocalDate.class);
 
-        if (todayTests == 0 || yesterdayTests == 0) {
-            return 0.0;
+            Long total = tuple.get(1, Number.class) != null ? tuple.get(1, Number.class).longValue() : 0L;
+            Long stateCount = (state == State.SUCCESS
+                    ? tuple.get(2, Number.class)
+                    : tuple.get(3, Number.class)) != null
+                    ? (state == State.SUCCESS
+                    ? tuple.get(2, Number.class).longValue()
+                    : tuple.get(3, Number.class).longValue())
+                    : 0L;
+
+            if (date.equals(LocalDate.now())) {
+                todayTotal = total;
+                todayStateCount = stateCount;
+            } else if (date.equals(LocalDate.now().minusDays(1))) {
+                yesterdayTotal = total;
+                yesterdayStateCount = stateCount;
+            }
         }
 
-        Double todayRate = (double) todayStateTests / todayTests * 100;
-        Double yesterdayRate = (double) yesterdayStateTests / yesterdayTests * 100;
+        // 오늘과 전날의 성공률/실패율 계산
+        Double todayRate = (todayTotal > 0) ? (double) todayStateCount / todayTotal * 100 : 0.0;
+        Double yesterdayRate = (yesterdayTotal > 0) ? (double) yesterdayStateCount / yesterdayTotal * 100 : 0.0;
 
+        // 전날 대비 변화율 계산
         if (yesterdayRate == 0) {
             return 0.0;
         }
 
-        Double rateChange = ((todayRate - yesterdayRate) / yesterdayRate) * 100;
-        return Math.round(rateChange * 10) / 10.0;
+        return Math.round(((todayRate - yesterdayRate) / yesterdayRate) * 1000) / 10.0;
     }
 }

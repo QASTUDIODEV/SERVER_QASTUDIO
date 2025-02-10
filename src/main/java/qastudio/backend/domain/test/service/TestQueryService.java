@@ -1,24 +1,22 @@
 package qastudio.backend.domain.test.service;
 
+import com.querydsl.core.Tuple;
 import org.springframework.data.domain.Page;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface TestQueryService {
     Page<Test> getTestList(Long projectId, Integer page, String testName, LocalDate date, String pageName, State state);
 
-    Project getTestStatistics(Long projectId);
+    Project getProjectDetail(Long projectId);
 
-    Long getTotalTests(Long projectId);
+    List<Tuple> getTestCounts(Long projectId);
 
-    Long getTotalSuccessTests(Long projectId);
+    Double getSuccessRate(List<Tuple> testCounts);
 
-    Long getTotalFailTests(Long projectId);
-
-    Double getSuccessRate(Long projectId);
-
-    Double getFailRate(Long projectId);
+    Double getFailRate(List<Tuple> testCounts);
 }
