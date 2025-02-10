@@ -78,8 +78,10 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
             PageResultResponse response = new PageResultResponse(
                     "SUCCESS",
                     List.of("실시간 HTML & CSS 업데이트"),
-                    StringEscapeUtils.escapeHtml4(html),
-                    StringEscapeUtils.escapeHtml4(css),
+                    "\"" + StringEscapeUtils.escapeJson(html) + "\"",
+                    "\"" + StringEscapeUtils.escapeJson(css) + "\"",
+//                    StringEscapeUtils.escapeHtml4(html),
+//                    StringEscapeUtils.escapeHtml4(css),
                     actionId
             );
             return objectMapper.writeValueAsString(response);
