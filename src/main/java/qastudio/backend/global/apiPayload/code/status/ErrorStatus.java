@@ -51,6 +51,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Project-related errors
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "The project does not exist."),
+    UNAUTHORIZED_PROJECT(HttpStatus.UNAUTHORIZED, "PROJECT403", "Uninvited projects cannot be viewed"),
 
     // Character-related errors
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The character does not exist."),
