@@ -61,6 +61,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // Team member-related errors
     UNMATCHED_USER(HttpStatus.BAD_REQUEST, "MEMBER400", "User ID and email do not match."),
     ALREADY_REGISTERED_MEMBER(HttpStatus.CONFLICT, "MEMBER409", "The user is already added to the project."),
+    EXPIRED_INVITATION_TOKEN(HttpStatus.UNAUTHORIZED, "MEMBER401", "Invitation token is expired."),
+    INVALID_INVITATION(HttpStatus.UNAUTHORIZED, "MEMBER401", "This email has not been invited."),
 
     // Page-related errors
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The page does not exist."),

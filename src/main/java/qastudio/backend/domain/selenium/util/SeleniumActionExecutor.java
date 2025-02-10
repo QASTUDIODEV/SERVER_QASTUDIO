@@ -1,7 +1,6 @@
 package qastudio.backend.domain.selenium.util;
 
 import org.openqa.selenium.*;
-import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
@@ -14,15 +13,19 @@ import qastudio.backend.global.s3.service.S3Service;
 import qastudio.backend.global.util.HtmlCssFormatter;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+
+
+import static java.lang.Thread.sleep;
 
 public class SeleniumActionExecutor {
 
@@ -44,8 +47,12 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
+        WebElement webElement = null;
         try {
-            WebElement webElement = findElementSafely(driver, actionDetail);
+            webElement = findElementSafely(driver, actionDetail);
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
+            sleep(3000);
+
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
@@ -54,7 +61,8 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-            sendHtmlAndCssUpdate(driver, sessionId, logs);
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
+//            sendHtmlAndCssUpdate(driver, sessionId, logs);
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
@@ -63,6 +71,12 @@ public class SeleniumActionExecutor {
             String imageUrl = captureScreenshotAndUpload(driver);
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+        } finally {
+            webElement = null; // 메모리 해제
+            if (webSocketHandler != null) {
+                webSocketHandler.closeSession(sessionId);
+            }
+            System.gc(); // 가비지 컬렉션 실행
         }
     }
 
@@ -122,93 +136,36 @@ public class SeleniumActionExecutor {
         }
     }
 
-    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs) {
+    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId) {
         if (webSocketHandler != null) {
             try {
-                String formattedHtml = "`" + HtmlCssFormatter.formatHtml(driver.getPageSource()) + "`";
-                String formattedCss = "`" + HtmlCssFormatter.formatCss(getCurrentPageCss(driver)) + "`";
-
+                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
+                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
 
                 logs.add("실시간 HTML & CSS 전송");
-                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss);
+                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId);
             } catch (Exception e) {
                 logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
             }
         }
     }
-
     public static String getCurrentPageCss(WebDriver driver) {
-        String rawCss = extractCssFromPage(driver);
-        return processCss(rawCss);
-    }
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
-    /**
-     * 웹 페이지에서 CSS를 추출
-     */
-    private static String extractCssFromPage(WebDriver driver) {
-        return (String) ((JavascriptExecutor) driver).executeScript(
-                "let css = ''; " +
-                        "document.querySelectorAll('style').forEach(style => { " +
-                        "    css += style.innerHTML + '\\n'; " +
-                        "}); " +
-                        "document.querySelectorAll('*').forEach(element => { " +
-                        "    let computedStyle = window.getComputedStyle(element); " +
-                        "    let styles = ''; " +
-                        "    for (let i = 0; i < computedStyle.length; i++) { " +
-                        "        styles += computedStyle[i] + ':' + computedStyle.getPropertyValue(computedStyle[i]) + ';'; " +
-                        "    } " +
-                        "    if (styles) { css += element.tagName.toLowerCase() + '{' + styles + '}\\n'; } " +
-                        "}); " +
-                        "return css;"
+        // 현재 DOM에서 적용된 스타일만 가져오기
+        String css = (String) js.executeScript(
+                "let extractedCss = ''; " +
+                        "for (let sheet of document.styleSheets) { " +
+                        "    try { " +
+                        "        for (let rule of sheet.cssRules) { " +
+                        "            extractedCss += rule.cssText + '\\n'; " +
+                        "        } " +
+                        "    } catch (e) { console.log('CSS Access Denied: ' + e.message); } " +
+                        "} " +
+                        "return extractedCss;"
         );
+
+        return css;
     }
 
-    /**
-     * 중복된 CSS 속성을 제거하고 최적화
-     */
-    private static String processCss(String css) {
-        if (css == null || css.isEmpty()) {
-            return "";
-        }
-
-        Map<String, Map<String, String>> cssMap = new HashMap<>();
-
-        for (String rule : css.split("\\n")) {
-            if (!rule.contains("{") || !rule.contains("}")) {
-                continue;
-            }
-
-            String tag = rule.substring(0, rule.indexOf('{')).trim();
-            String properties = rule.substring(rule.indexOf('{') + 1, rule.indexOf('}')).trim();
-
-            cssMap.putIfAbsent(tag, new HashMap<>());
-            Map<String, String> propertyMap = cssMap.get(tag);
-
-            for (String property : properties.split(";")) {
-                String[] keyValue = property.split(":");
-                if (keyValue.length == 2) {
-                    propertyMap.put(keyValue[0].trim(), keyValue[1].trim());
-                }
-            }
-        }
-
-        return generateCssString(cssMap);
-    }
-
-    /**
-     * 정리된 CSS 데이터를 문자열로
-     */
-    private static String generateCssString(Map<String, Map<String, String>> cssMap) {
-        StringBuilder processedCss = new StringBuilder();
-
-        for (Map.Entry<String, Map<String, String>> entry : cssMap.entrySet()) {
-            processedCss.append(entry.getKey()).append(" { ");
-            for (Map.Entry<String, String> property : entry.getValue().entrySet()) {
-                processedCss.append(property.getKey()).append(": ").append(property.getValue()).append("; ");
-            }
-            processedCss.append("}\n");
-        }
-
-        return processedCss.toString();
-    }
 }

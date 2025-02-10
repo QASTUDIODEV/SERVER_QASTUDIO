@@ -29,6 +29,9 @@ public class SeleniumExecutionRequest {
     @Getter
     @Builder
     public static class ActionDetail {
+        @Schema(description = "액션 ID", example = "1")
+        private final Long actionId;
+
         @Schema(description = "액션 설명", example = "Enter Email")
         private final String actionDescription;
 

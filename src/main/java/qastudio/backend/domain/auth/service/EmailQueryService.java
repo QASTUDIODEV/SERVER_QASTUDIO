@@ -6,6 +6,7 @@ import qastudio.backend.domain.auth.dto.request.EmailRequest;
 import qastudio.backend.domain.auth.dto.response.EmailResponse;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 public interface EmailQueryService {
     void createCode();
@@ -14,4 +15,5 @@ public interface EmailQueryService {
     EmailResponse sendPasswordEmail(EmailRequest emailRequest);
     String setContext(String code);
     void checkEmailDuplication(EmailRequest emailRequest);
+    void sendInviteEmail(String toEmail, Map<String, Object> variables) throws MessagingException;
 }
