@@ -51,4 +51,20 @@ public class TeamMemberResponse {
         private List<Member> members;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class AcceptInvitation {
+        private Long projectId;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class SearchEmail {
+        private boolean isQastudioMember;
+    }
+
 }

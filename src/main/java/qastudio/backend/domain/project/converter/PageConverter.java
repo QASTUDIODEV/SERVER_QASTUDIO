@@ -1,11 +1,12 @@
 package qastudio.backend.domain.project.converter;
 
 import qastudio.backend.domain.project.dto.response.PageResponse;
-import qastudio.backend.domain.project.entity.CharacterTable;
-import qastudio.backend.domain.project.entity.Page;
-import qastudio.backend.domain.project.entity.PageScenario;
+import qastudio.backend.domain.project.entity.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class PageConverter {
 
@@ -20,20 +21,37 @@ public class PageConverter {
     }
 
     public static PageResponse.PageDetail toPageDetail(Page page) {
-
-        List<String> scenarioContents = page.getPageScenarios().stream()
+        // 페이지의 시나리오 리스트 조회
+        List<String> scenarioContents = Optional.ofNullable(page.getPageScenarios())
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
                 .map(PageScenario::getContent)
                 .toList();
 
-        List<String> allowedCharacterNames = page.getPageRoles().stream()
-                .map(pageRole -> pageRole.getCharacterTable().getCharacterName())
+        // 페이지에 접근 가능한 역할 이름 조회
+        List<String> allowedCharacterNames = Optional.ofNullable(page.getPageRoles())
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(PageRole::getCharacterTable)
+                        .map(CharacterTable::getCharacterName)
+                .distinct()
                 .toList();
 
-        List<CharacterTable> projectCharacters = page.getProject().getCharacterTables();
-        List<String> deniedAccessNames = projectCharacters.stream()
-                .filter(character -> page.getPageRoles().stream()
-                        .noneMatch(role -> role.getCharacterTable().equals(character)))
+        // 페이지에 접근 불가능한 역할 이름 조회
+        List<String> deniedAccessNames = Optional.ofNullable(page.getProject())
+                .map(Project::getCharacterTables)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(character -> Optional.ofNullable(page.getPageRoles())// 프로젝트의 전체 역할 조회, 없다면 빈 리스트 응답
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .noneMatch(role -> role.getCharacterTable() != null &&
+                                role.getCharacterTable().equals(character))) // 역할이 존재하지 않으면 필터링해서 가져옴
                 .map(CharacterTable::getCharacterName)
+                .distinct()
                 .toList();
 
         return PageResponse.PageDetail.builder()
@@ -46,6 +64,7 @@ public class PageConverter {
                 .deniedAccess(deniedAccessNames)
                 .build();
     }
+
 
 
     public static PageResponse.PageList toPageList(List<Page> pages) {

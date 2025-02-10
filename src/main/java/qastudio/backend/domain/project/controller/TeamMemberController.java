@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
@@ -26,7 +28,7 @@ public class TeamMemberController {
 
     @Operation(
             summary = "팀원 초대 API | by 노을",
-            description = "이메일을 통해 팀원을 프로젝트에 초대합니다."
+            description = "이메일을 통해 팀원을 프로젝트에 초대합니다. 이메일을 통해 받은 토큰 값으로 팀원이 초대에 수락합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -77,9 +79,9 @@ public class TeamMemberController {
                     ))
     })
     @PostMapping("/team-members/invite")
-    public ApiResponse<TeamMemberResponse.MemberList> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
-        List<UserProject> userProjects = teamMemberCommandService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
-        return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
+    public ApiResponse<Void> inviteMembers(@RequestBody @Valid TeamMemberRequest.Invite inviteMembers) {
+        teamMemberQueryService.inviteMembers(inviteMembers.getProjectId(), inviteMembers.getMemberEmailList());
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
@@ -178,7 +180,7 @@ public class TeamMemberController {
 
     @Operation(
             summary = "팀원 이메일 검색 API | by 노을",
-            description = "초대하고자 하는 유저의 이메일을 검색합니다."
+            description = "초대하고자 하는 유저가 프로젝트에 가입되어있는지 boolean 값으로 응답합니다. true이면 이미 가입된 유저, false이면 가입되지 않은 유저입니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
@@ -202,9 +204,32 @@ public class TeamMemberController {
                     )),
     })
     @GetMapping("/{projectId}/team-members/search")
-    public ApiResponse<TeamMemberResponse.UserEmailList> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
-        List<AccountTable> accountTables = teamMemberQueryService.searchMember(projectId, email);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromAccounts(accountTables));
+    public ApiResponse<TeamMemberResponse.SearchEmail> searchMember(@PathVariable("projectId") Long projectId, @RequestParam("email") String email) {
+        boolean isMember = teamMemberQueryService.searchMember(projectId, email);
+        return ApiResponse.onSuccess(TeamMemberConverter.toSearchEmail(isMember));
+    }
+
+    @Operation(
+            summary = "팀원 초대 수락 API | by 노을",
+            description = "토큰을 입력하여 초대를 수락합니다."
+    )
+    @GetMapping("/team-members/invite")
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
+        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMemberWithToken(token);
+        return ApiResponse.onSuccess(acceptInvitation);
+    }
+
+    @Operation(
+            summary = "projectId와 email을 통해 팀원 초대 수락 API | by 노을",
+            description = "projectId와 email을 입력하여 초대를 수락합니다."
+    )
+    @PostMapping("/team-members/email-invite")
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail) {
+        teamMemberCommandService.inviteMemberWithEmailAndProjectId(
+                inviteWithEmail.getEmail(),
+                inviteWithEmail.getProjectId()
+        );
+        return ApiResponse.onSuccess(null);
     }
 
 }

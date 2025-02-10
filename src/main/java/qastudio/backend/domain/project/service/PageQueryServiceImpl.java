@@ -15,12 +15,11 @@ import java.util.List;
 public class PageQueryServiceImpl implements PageQueryService{
 
     private final PageRepository pageRepository;
-    private final CharacterTableRepository characterTableRepository;
 
     @Override
     public List<Page> getAllPage(Long projectId) {
 
         // 프로젝트에 해당하는 페이지 조회
-        return pageRepository.findAllByProjectId(projectId);
+        return pageRepository.findAllByProjectIdWithFetchJoin(projectId);
     }
 }

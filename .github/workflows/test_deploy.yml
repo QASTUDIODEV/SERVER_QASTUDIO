@@ -64,7 +64,15 @@ jobs:
           key: ${{ env.PRIVATE_KEY }}
           script: |
             TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-            NEW_CONTAINER_NAME="${{ env.CONTAINER_NAME }}_$TIMESTAMP"
+            NEW_CONTAINER_NAME="${{ env.CONTAINER_NAME }}-$TIMESTAMP"
+            
+            # selenium_net create
+            if sudo docker network inspect selenium-net >/dev/null 2>&1; then
+              echo "Network 'selenium-net' already exists."
+            else
+              echo "Creating network 'selenium_net'..."
+              sudo docker network create selenium-net
+            fi
             
             # Check for running container on port 8080
             CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
@@ -75,13 +83,29 @@ jobs:
               sudo docker stop $CONTAINER_ID
             fi
             
+            SELENIUM_CONTAINER=$(sudo docker ps -q --filter "name=selenium_chrome")
+            if [ -z "$SELENIUM_CONTAINER" ]; then
+              echo "Starting Selenium Standalone Chrome container..."
+              sudo docker run -d \
+                  --name selenium-chrome \
+                  --network selenium-net \
+                  -p 4444:4444 \
+                  --shm-size=1.5g \
+                  --memory=4.5g \
+                  --memory-swap=6g \
+                  -e SE_DISABLE_AUTH=true \
+                  selenium/standalone-chrome:132.0
+            else
+              echo "Selenium container is already running."
+            fi
+
             # Pull the latest image from Docker Hubs
             echo "Pulling latest image: ${{ env.DOCKER_IMAGE_NAME }}"
             sudo docker pull ${{ env.DOCKER_IMAGE_NAME }}
             
             # Run the new container
             echo "Starting new container: ${{ env.CONTAINER_NAME }}"
-            sudo docker run --name $NEW_CONTAINER_NAME -d -p 8080:8080 -e TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
+            sudo docker run --name $NEW_CONTAINER_NAME --network selenium-net -d -p 8080:8080 -e TZ=Asia/Seoul ${{ env.DOCKER_IMAGE_NAME }}
             
             # Perform health check
             echo "Performing health check on the new container..."

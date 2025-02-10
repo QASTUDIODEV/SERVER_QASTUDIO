@@ -33,9 +33,11 @@ public class Page extends BaseEntity {
     private Project project;
 
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "page_role_id")
     private List<PageRole> pageRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "page_scenario_id")
     private List<PageScenario> pageScenarios = new ArrayList<>();
 
 }
