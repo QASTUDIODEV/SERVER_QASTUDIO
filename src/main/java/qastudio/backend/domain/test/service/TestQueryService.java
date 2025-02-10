@@ -12,7 +12,7 @@ import java.util.List;
 public interface TestQueryService {
     Page<Test> getTestList(Long projectId, Integer page, String testName, LocalDate date, String pageName, State state);
 
-    Project getTestStatistics(Long projectId);
+    Project getProjectDetail(Long projectId);
 
     List<Tuple> getTestCounts(Long projectId);
 

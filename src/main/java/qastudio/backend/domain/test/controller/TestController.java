@@ -63,7 +63,7 @@ public class TestController {
     })
     @GetMapping("/statistics")
     public ApiResponse<TestResponse.TestStatistics> getTestStatistics(@PathVariable("projectId") Long projectId) {
-        Project project = testQueryService.getTestStatistics(projectId);
+        Project project = testQueryService.getProjectDetail(projectId);
 
         List<Tuple> testCounts = testQueryService.getTestCounts(projectId);
         Double successRate = testQueryService.getSuccessRate(testCounts);

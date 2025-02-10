@@ -2,6 +2,7 @@ package qastudio.backend.domain.test.converter;
 
 import org.springframework.data.domain.Page;
 import qastudio.backend.domain.project.entity.Project;
+import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.test.dto.response.TestResponse;
 import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.domain.test.entity.enums.State;
@@ -16,7 +17,13 @@ public class TestConverter {
             Double successRate,
             Double failRate) {
 
-        Integer participant = project.getUserProjects().size();
+        Integer participant = project.getUserProjects() != null
+                ? (int) project.getUserProjects().stream()
+                .filter(Objects::nonNull)
+                .map(UserProject::getUserEmail)
+                .distinct()
+                .count()
+                : 0;
 
         List<Test> tests = project.getTests();
 

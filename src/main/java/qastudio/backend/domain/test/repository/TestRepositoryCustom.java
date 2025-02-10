@@ -14,5 +14,7 @@ import java.util.Optional;
 public interface TestRepositoryCustom {
     Page<Test> findAllByProject(Project project, String testName, LocalDate date, String pageName, State state, PageRequest pageRequest);
 
+    Optional<Project> findAllByProjectId(Long projectId);
+
     List<Tuple> countTestsByProject(Long projectId);
 }

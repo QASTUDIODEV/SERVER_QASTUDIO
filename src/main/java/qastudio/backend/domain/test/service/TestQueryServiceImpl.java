@@ -41,8 +41,8 @@ public class TestQueryServiceImpl implements TestQueryService{
     }
 
     @Override
-    public Project getTestStatistics(Long projectId) {
-        return projectRepository.findByProjectId(projectId)
+    public Project getProjectDetail(Long projectId) {
+        return testRepository.findAllByProjectId(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
     }
 

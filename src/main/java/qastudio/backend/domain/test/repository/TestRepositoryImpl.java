@@ -68,6 +68,17 @@ public class TestRepositoryImpl implements TestRepositoryCustom{
         return new PageImpl<>(tests, pageRequest, totalCount);
     }
 
+    @Override
+    public Optional<Project> findAllByProjectId(Long projectId) {
+        Project resultProject = jpaQueryFactory
+                .selectFrom(project)
+                .leftJoin(project.tests, test).fetchJoin()
+                .leftJoin(project.userProjects, userProject).fetchJoin()
+                .where(project.id.eq(projectId))
+                .fetchOne();
+        return Optional.ofNullable(resultProject);
+    }
+
 
     @Override
     public List<Tuple> countTestsByProject(Long projectId) {
