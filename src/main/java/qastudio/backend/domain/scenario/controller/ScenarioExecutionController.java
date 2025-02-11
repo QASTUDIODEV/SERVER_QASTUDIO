@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.scenario.dto.request.BaseUrlRequest;
 import qastudio.backend.domain.scenario.service.ScenarioQueryService;
+import qastudio.backend.domain.selenium.dto.request.CustomExecutionRequest;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
@@ -41,6 +42,19 @@ public class ScenarioExecutionController {
         SeleniumExecutionRequest executionRequest = scenarioQueryService.getExecutionRequestByScenarioId(scenarioId, userId, request.getBaseUrl());
         SeleniumExecutionResponse response = seleniumExecutionService.executeTest(sessionId, userId, executionRequest);
 
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @Operation(summary = "레코드 시나리오 실행 API", description = "주어진 URL과 액션을 기반으로 시나리오를 실행합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    @PostMapping("/actions/record")
+    public ResponseEntity<ApiResponse<SeleniumExecutionResponse>> executeActions(
+            @RequestBody CustomExecutionRequest request
+    ) {
+        SeleniumExecutionResponse response = seleniumExecutionService.executeRecordActions(request);
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
     }
 }
