@@ -15,6 +15,7 @@ import qastudio.backend.domain.project.service.TeamMemberCommandService;
 import qastudio.backend.domain.project.service.TeamMemberQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
 
@@ -214,8 +215,8 @@ public class TeamMemberController {
             description = "토큰을 입력하여 초대를 수락합니다."
     )
     @GetMapping("/team-members/invite")
-    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
-        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMemberWithToken(token);
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token, @Auth Long userId) {
+        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMemberWithToken(token, userId);
         return ApiResponse.onSuccess(acceptInvitation);
     }
 
@@ -224,12 +225,13 @@ public class TeamMemberController {
             description = "projectId와 email을 입력하여 초대를 수락합니다."
     )
     @PostMapping("/team-members/email-invite")
-    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail) {
-        teamMemberCommandService.inviteMemberWithEmailAndProjectId(
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail, @Auth Long userId) {
+        TeamMemberResponse.AcceptInvitation res = teamMemberCommandService.inviteMemberWithEmailAndToken(
                 inviteWithEmail.getEmail(),
-                inviteWithEmail.getProjectId()
+                inviteWithEmail.getToken(),
+                userId
         );
-        return ApiResponse.onSuccess(null);
+        return ApiResponse.onSuccess(res);
     }
 
 }

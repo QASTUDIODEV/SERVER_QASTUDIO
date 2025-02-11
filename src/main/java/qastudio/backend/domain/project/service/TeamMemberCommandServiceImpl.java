@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.service;
 
+import ch.qos.logback.core.rolling.helper.TokenConverter;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,14 +68,22 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token) {
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token, Long userId) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
-        Long userId = claims.get("userId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
 
-        if (userId == -1) {
+        if (tokenUserId == -1) {
             return TeamMemberConverter.toAcceptInvitation(projectId);
+        }
+
+        if (!tokenUserId.equals(userId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
         }
 
         String email = claims.get("email", String.class);
@@ -105,13 +114,27 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public void inviteMemberWithEmailAndProjectId(String email, Long projectId) {
-        // 초대하고자 하는 유저
-        Long userId = accountTableRepository.findByEmail(email).stream()
-                .map(AccountTable::getUser)
-                .map(User::getId)
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithEmailAndToken(String email, String token, Long userId) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
+        Claims claims = inviteTokenProvider.validateToken(token);
+        Long projectId = claims.get("projectId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
+
+        if (tokenUserId == -1) {
+            // 초대하고자 하는 유저
+            tokenUserId = accountTableRepository.findByEmail(email).stream()
+                    .map(AccountTable::getUser)
+                    .map(User::getId)
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+        }
+
+        if (!userId.equals(tokenUserId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
+        }
 
         // 중복 초대되었는지 확인
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
@@ -134,7 +157,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
-
+        return TeamMemberConverter.toAcceptInvitation(projectId);
     }
 
     // 프로젝트별 초대 이메일 검증

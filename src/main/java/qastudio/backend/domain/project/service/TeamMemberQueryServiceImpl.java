@@ -136,7 +136,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         String token = inviteTokenProvider.generateToken(projectId, userId, email);
 
         // 초대 링크 생성
-        return "http://localhost:5173/invite?=" + token;
+        return "https://localhost:5173/invite?token=" + token;
     }
 
     private String formattedExpirationDate() {

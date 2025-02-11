@@ -37,8 +37,8 @@ public class TeamMemberRequest {
         @NotBlank(message = "이메일은 필수 입력 값입니다.")
         private String email;
         // projectId
-        @NotNull(message = "projectId는 필수 입력 값입니다.")
-        private Long projectId;
+        @NotBlank(message = "token은 필수 입력 값입니다.")
+        private String token;
     }
 
 }

@@ -29,7 +29,7 @@ public class UserConverter {
         return UserResponse.UserInfo.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
-                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .email(user.getAccounts().get(0).getEmail())
                 .profileImage(user.getProfileImage())
                 .bannerImage(user.getBannerImage())
                 .account(user.getAccounts().stream()
@@ -43,7 +43,7 @@ public class UserConverter {
         return UserResponse.MemberInfo.builder()
                 .userId(memberUser.getId())
                 .nickname(memberUser.getNickname())
-                .email(memberUser.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .email(memberUser.getAccounts().get(0).getEmail())
                 .profileImage(memberUser.getProfileImage())
                 .bannerImage(memberUser.getBannerImage())
                 .projectCnt(projectCnt)
@@ -78,6 +78,12 @@ public class UserConverter {
                 .totalElements(userProjectList.getTotalElements())
                 .isFirst(userProjectList.isFirst())
                 .isLast(userProjectList.isLast())
+                .build();
+    }
+
+    public static UserResponse.UserEmail toUserEmail(User user) {
+        return UserResponse.UserEmail.builder()
+                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
                 .build();
     }
 }
