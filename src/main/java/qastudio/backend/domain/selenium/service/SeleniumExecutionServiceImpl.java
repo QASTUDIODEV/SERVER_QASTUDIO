@@ -9,9 +9,12 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.stereotype.Service;
 import qastudio.backend.domain.selenium.dto.ActionExecutionResult;
+import qastudio.backend.domain.selenium.dto.request.CustomExecutionRequest;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
+import qastudio.backend.domain.selenium.util.CustomActionExecutor;
 import qastudio.backend.domain.selenium.util.SeleniumActionExecutor;
+import qastudio.backend.domain.selenium.util.SeleniumHtmlCssUtil;
 import qastudio.backend.domain.test.dto.request.TestRequest;
 import qastudio.backend.domain.test.entity.enums.State;
 import qastudio.backend.domain.test.repository.ErrorRepository;
@@ -19,9 +22,6 @@ import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 import qastudio.backend.global.s3.service.S3Service;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final ErrorRepository errorRepository;
+
     public SeleniumExecutionResponse fetchPageSource(Long userId, String targetUrl) {
         WebDriver driver = createRemoteWebDriver();
 
@@ -45,7 +46,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         List<String> executionLogs = new ArrayList<>();
 
         try {
-            logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
+            logMemoryUsage("실행 전 JVM 메모리 상태");
             driver.get(targetUrl);
             String html = driver.getPageSource();
             String css = SeleniumActionExecutor.getCurrentPageCss(driver);
@@ -58,16 +59,64 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             if (driver != null) {
                 driver.quit();
                 driver = null;
-                System.gc(); // JVM 가비지 컬렉션 강제 실행
-                logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
             }
+            System.gc(); // JVM 가비지 컬렉션 강제 실행
+            logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
         }
     }
+
+    public SeleniumExecutionResponse executeRecordActions(CustomExecutionRequest request) {
+        WebDriver driver = createRemoteWebDriver();
+
+//        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
+        try {
+            List<String> executionLogs = new ArrayList<>();
+            logMemoryUsage("실행 전 JVM 메모리 상태");
+            driver.get(request.getUrl());
+            ActionExecutionResult executionResult = executeRecordActions(driver, request, executionLogs);
+
+            String currentHtml = driver.getPageSource();
+            String currentCss = SeleniumHtmlCssUtil.getCurrentPageCss(driver);
+
+            return new SeleniumExecutionResponse(
+                    executionResult.hasError() ? State.FAIL.name() : State.SUCCESS.name(),
+                    executionLogs,
+                    currentHtml,
+                    currentCss
+            );
+        } catch (Exception e) {
+            return new SeleniumExecutionResponse("FAIL", List.of("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage()));
+        } finally {
+            if (driver != null) {
+                driver.quit();
+                driver = null;
+            }
+            System.gc(); // JVM 가비지 컬렉션 강제 실행
+            logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
+        }
+    }
+
+    private ActionExecutionResult executeRecordActions(WebDriver driver, CustomExecutionRequest request, List<String> executionLogs) {
+        int executedActions = 0;
+
+        for (CustomExecutionRequest.ActionDetail action : request.getActions()) {
+            executionLogs.add("➡ Step " + action.getStep() + ": " + action.getActionDescription());
+            ActionExecutionResult result = CustomActionExecutor.performRecordAction(driver, action, executionLogs);
+        }
+
+        return new ActionExecutionResult(executedActions, null, null, null);
+    }
+
+
+
+
+
+
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-//        WebDriver driver = createRemoteWebDriver();
+        WebDriver driver = createRemoteWebDriver();
 
-        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
+//        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -104,9 +153,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             if (driver != null) {
                 driver.quit();
                 driver = null;
-                System.gc(); // JVM 가비지 컬렉션 강제 실행
-                logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
             }
+            System.gc(); // JVM 가비지 컬렉션 강제 실행
+            logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
         }
     }
 
