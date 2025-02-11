@@ -74,11 +74,14 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
 
     private String createExecutionResultResponse(String html, String css, Long actionId) {
         try {
+//            PageResultResponse response = new PageResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
             PageResultResponse response = new PageResultResponse(
                     "SUCCESS",
                     List.of("실시간 HTML & CSS 업데이트"),
                     "\"" + StringEscapeUtils.escapeJson(html) + "\"",
                     "\"" + StringEscapeUtils.escapeJson(css) + "\"",
+//                    StringEscapeUtils.escapeHtml4(html),
+//                    StringEscapeUtils.escapeHtml4(css),
                     actionId
             );
             return objectMapper.writeValueAsString(response);
@@ -90,7 +93,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     private void sendSessionId(WebSocketSession session) {
         if (session != null && session.isOpen()) {
             try {
-                String jsonMessage = createSessionIdResponse(session.getId()+ "_\"extraValue\"");
+                String jsonMessage = createSessionIdResponse(session.getId());
                 session.sendMessage(new TextMessage(jsonMessage));
                 log.info("WebSocket 세션 ID 전송 완료: {}", session.getId());
             } catch (IOException e) {
