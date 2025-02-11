@@ -55,7 +55,14 @@ public class UserConverter {
     }
 
     public static UserResponse.UserProject toUserProject(UserProject userProject) {
-        Integer participantCnt = userProject.getProject().getUserProjects().size();
+        Integer participantCnt = Optional.ofNullable(userProject.getProject())
+                .map(Project::getUserProjects)
+                .map(userProjects -> (int) userProjects.stream()
+                        .filter(Objects::nonNull)
+                        .map(UserProject::getUserEmail)
+                        .distinct()
+                        .count())
+                .orElse(0);
 
         LocalDate lastModifiedDate = Optional.ofNullable(userProject.getProject())
                 .map(Project::getTests)
