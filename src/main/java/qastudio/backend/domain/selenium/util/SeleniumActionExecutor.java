@@ -50,7 +50,7 @@ public class SeleniumActionExecutor {
         WebElement webElement = null;
         try {
             webElement = findElementSafely(driver, actionDetail);
-            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
             sleep(3000);
 
             if (webElement == null) {
@@ -61,14 +61,14 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
-            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId());
-//            sendHtmlAndCssUpdate(driver, sessionId, logs);
+            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
             logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
             // 브라우저 화면 캡처 및 S3 업로드
             String imageUrl = captureScreenshotAndUpload(driver);
+            webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
         } finally {
@@ -136,14 +136,14 @@ public class SeleniumActionExecutor {
         }
     }
 
-    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId) {
+    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
         if (webSocketHandler != null) {
             try {
                 String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
                 String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
 
                 logs.add("실시간 HTML & CSS 전송");
-                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId);
+                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
             } catch (Exception e) {
                 logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
             }

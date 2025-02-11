@@ -14,6 +14,9 @@ public class PageResultResponse {
     @Schema(description = "실행 상태 (SUCCESS / FAILURE)", example = "SUCCESS")
     private String status;
 
+    @Schema(description = "실행 단계", example = "BEFORE_ACTION")
+    private String phase;
+
     @Schema(description = "실행 로그", example = "[\"Scenario 실행 시작\", \"URL 접근: https://www.wikipedia.org\"]")
     private List<String> executionLogs;
 

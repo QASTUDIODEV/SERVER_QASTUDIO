@@ -58,11 +58,11 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
     public boolean shouldStopExecution(String sessionId) {
         return stopExecutionFlags.getOrDefault(sessionId, false);
     }
-    public void sendHtmlAndCss(String sessionId, String html, String css, Long actionId) {
+    public void sendHtmlAndCss(String sessionId, String html, String css, Long actionId, String status, String phase) {
         WebSocketSession session = sessions.get(sessionId);
         if (session != null && session.isOpen()) {
             try {
-                String jsonMessage = createExecutionResultResponse(html, css, actionId);
+                String jsonMessage = createExecutionResultResponse(html, css, actionId, status, phase);
                 session.sendMessage(new TextMessage(jsonMessage));
                 log.info("WebSocket 메시지 전송 완료: {}", sessionId);
             } catch (IOException e) {
@@ -72,11 +72,12 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private String createExecutionResultResponse(String html, String css, Long actionId) {
+    private String createExecutionResultResponse(String html, String css, Long actionId, String status, String phase) {
         try {
 //            PageResultResponse response = new PageResultResponse("SUCCESS", List.of("실시간 HTML & CSS 업데이트"), html, css, actionId);
             PageResultResponse response = new PageResultResponse(
-                    "SUCCESS",
+                    status,
+                    phase,
                     List.of("실시간 HTML & CSS 업데이트"),
                     "\"" + StringEscapeUtils.escapeJson(html) + "\"",
                     "\"" + StringEscapeUtils.escapeJson(css) + "\"",
@@ -87,6 +88,26 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
             return objectMapper.writeValueAsString(response);
         } catch (IOException e) {
             throw new WebSocketException(ErrorStatus.JSON_PROCESSING_ERROR);
+        }
+    }
+
+    public void sendFailureMessage(String sessionId, Long actionId, String status, String phase, String errorMessage) {
+        WebSocketSession session = sessions.get(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                Map<String, Object> message = new HashMap<>();
+                message.put("actionId", actionId);
+                message.put("status", status);
+                message.put("phase", phase);
+                message.put("error", errorMessage);
+
+                String jsonMessage = objectMapper.writeValueAsString(message);
+                session.sendMessage(new TextMessage(jsonMessage));
+                log.info("WebSocket 실패 메시지 전송 완료: {}", sessionId);
+            } catch (IOException e) {
+                log.error("❌ WebSocket 실패 메시지 전송 실패: {}", e.getMessage());
+                throw new WebSocketException(ErrorStatus.WEBSOCKET_MESSAGE_SEND_FAIL);
+            }
         }
     }
 
