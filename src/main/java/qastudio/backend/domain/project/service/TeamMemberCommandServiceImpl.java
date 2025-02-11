@@ -1,5 +1,6 @@
 package qastudio.backend.domain.project.service;
 
+import ch.qos.logback.core.rolling.helper.TokenConverter;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +114,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     }
 
     @Override
-    public void inviteMemberWithEmailAndToken(String email, String token, Long userId) {
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithEmailAndToken(String email, String token, Long userId) {
         if (token == null || token.trim().isEmpty()) {
             throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
         }
@@ -156,7 +157,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
-
+        return TeamMemberConverter.toAcceptInvitation(projectId);
     }
 
     // 프로젝트별 초대 이메일 검증
