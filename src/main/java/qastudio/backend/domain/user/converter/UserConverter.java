@@ -3,6 +3,7 @@ package qastudio.backend.domain.user.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
@@ -10,7 +11,10 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.test.entity.Test;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -53,8 +57,13 @@ public class UserConverter {
     public static UserResponse.UserProject toUserProject(UserProject userProject) {
         Integer participantCnt = userProject.getProject().getUserProjects().size();
 
-        LocalDate lastModifiedDate = userProject.getProject().getTests().stream()
+        LocalDate lastModifiedDate = Optional.ofNullable(userProject.getProject())
+                .map(Project::getTests)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
                 .map(Test::getTestDate)
+                .filter(Objects::nonNull)
                 .max(LocalDate::compareTo)
                 .orElse(null);
 
