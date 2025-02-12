@@ -43,6 +43,7 @@ public class SeleniumWebSocketHandler extends TextWebSocketHandler {
         log.info("WebSocket 연결 종료: {}", session.getId());
         sessions.remove(session.getId());
         stopExecutionFlags.remove(session.getId());
+
     }
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
