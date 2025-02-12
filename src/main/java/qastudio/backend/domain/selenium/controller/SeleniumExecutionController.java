@@ -3,6 +3,7 @@ package qastudio.backend.domain.selenium.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import qastudio.backend.domain.selenium.dto.request.FetchPageSourceRequest;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
@@ -28,7 +29,7 @@ public class SeleniumExecutionController {
     @PostMapping("/fetchPageSource")
     public SeleniumExecutionResponse fetchPageSource(
             @Auth Long userId,
-            @RequestParam String targetUrl) {
-        return seleniumExecutionService.fetchPageSource(userId, targetUrl);
+            @RequestBody FetchPageSourceRequest request) {
+        return seleniumExecutionService.fetchPageSource(userId, request.getTargetUrl());
     }
 }
