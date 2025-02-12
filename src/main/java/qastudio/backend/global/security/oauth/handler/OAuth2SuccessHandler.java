@@ -40,7 +40,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final StringRedisTemplate redisTemplate;
 
-    private static final String REDIRECT_URL = "https://localhost:5173/login/success";
+    private static final String REDIRECT_URL = "https://www.qa-studio.com/login/success";
 
     @Override
     @Transactional

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
 
-    private static final String REDIRECT_URL = "https://localhost:5173/login/success";
+    private static final String REDIRECT_URL = "https://www.qa-studio.com/login/success";
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
