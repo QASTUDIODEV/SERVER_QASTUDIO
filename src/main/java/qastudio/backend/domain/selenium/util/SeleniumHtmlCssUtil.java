@@ -23,7 +23,13 @@ public class SeleniumHtmlCssUtil {
             }
         }
     }
-
+    public static String getCurrentPageHtmlWithInputs(WebDriver driver) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        return (String) js.executeScript(
+                "document.querySelectorAll('input, textarea').forEach(el => el.setAttribute('value', el.value)); " +
+                        "return document.documentElement.outerHTML;"
+        );
+    }
     public static String getCurrentPageCss(WebDriver driver) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
