@@ -7,6 +7,7 @@ import qastudio.backend.domain.selenium.dto.request.FetchPageSourceRequest;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.dto.response.SeleniumExecutionResponse;
 import qastudio.backend.domain.selenium.service.SeleniumExecutionService;
+import qastudio.backend.global.apiPayload.ApiResponse;
 import qastudio.backend.global.handler.annotation.Auth;
 
 @RestController
@@ -27,9 +28,9 @@ public class SeleniumExecutionController {
 
     @Operation(summary = "페이지 소스 가져오기 |by 준", description = "입력된 URL을 기반으로 페이지의 HTML과 CSS를 가져옵니다.")
     @PostMapping("/fetchPageSource")
-    public SeleniumExecutionResponse fetchPageSource(
+    public ApiResponse<SeleniumExecutionResponse> fetchPageSource(
             @Auth Long userId,
             @RequestBody FetchPageSourceRequest request) {
-        return seleniumExecutionService.fetchPageSource(userId, request.getTargetUrl());
-    }
+        SeleniumExecutionResponse response = seleniumExecutionService.fetchPageSource(userId, request.getTargetUrl());
+        return ApiResponse.onSuccess((response));    }
 }
