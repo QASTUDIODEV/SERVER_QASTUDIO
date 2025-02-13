@@ -71,12 +71,6 @@ public class SeleniumActionExecutor {
             webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
-        } finally {
-            webElement = null; // 메모리 해제
-            if (webSocketHandler != null) {
-                webSocketHandler.closeSession(sessionId);
-            }
-            System.gc(); // 가비지 컬렉션 실행
         }
     }
 
