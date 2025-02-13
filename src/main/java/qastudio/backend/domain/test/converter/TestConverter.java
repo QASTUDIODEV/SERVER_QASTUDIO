@@ -85,7 +85,12 @@ public class TestConverter {
         List<TestResponse.Test> testLists = testList.stream()
                 .map(TestConverter::toTest).collect(Collectors.toList());
 
+        String projectUrl = testList.getContent().isEmpty()
+                ? null
+                : testList.getContent().get(0).getProject().getProjectUrl();
+
         return TestResponse.TestList.builder()
+                .projectUrl(projectUrl)
                 .testList(testLists)
                 .listSize(testLists.size())
                 .totalPage(testList.getTotalPages())
