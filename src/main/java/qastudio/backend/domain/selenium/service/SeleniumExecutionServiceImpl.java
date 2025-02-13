@@ -143,9 +143,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             if (errorId != null) {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
-
-            return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs);
-
+            return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs, null, null, testId);
         } catch (Exception e) {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
             return new SeleniumExecutionResponse("FAIL", executionLogs);
