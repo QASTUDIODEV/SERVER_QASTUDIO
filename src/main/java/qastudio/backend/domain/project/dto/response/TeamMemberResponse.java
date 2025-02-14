@@ -23,6 +23,7 @@ public class TeamMemberResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class UserEmailList {
         private List<UserEmail> userEmails;
+        private List<String> unacceptedMembers;
     }
 
     @Getter
@@ -49,6 +50,8 @@ public class TeamMemberResponse {
     public static class MemberList {
         // 멤버 리스트
         private List<Member> members;
+        // 초대를 수락하지 않은 이메일
+        private List<String> unacceptedMembers;
     }
 
     @Getter

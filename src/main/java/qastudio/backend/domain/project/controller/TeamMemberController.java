@@ -103,8 +103,8 @@ public class TeamMemberController {
     })
     @GetMapping("/{projectId}/team-members")
     public ApiResponse<TeamMemberResponse.MemberList> getTeamMemberList(@PathVariable("projectId") Long projectId) {
-        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberList(projectId);
-        return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
+        TeamMemberResponse.MemberList memberList = teamMemberQueryService.getTeamMemberList(projectId);
+        return ApiResponse.onSuccess(memberList);
     }
 
     @Operation(
@@ -125,8 +125,8 @@ public class TeamMemberController {
     })
     @GetMapping("/{projectId}/team-members/emails")
     public ApiResponse<TeamMemberResponse.UserEmailList> getTeamMemberExceptLeader(@PathVariable("projectId") Long projectId) {
-        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromUserProjects(userProjects));
+        TeamMemberResponse.UserEmailList userEmailList = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
+        return ApiResponse.onSuccess(userEmailList);
     }
 
     // EmailList

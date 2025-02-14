@@ -7,7 +7,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qastudio.backend.domain.auth.service.EmailQueryService;
+import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
+import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
 import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
@@ -45,12 +47,23 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public List<UserProject> getTeamMemberList(Long projectId) {
+    public TeamMemberResponse.MemberList getTeamMemberList(Long projectId) {
+        // 초대를 수락하지 않은 유저
+        List<String> unacceptedMembers = getInvitationEmails(projectId);
         // UserProject 조회
-        return userProjectRepository.findByProjectId(projectId);
-
+        List<UserProject> userProjects = userProjectRepository.findByProjectId(projectId);
+        return TeamMemberConverter.toMemberList(userProjects, unacceptedMembers);
     }
 
+    private List<String> getInvitationEmails(Long projectId) {
+        Set<String> keys = redisTemplate.keys("invite:" + projectId + ":*");
+
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+
+        return redisTemplate.opsForValue().multiGet(keys);
+    }
 
     @Override
     public boolean searchMember(Long projectId, String email) {
@@ -80,9 +93,14 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     }
 
     @Override
-    public List<UserProject> getTeamMemberExceptLeader(Long projectId) {
+    public TeamMemberResponse.UserEmailList  getTeamMemberExceptLeader(Long projectId) {
         // UserProject 조회
-        return userProjectRepository.findByProjectIdExcludingLeader(projectId);    }
+        List<UserProject> userProjects = userProjectRepository.findByProjectIdExcludingLeader(projectId);
+        // 초대를 수락하지 않은 유저 조회
+        List<String> unacceptedMembers = getInvitationEmails(projectId);
+
+        return TeamMemberConverter.toUserEmailListFromUserProjects(userProjects, unacceptedMembers);
+    }
 
     @Override
     public void inviteMembers(Long projectId, List<TeamMemberRequest.MemberEmail> memberEmailList) {

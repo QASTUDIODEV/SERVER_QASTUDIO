@@ -157,7 +157,16 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
+
+        // 초대 이메일 삭제
+        removeInvitationEmail(projectId, email);
+
         return TeamMemberConverter.toAcceptInvitation(projectId);
+    }
+
+    private void removeInvitationEmail(Long projectId, String email) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        redisTemplate.delete(redisKey);
     }
 
     // 프로젝트별 초대 이메일 검증
