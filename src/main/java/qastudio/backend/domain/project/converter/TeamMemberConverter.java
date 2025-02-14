@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class TeamMemberConverter {
 
-    public static TeamMemberResponse.UserEmailList toUserEmailListFromUserProjects(List<UserProject> userProjects) {
+    public static TeamMemberResponse.UserEmailList toUserEmailListFromUserProjects(List<UserProject> userProjects, List<String> unacceptedMembers) {
 
         List<TeamMemberResponse.UserEmail> members = userProjects.stream()
                 .map(userProject -> {
@@ -28,11 +28,12 @@ public class TeamMemberConverter {
 
         return TeamMemberResponse.UserEmailList.builder()
                 .userEmails(members)
+                .unacceptedMembers(unacceptedMembers)
                 .build();
 
     }
 
-    public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects) {
+    public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects, List<String> unacceptedMembers) {
 
         List<TeamMemberResponse.Member> members = userProjects.stream()
                 .map(userProject -> {
@@ -50,8 +51,9 @@ public class TeamMemberConverter {
                 .collect(Collectors.toList());
 
         return TeamMemberResponse.MemberList.builder()
-                    .members(members)
-                    .build();
+                .members(members)
+                .unacceptedMembers(unacceptedMembers)
+                .build();
     }
 
     public static TeamMemberResponse.UserEmailList toUserEmailListFromAccounts(List<AccountTable> accounts) {
