@@ -177,6 +177,40 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     }
 
     @Override
+    public void deleteProject(Long projectId, Long userId) {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // 유저 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        // 해당 유저가 프로젝트 팀 멤버인지 확인
+        boolean isMember = project.getUserProjects().stream()
+                .filter(userProject -> userProject != null && userProject.getUser() != null)
+                .anyMatch(userProject -> userProject.getUser().getId().equals(userId));
+
+        if (!isMember) {
+            throw new BadRequestException(ErrorStatus.USER_NOT_TEAM_MEMBER);
+        }
+
+        // 해당 유저가 프로젝트의 LEADER인지 확인
+        boolean isLeader = project.getUserProjects().stream()
+                .filter(userProject -> userProject != null && userProject.getUser() != null)
+                .anyMatch(userProject -> userProject.getUser().getId().equals(userId)
+                        && userProject.getRole() == Role.LEADER);
+
+        if (!isLeader) {
+            throw new BadRequestException(ErrorStatus.USER_NOT_LEADER);
+        }
+
+        projectRepository.delete(project);
+    }
+
+
+
+    @Override
     public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)

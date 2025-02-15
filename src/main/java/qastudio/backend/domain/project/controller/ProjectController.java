@@ -167,4 +167,17 @@ public class ProjectController {
         return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
     }
 
+    @Operation(
+            summary = "프로젝트 삭제 API | by 노을",
+            description = "프로젝트를 삭제합니다."
+    )
+    @DeleteMapping("/{projectId}")
+    public ApiResponse<Void> deleteProject(
+            @PathVariable("projectId") Long projectId,
+            @Auth Long userId
+    ) {
+        projectCommandService.deleteProject(projectId, userId);
+        return ApiResponse.onSuccess(null);
+    }
+
 }
