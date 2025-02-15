@@ -12,4 +12,6 @@ public interface ProjectCommandService {
     Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce);
 
     ProjectCreation createProject(Long userId, ProjectRequest.CreateProject createProject);
+
+    void deleteProject(Long projectId, Long userId);
 }

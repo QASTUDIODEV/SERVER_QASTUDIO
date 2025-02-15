@@ -101,11 +101,15 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
+
         // 중복 초대되었다면 생성하지 않고 projectId 응답
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
         if (isAlreadyInvited) {
             return TeamMemberConverter.toAcceptInvitation(projectId);
         }
+
+        // 초대 이메일 삭제
+        removeInvitationEmail(projectId, email);
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);

@@ -52,6 +52,7 @@ public enum ErrorStatus implements BaseErrorCode {
     // Project-related errors
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404", "The project does not exist."),
     UNAUTHORIZED_PROJECT(HttpStatus.UNAUTHORIZED, "PROJECT403", "Uninvited projects cannot be viewed"),
+    USER_NOT_LEADER(HttpStatus.UNAUTHORIZED, "PROJECT403", "The user is not leader"),
 
     // Character-related errors
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER404", "The character does not exist."),
@@ -66,6 +67,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_INVITATION(HttpStatus.UNAUTHORIZED, "MEMBER401", "This email has not been invited."),
     TOKEN_MISSING(HttpStatus.BAD_REQUEST, "MEMBER400", "token is null"),
     UNAUTHORIZED_INVITATION(HttpStatus.UNAUTHORIZED, "MEMBER403", "The user does not have permission to approve the invitation request."),
+    USER_NOT_TEAM_MEMBER(HttpStatus.UNAUTHORIZED, "MEMBER403", "The user is not team member"),
 
     // Page-related errors
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "PAGE404", "The page does not exist."),
