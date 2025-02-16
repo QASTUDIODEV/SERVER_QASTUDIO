@@ -21,4 +21,7 @@ public interface TeamMemberQueryService {
     List<String> getInvitationEmails(Long projectId);
 
     void saveInvitationEmail(Long projectId, String email, long expirationMillis);
+
+    TeamMemberResponse.AllUserEmails getTeamMemberEmailExceptLeader(Long projectId);
+
 }

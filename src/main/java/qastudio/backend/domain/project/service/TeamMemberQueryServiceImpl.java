@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -174,5 +175,22 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     public void saveInvitationEmail(Long projectId, String email, long expirationMillis) {
         String redisKey = "invite:" + projectId + ":" + email;
         redisTemplate.opsForValue().set(redisKey, email, expirationMillis, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public TeamMemberResponse.AllUserEmails getTeamMemberEmailExceptLeader(Long projectId) {
+        // UserProject 조회 (LEADER 제외)
+        List<UserProject> userProjects = userProjectRepository.findByProjectIdExcludingLeader(projectId);
+        // 이메일 리스트 생성
+        List<String> memberEmails = userProjects.stream()
+                .map(UserProject::getUserEmail)
+                .toList();
+        // 초대를 수락하지 않은 유저 조회
+        List<String> unacceptedMembers = getInvitationEmails(projectId);
+        // 두 리스트 합치기 & 중복 제거
+        List<String> allMembers = Stream.concat(memberEmails.stream(), unacceptedMembers.stream())
+                .distinct()
+                .toList();
+        return TeamMemberConverter.toAllUserEmails(allMembers);
     }
 }
