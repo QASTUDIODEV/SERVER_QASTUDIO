@@ -6,7 +6,7 @@ import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
 
 
 public interface TeamMemberCommandService {
-    void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember);
+    void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember, Long userId);
     TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token, Long userId);
     TeamMemberResponse.AcceptInvitation inviteMemberWithEmailAndToken(String email, String token, Long userId);
 

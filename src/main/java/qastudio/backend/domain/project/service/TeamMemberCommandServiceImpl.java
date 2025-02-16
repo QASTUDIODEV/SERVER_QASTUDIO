@@ -42,18 +42,33 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
 
     @Override
-    public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
+    public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember, Long userId) {
+        // 현재 요청을 보낸 사용자가 해당 프로젝트의 LEADER인지 확인
+        UserProject requestingUserProject = userProjectRepository.findByUserIdAndProjectId(userId, projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        if (!requestingUserProject.getRole().equals(Role.LEADER)) {
+            throw new TeamMemberException(ErrorStatus.USER_NOT_LEADER);
+        }
+
         String email = deleteMember.getEmail();
 
+        // 수락하지 않은 팀원 리스트에 이메일이 있는지 확인
+        if (isInvitationValid(projectId, email)) {
+            // 초대 이메일 삭제
+            removeInvitationEmail(projectId, email);
+            return;
+        }
+
         // 삭제하고자 하는 유저
-        Long userId = accountTableRepository.findByEmail(email).stream()
+        Long deleteUserId = accountTableRepository.findByEmail(email).stream()
                 .map(AccountTable::getUser)
                 .map(User::getId)
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         // user의 이메일 정보가 요청을 보낸 이메일과 맞는지 확인
-        boolean match = accountTableRepository.existsByUserIdAndEmail(userId, email);
+        boolean match = accountTableRepository.existsByUserIdAndEmail(deleteUserId, email);
         if (!match) {
             throw new BadRequestException(ErrorStatus.UNMATCHED_USER);
         }
@@ -63,7 +78,7 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         // 유저 삭제
         userProjects.stream()
-                .filter(userProject -> userProject.getUser().getId().equals(userId)) // userId가 일치하는 항목 필터링
+                .filter(userProject -> userProject.getUser().getId().equals(deleteUserId)) // deleteUserId가 일치하는 항목 필터링
                 .forEach(userProjectRepository::delete);
 
     }
