@@ -55,6 +55,9 @@ public class Project extends BaseEntity {
     @OrderColumn(name = "test_id")
     private List<Test> tests = new ArrayList<>();
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Page> pages = new ArrayList<>();
+
     public void updateProjectInfo(String assistantId, String introduction, String viewType, String developmentSkill) {
         this.assistantId = assistantId;
         this.introduction = introduction;
