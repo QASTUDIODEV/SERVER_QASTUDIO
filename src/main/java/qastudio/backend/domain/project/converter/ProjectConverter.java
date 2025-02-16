@@ -23,7 +23,7 @@ public class ProjectConverter {
         this.s3Service = s3Service;
     }
 
-    public static ProjectResponse.ProjectDetail toProjectDetail(Project project) {
+    public static ProjectResponse.ProjectDetail toProjectDetail(Project project, Boolean isLeader) {
         return ProjectResponse.ProjectDetail.builder()
                 .projectId(project.getId())
                 .projectImage(project.getProjectImage())
@@ -33,6 +33,7 @@ public class ProjectConverter {
                 .viewType(project.getViewType())
                 .assistantId(project.getAssistantId())
                 .developmentSkill(project.getDevelopmentSkill())
+                .isLeader(isLeader)
                 .build();
     }
 

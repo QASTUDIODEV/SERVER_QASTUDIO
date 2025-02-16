@@ -166,7 +166,7 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         // 프로젝트 생성자 (Leader) 설정
-        UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(null).build();
+        UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(user.getAccounts().get(0).getEmail()).build();
         userProjectRepository.save(userProject);
 
         // 팀원 초대
