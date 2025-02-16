@@ -53,6 +53,13 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         String email = deleteMember.getEmail();
 
+        // 수락하지 않은 팀원 리스트에 이메일이 있는지 확인
+        if (isInvitationValid(projectId, email)) {
+            // 초대 이메일 삭제
+            removeInvitationEmail(projectId, email);
+            return;
+        }
+
         // 삭제하고자 하는 유저
         Long deleteUserId = accountTableRepository.findByEmail(email).stream()
                 .map(AccountTable::getUser)
