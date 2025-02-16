@@ -55,7 +55,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
         return TeamMemberConverter.toMemberList(userProjects, unacceptedMembers);
     }
 
-    private List<String> getInvitationEmails(Long projectId) {
+    public List<String> getInvitationEmails(Long projectId) {
         Set<String> keys = redisTemplate.keys("invite:" + projectId + ":*");
 
         if (keys == null || keys.isEmpty()) {
@@ -129,8 +129,14 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
             }
 
             // 팀원 초대
-            inviteMemberWithEmail(email, project.getProjectName(), formattedExpirationDate(), generateInvitationLink(projectId, userId, email));
+            inviteMember(email, project, userId);
+            // inviteMemberWithEmail(email, project.getProjectName(), formattedExpirationDate(), generateInvitationLink(projectId, userId, email));
         });
+    }
+
+    public void inviteMember(String email, Project project, Long userId) {
+        // 팀원 초대
+        inviteMemberWithEmail(email, project.getProjectName(), formattedExpirationDate(), generateInvitationLink(project.getId(), userId, email));
     }
 
 
@@ -165,7 +171,7 @@ public class TeamMemberQueryServiceImpl implements TeamMemberQueryService {
     }
 
     // 프로젝트별 초대 이메일 redis 저장
-    private void saveInvitationEmail(Long projectId, String email, long expirationMillis) {
+    public void saveInvitationEmail(Long projectId, String email, long expirationMillis) {
         String redisKey = "invite:" + projectId + ":" + email;
         redisTemplate.opsForValue().set(redisKey, email, expirationMillis, TimeUnit.MILLISECONDS);
     }
