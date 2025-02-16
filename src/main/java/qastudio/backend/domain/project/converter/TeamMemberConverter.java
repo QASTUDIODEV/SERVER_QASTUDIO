@@ -90,4 +90,10 @@ public class TeamMemberConverter {
                 .isQastudioMember(isMember)
                 .build();
     }
+
+    public static TeamMemberResponse.AllUserEmails toAllUserEmails(List<String> emails) {
+        return TeamMemberResponse.AllUserEmails.builder()
+                .members(emails)
+                .build();
+    }
 }

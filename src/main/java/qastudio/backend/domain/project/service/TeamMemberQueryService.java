@@ -14,4 +14,6 @@ public interface TeamMemberQueryService {
     TeamMemberResponse.UserEmailList getTeamMemberExceptLeader(Long projectId);
 
     void inviteMembers(Long projectId, List<TeamMemberRequest.MemberEmail> memberEmailList);
+
+    TeamMemberResponse.AllUserEmails getTeamMemberEmailExceptLeader(Long projectId);
 }

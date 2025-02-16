@@ -30,6 +30,14 @@ public class TeamMemberResponse {
     @Builder
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class AllUserEmails {
+        private List<String> members;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class Member {
         // 유저 pk
         private Long userId;
