@@ -252,4 +252,14 @@ public class TeamMemberController {
         return ApiResponse.onSuccess(null);
     }
 
+    @Operation(
+            summary = "프로젝트 팀원 모든 이메일 조회 API | by 노을",
+            description = "승낙 여부에 상관없이 모든 이메일을 조회합니다."
+    )
+    @GetMapping("/{projectId}/team-members/all-emails")
+    public ApiResponse<TeamMemberResponse.AllUserEmails> getTeamMemberEmailExceptLeader(@PathVariable("projectId") Long projectId) {
+        TeamMemberResponse.AllUserEmails userEmailList = teamMemberQueryService.getTeamMemberEmailExceptLeader(projectId);
+        return ApiResponse.onSuccess(userEmailList);
+    }
+
 }
