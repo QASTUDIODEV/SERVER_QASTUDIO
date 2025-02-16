@@ -54,17 +54,20 @@ public class ProjectConverter {
     }
 
     public Project toProject(ProjectRequest.CreateProject request) {
-        String staticUrl = null;
-
-        if (StringUtils.hasText(request.getProjectImage())) {
-            staticUrl = s3Service.generateStaticUrl(request.getProjectImage());
-        }
+        String staticUrl = getStaticUrl(request.getProjectImage());
 
         return Project.builder()
                 .projectName(request.getProjectName())
                 .projectImage(staticUrl)
                 .projectUrl(request.getProjectUrl())
                 .build();
+    }
+
+    public String getStaticUrl (String projectImage) {
+        if(StringUtils.hasText(projectImage)) {
+            return s3Service.generateStaticUrl(projectImage);
+        }
+        return null;
     }
 
     public ProjectCreation toProjectCreationResponse(UserProject userProject, List<TeamMemberRequest.MemberEmail> memberEmailList, Project newProject) {

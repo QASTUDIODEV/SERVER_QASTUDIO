@@ -233,8 +233,10 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
         Project project = projectRepository.findByProjectId(projectId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
 
+        String staticUrls = projectConverter.getStaticUrl(updateProject.getProjectImage());
+
         // 프로젝트 정보 수정
-        project.updateProject(updateProject.getProjectName(), updateProject.getProjectImage(), updateProject.getProjectUrl());
+        project.updateProject(updateProject.getProjectName(), staticUrls, updateProject.getProjectUrl());
 
         // UserProject 조회 (LEADER 제외)
         List<UserProject> userProjects = userProjectRepository.findByProjectIdExcludingLeader(projectId);
