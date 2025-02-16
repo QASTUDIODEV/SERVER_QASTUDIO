@@ -234,4 +234,18 @@ public class TeamMemberController {
         return ApiResponse.onSuccess(res);
     }
 
+    @Operation(
+            summary = "프로젝트 권한 변경 API | by 노을",
+            description = "일반 유저에서 LEADER로 권한을 변경합니다. 방장만 가능합니다."
+    )
+    @PostMapping("/{projectId}/team-members/change-permissions")
+    public ApiResponse<Void> changePermission(
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid TeamMemberRequest.ChangePermission changePermission,
+            @Auth Long userId
+    ) {
+        teamMemberCommandService.changePermission(changePermission, projectId, userId);
+        return ApiResponse.onSuccess(null);
+    }
+
 }

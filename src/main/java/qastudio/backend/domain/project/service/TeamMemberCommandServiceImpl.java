@@ -19,6 +19,7 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.exception.custom.TeamMemberException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
@@ -166,6 +167,29 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         removeInvitationEmail(projectId, email);
 
         return TeamMemberConverter.toAcceptInvitation(projectId);
+    }
+
+
+
+    @Override
+    @Transactional
+    public void changePermission(TeamMemberRequest.ChangePermission changePermission, Long projectId, Long userId) {
+        // 현재 요청을 보낸 사용자가 해당 프로젝트의 LEADER인지 확인
+        UserProject requestingUserProject = userProjectRepository.findByUserIdAndProjectId(userId, projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        if (!requestingUserProject.getRole().equals(Role.LEADER)) {
+            throw new TeamMemberException(ErrorStatus.USER_NOT_LEADER);
+        }
+
+        // member로 변경
+        requestingUserProject.updateRole(Role.MEMBER);
+
+        UserProject targetUserProject = userProjectRepository.findByUserIdAndProjectId(changePermission.getUserId(), projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        // LEADER로 변경
+        targetUserProject.updateRole(Role.LEADER);
     }
 
     private void removeInvitationEmail(Long projectId, String email) {

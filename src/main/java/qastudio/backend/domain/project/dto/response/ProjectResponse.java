@@ -52,6 +52,8 @@ public class ProjectResponse {
         private ProjectStack developmentSkill;
         // assistant_id
         protected String assistantId;
+        // 방장인가?
+        private Boolean isLeader;
     }
 
     @Getter

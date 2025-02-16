@@ -41,4 +41,11 @@ public class TeamMemberRequest {
         private String token;
     }
 
+    @Getter
+    public static class ChangePermission {
+        // userId
+        @NotNull(message = "userId는 필수 값입니다.")
+        private Long userId;
+    }
+
 }

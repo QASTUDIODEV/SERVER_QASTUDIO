@@ -89,7 +89,7 @@ public class ProjectController {
         }
 
         Project project = projectCommandService.uploadProjectFile(userId, projectId, zipFile, jwtToken);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project, true)); // isLead
     }
 
     @Operation(
@@ -119,8 +119,8 @@ public class ProjectController {
     })
     @GetMapping("/{projectId}")
     public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId, @Auth Long userId) {
-        Project project = projectQueryService.getSummarizedProjectInfo(projectId, userId);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+        ProjectResponse.ProjectDetail projectDetail = projectQueryService.getSummarizedProjectInfo(projectId, userId);
+        return ApiResponse.onSuccess(projectDetail);
     }
 
     @Operation(
@@ -162,9 +162,9 @@ public class ProjectController {
                     )),
     })
     @PatchMapping("/{projectId}")
-    public ApiResponse<ProjectResponse.ProjectDetail> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
-        Project project = projectCommandService.updateProjectIntroduction(projectId, updateIntroduce);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+    public ApiResponse<Void> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
+        projectCommandService.updateProjectIntroduction(projectId, updateIntroduce);
+        return ApiResponse.onSuccess(null);
     }
 
     @Operation(
