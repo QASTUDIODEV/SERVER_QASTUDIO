@@ -49,6 +49,19 @@ public class ProjectController {
     }
 
     @Operation(
+            summary = "프로젝트 수정 API | by 노을",
+            description = "프로젝트 이미지, 프로젝트 이름, 프로젝트 url, 프로젝트를 공유하는 사람을 수정합니다. 프로젝트 이미지는 presigned/upload로 업로드 후, response.result의 keyName만 projectImage로 주세요"
+    )
+    @PutMapping(value = "/{projectId}")
+    public ApiResponse<Void> updateProject(
+            @Auth Long userId,
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid ProjectRequest.UpdateProject updateProject){
+        projectCommandService.updateProject(userId, projectId, updateProject);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(
             summary = "zip 파일 업로드 API | by 노을",
             description = "zip파일을 업로드하여 프로젝트 구조를 학습합니다."
     )

@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
@@ -79,5 +80,11 @@ public class Project extends BaseEntity {
 
     public void updateIntroduction(String introduction) {
         this.introduction = introduction;
+    }
+
+    public void updateProject(String projectName, String projectImage, String projectUrl) {
+        this.projectImage = projectImage;
+        this.projectName = projectName;
+        this.projectUrl = projectUrl;
     }
 }

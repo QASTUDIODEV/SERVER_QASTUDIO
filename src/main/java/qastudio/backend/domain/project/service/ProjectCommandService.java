@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.response.ProjectResponse.ProjectCreation;
@@ -14,4 +15,6 @@ public interface ProjectCommandService {
     ProjectCreation createProject(Long userId, ProjectRequest.CreateProject createProject);
 
     void deleteProject(Long projectId, Long userId);
+
+    void updateProject(Long userId, Long projectId, ProjectRequest.UpdateProject updateProject);
 }
