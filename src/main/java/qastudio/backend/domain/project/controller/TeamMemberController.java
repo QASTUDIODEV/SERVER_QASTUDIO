@@ -174,8 +174,12 @@ public class TeamMemberController {
                     )),
     })
     @DeleteMapping("/{projectId}/team-members")
-    public ApiResponse<Void> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.MemberEmail inviteMember) {
-        teamMemberCommandService.deleteMembers(projectId, inviteMember);
+    public ApiResponse<Void> deleteMembers(
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid TeamMemberRequest.MemberEmail inviteMember,
+            @Auth Long userId
+    ) {
+        teamMemberCommandService.deleteMembers(projectId, inviteMember, userId);
         return ApiResponse.onSuccess(null);
     }
 
