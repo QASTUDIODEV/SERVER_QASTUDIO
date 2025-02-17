@@ -44,15 +44,6 @@ public class ScenarioRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UpdateScenarioRequest {
-
-        @Schema(example = "1", description = "캐릭터 ID")
-        @NotNull(message = "Character ID는 필수입니다.")
-        private Long characterId;
-
-        @Schema(example = "1", description = "페이지 ID")
-        @NotNull(message = "Page ID는 필수입니다.")
-        private Long pageId;
-
         @Schema(example = "Login Test", description = "시나리오 이름")
         @NotBlank(message = "Scenario 이름은 필수입니다.")
         private String scenarioName;

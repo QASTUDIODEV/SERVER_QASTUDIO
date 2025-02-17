@@ -61,14 +61,7 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
     public ScenarioResponse updateScenario(Long scenarioId, ScenarioRequest.UpdateScenarioRequest request, Long userId) {
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Scenario not found"));
-
-        CharacterTable character = characterTableRepository.findById(request.getCharacterId())
-                .orElseThrow(() -> new EntityNotFoundException("Character not found"));
-
-        Page page = pageRepository.findById(request.getPageId())
-                .orElseThrow(() -> new EntityNotFoundException("Page not found"));
-
-        scenario.update(request.getScenarioName(), request.getScenarioDescription(), character, page);
+        scenario.update(request.getScenarioName(), request.getScenarioDescription());
         scenarioRepository.save(scenario);
 
         return new ScenarioResponse(scenario.getId(), scenario.getScenarioName(), scenario.getScenarioDescription());
