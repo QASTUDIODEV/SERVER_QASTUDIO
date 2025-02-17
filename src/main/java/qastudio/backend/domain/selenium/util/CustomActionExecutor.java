@@ -26,7 +26,15 @@ public class CustomActionExecutor {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
 
-            ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
+            // 액션 변환
+            String actionTypeString = actionDetail.getAction().getType();
+            if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
+                actionTypeString = "click";
+            } else if ("fill text".equalsIgnoreCase(actionTypeString)) {
+                actionTypeString = "send_keys";
+            }
+            ActionType actionType = ActionType.fromString(actionTypeString);
+
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 

@@ -65,7 +65,7 @@ public class SeleniumActionExecutor {
                 actionTypeString = "send_keys";
             }
             ActionType actionType = ActionType.fromString(actionTypeString);
-            
+
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
