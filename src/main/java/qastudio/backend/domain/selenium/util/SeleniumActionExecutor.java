@@ -57,7 +57,16 @@ public class SeleniumActionExecutor {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
 
-            ActionType actionType = ActionType.fromString(actionDetail.getAction().getType());
+            highlightElement(driver, webElement);
+            // 액션 변환
+            String actionTypeString = actionDetail.getAction().getType();
+            if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
+                actionTypeString = "click";
+            } else if ("fill text".equalsIgnoreCase(actionTypeString)) {
+                actionTypeString = "send_keys";
+            }
+            ActionType actionType = ActionType.fromString(actionTypeString);
+
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
@@ -74,7 +83,10 @@ public class SeleniumActionExecutor {
         }
     }
 
-
+    private static void highlightElement(WebDriver driver, WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].classList.add('highlighted-selenium-element')", element);
+    }
     private static WebElement findElementSafely(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
@@ -137,6 +149,7 @@ public class SeleniumActionExecutor {
                 String formattedHtml = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
                 String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
 
+                formattedCss += "\n.highlighted-selenium-element { border: 3px solid red; }";
                 logs.add("실시간 HTML & CSS 전송");
                 webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
             } catch (Exception e) {
