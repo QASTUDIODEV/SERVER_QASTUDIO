@@ -58,6 +58,16 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
     }
 
     @Override
+    public ScenarioResponse updateScenario(Long scenarioId, ScenarioRequest.UpdateScenarioRequest request, Long userId) {
+        Scenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Scenario not found"));
+        scenario.update(request.getScenarioName(), request.getScenarioDescription());
+        scenarioRepository.save(scenario);
+
+        return new ScenarioResponse(scenario.getId(), scenario.getScenarioName(), scenario.getScenarioDescription());
+    }
+
+    @Override
     public void deleteScenarios(List<Long> scenarioIds) {
         if (scenarioIds == null || scenarioIds.isEmpty()) {
             throw new BadRequestException(ErrorStatus.INVALID_SCENARIO_IDS);
@@ -83,4 +93,5 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
         scenarioRepository.deleteAll(scenarios);
     }
+
 }

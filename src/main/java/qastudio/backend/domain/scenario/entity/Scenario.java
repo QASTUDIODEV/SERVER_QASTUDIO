@@ -47,4 +47,9 @@ public class Scenario extends BaseEntity {
         this.characterTable = characterTable;
         this.page = page;
     }
+
+    public void update (String scenarioName, String scenarioDescription) {
+        this.scenarioName = scenarioName;
+        this.scenarioDescription = scenarioDescription;
+    }
 }

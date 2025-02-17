@@ -11,4 +11,5 @@ import java.util.List;
 public interface ActionCommandService {
     ActionResponse updateAction(Long actionId, ActionUpdateRequest request);
     void createActionsForScenario(Long scenarioId, List<ScenarioRequest.ActionRequest> actions);
+    void deleteActionsForScenario(Long scenarioId);
 }

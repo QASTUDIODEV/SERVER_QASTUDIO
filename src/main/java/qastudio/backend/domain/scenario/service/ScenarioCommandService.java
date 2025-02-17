@@ -8,4 +8,5 @@ public interface ScenarioCommandService {
     ScenarioResponse createScenario(ScenarioRequest.CreateScenarioRequest request, Long userId);
 
     void deleteScenarios(List<Long> scenarioIds);
+    ScenarioResponse updateScenario(Long scenarioId, ScenarioRequest.UpdateScenarioRequest request, Long userId);
 }

@@ -10,20 +10,13 @@ import java.util.List;
 
 public class SeleniumHtmlCssUtil {
 
-    public static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase, SeleniumWebSocketHandler webSocketHandler) {
-        if (webSocketHandler != null) {
-            try {
-                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
-                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
-
-                logs.add("실시간 HTML & CSS 전송");
-                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
-            } catch (Exception e) {
-                logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
-            }
-        }
+    public static String getCurrentPageHtmlWithInputs(WebDriver driver) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        return (String) js.executeScript(
+                "document.querySelectorAll('input, textarea').forEach(el => el.setAttribute('value', el.value)); " +
+                        "return document.documentElement.outerHTML;"
+        );
     }
-
     public static String getCurrentPageCss(WebDriver driver) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
