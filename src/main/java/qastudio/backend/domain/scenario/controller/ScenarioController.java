@@ -51,7 +51,30 @@ public class ScenarioController {
 
         return ApiResponse.onSuccess(scenarioResponse);
     }
+    
 
+    @Operation(
+            summary = "시나리오 수정 API | by 준",
+            description = "새로운 시나리오를 수정합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "시나리오 수정 성공입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청입니다.")
+    })
+    // 시나리오 수정 API
+    @PatchMapping("/{scenarioId}")
+    public ApiResponse<ScenarioResponse> updateScenario(
+            @PathVariable Long scenarioId,
+            @RequestBody @Valid ScenarioRequest.UpdateScenarioRequest request,
+            @Auth Long userId) {
+
+        ScenarioResponse scenarioResponse = scenarioCommandService.updateScenario(scenarioId, request, userId);
+        actionCommandService.deleteActionsForScenario(scenarioId);
+        actionCommandService.createActionsForScenario(scenarioId, request.getActions());
+
+
+        return ApiResponse.onSuccess(scenarioResponse);
+    }
 
 
     @Operation(

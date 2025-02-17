@@ -147,4 +147,11 @@ public class ActionCommandServiceImpl implements ActionCommandService {
             featureRepository.save(feature);
         }
     }
+
+    @Override
+    @Transactional
+    public void deleteActionsForScenario(Long scenarioId) {
+        List<ActionTable> actions = actionTableRepository.findByScenarioId(scenarioId);
+        actionTableRepository.deleteAll(actions);
+    }
 }

@@ -1,6 +1,7 @@
 package qastudio.backend.domain.scenario.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +43,33 @@ public class ScenarioRequest {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UpdateScenarioRequest {
+
+        @Schema(example = "1", description = "캐릭터 ID")
+        @NotNull(message = "Character ID는 필수입니다.")
+        private Long characterId;
+
+        @Schema(example = "1", description = "페이지 ID")
+        @NotNull(message = "Page ID는 필수입니다.")
+        private Long pageId;
+
+        @Schema(example = "Login Test", description = "시나리오 이름")
+        @NotBlank(message = "Scenario 이름은 필수입니다.")
+        private String scenarioName;
+
+        @Schema(example = "로그인 기능 테스트 시나리오", description = "시나리오 설명")
+        @NotBlank(message = "Scenario 설명은 필수입니다.")
+        private String scenarioDescription;
+
+        @Schema(description = "액션 리스트")
+        @NotNull(message = "Actions 리스트는 필수입니다.")
+        @Valid
+        private List<ActionRequest> actions;
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ActionRequest {
 
         @Schema(example = "Enter Email", description = "액션 설명")
@@ -73,4 +101,5 @@ public class ScenarioRequest {
         @NotEmpty(message = "삭제할 시나리오 ID 목록은 비어 있을 수 없습니다.")
         private List<Long> scenarioIds;
     }
+
 }
