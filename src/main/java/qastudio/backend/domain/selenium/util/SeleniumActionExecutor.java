@@ -56,7 +56,8 @@ public class SeleniumActionExecutor {
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
-            
+
+            highlightElement(driver, webElement);
             // 액션 변환
             String actionTypeString = actionDetail.getAction().getType();
             if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
@@ -82,7 +83,10 @@ public class SeleniumActionExecutor {
         }
     }
 
-
+    private static void highlightElement(WebDriver driver, WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].classList.add('highlighted-selenium-element')", element);
+    }
     private static WebElement findElementSafely(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
@@ -145,6 +149,7 @@ public class SeleniumActionExecutor {
                 String formattedHtml = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
                 String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
 
+                formattedCss += "\n.highlighted-selenium-element { border: 3px solid red; }";
                 logs.add("실시간 HTML & CSS 전송");
                 webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
             } catch (Exception e) {
