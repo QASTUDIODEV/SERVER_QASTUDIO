@@ -50,12 +50,15 @@ public class SeleniumActionExecutor {
         WebElement webElement = null;
         try {
             webElement = findElementSafely(driver, actionDetail);
+            highlightElement(driver, webElement);
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
+            unhighlightElement(driver, webElement);
             sleep(3000);
 
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
+
 
             // 액션 변환
             String actionTypeString = actionDetail.getAction().getType();
@@ -67,7 +70,7 @@ public class SeleniumActionExecutor {
             ActionType actionType = ActionType.fromString(actionTypeString);
 
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 액션 실행
 
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
             return new ActionExecutionResult(1, null, null, null);
@@ -80,6 +83,16 @@ public class SeleniumActionExecutor {
             // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
             return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
         }
+    }
+
+    private static void highlightElement(WebDriver driver, WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].classList.add('highlighted-selenium-element')", element);
+    }
+
+    private static void unhighlightElement(WebDriver driver, WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].classList.remove('highlighted-selenium-element')", element);
     }
     private static WebElement findElementSafely(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail) {
         try {
@@ -139,17 +152,10 @@ public class SeleniumActionExecutor {
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
         if (webSocketHandler != null) {
             try {
-                List<WebElement> elementsToHighlight = driver.findElements(By.className("highlighted-selenium-element"));
-                for (WebElement element : elementsToHighlight) {
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].classList.add('highlighted-selenium-element')", element);
-                }
-
+//                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
                 String formattedHtml = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
                 String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
 
-                for (WebElement element : elementsToHighlight) {
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].classList.remove('highlighted-selenium-element')", element);
-                }
                 formattedCss += "\n.highlighted-selenium-element { border: 3px solid red; }";
                 logs.add("실시간 HTML & CSS 전송");
                 webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
