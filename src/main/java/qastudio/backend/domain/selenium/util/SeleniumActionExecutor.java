@@ -149,23 +149,57 @@ public class SeleniumActionExecutor {
         }
     }
 
+//    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
+//        if (webSocketHandler != null) {
+//            try {
+//                String formattedHtml = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
+//                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
+//
+//                formattedCss += "\n.highlighted-selenium-element { border: 3px solid red; }";
+//                logs.add("실시간 HTML & CSS 전송");
+//                webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
+//            } catch (Exception e) {
+//                logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
+//            }
+//        }
+//    }
+
+
     private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
         if (webSocketHandler != null) {
             try {
-//                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
-                String formattedHtml = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
-                String formattedCss = HtmlCssFormatter.formatCss(getCurrentPageCss(driver));
+                String formattedHtml = (String) ((JavascriptExecutor) driver).executeScript(
+                        "let elements = document.querySelectorAll('*');" +
+                                "let visibleHtml = '';" +
+                                "for (let el of elements) {" +
+                                "    let style = window.getComputedStyle(el);" +
+                                "    if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {" +
+                                "        visibleHtml += el.outerHTML + '\\n';" +
+                                "    }" +
+                                "} " +
+                                "return '<html>' + document.documentElement.innerHTML.replace(document.body.innerHTML, visibleHtml) + '</html>';"
+                );
+
+                String formattedCss = (String) ((JavascriptExecutor) driver).executeScript(
+                        "let extractedCss = '';" +
+                                "for (let sheet of document.styleSheets) {" +
+                                "    try {" +
+                                "        for (let rule of sheet.cssRules) {" +
+                                "            extractedCss += rule.cssText + '\\n';" +
+                                "        }" +
+                                "    } catch (e) { console.log('CSS Access Denied: ' + e.message); }" +
+                                "} " +
+                                "return extractedCss;"
+                );
 
                 formattedCss += "\n.highlighted-selenium-element { border: 3px solid red; }";
-                logs.add("실시간 HTML & CSS 전송");
+
                 webSocketHandler.sendHtmlAndCss(sessionId, formattedHtml, formattedCss, actionId, status, phase);
             } catch (Exception e) {
                 logs.add("❌ HTML & CSS 전송 실패: " + e.getMessage());
             }
         }
     }
-
-
 
 
 
