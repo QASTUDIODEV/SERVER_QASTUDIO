@@ -48,6 +48,10 @@ public class ScenarioRequest {
         @NotBlank(message = "Scenario 이름은 필수입니다.")
         private String scenarioName;
 
+        @Schema(example = "1", description = "캐릭터 ID")
+        @NotNull(message = "Character ID는 필수입니다.")
+        private Long characterId;
+
         @Schema(example = "로그인 기능 테스트 시나리오", description = "시나리오 설명")
         @NotBlank(message = "Scenario 설명은 필수입니다.")
         private String scenarioDescription;

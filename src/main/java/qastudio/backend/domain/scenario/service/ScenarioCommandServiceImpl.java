@@ -59,9 +59,12 @@ public class ScenarioCommandServiceImpl implements ScenarioCommandService {
 
     @Override
     public ScenarioResponse updateScenario(Long scenarioId, ScenarioRequest.UpdateScenarioRequest request, Long userId) {
+        CharacterTable character = characterTableRepository.findById(request.getCharacterId())
+                .orElseThrow(() -> new EntityNotFoundException("Character not found"));
+
         Scenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Scenario not found"));
-        scenario.update(request.getScenarioName(), request.getScenarioDescription());
+        scenario.update(request.getScenarioName(), request.getScenarioDescription(), character);
         scenarioRepository.save(scenario);
 
         return new ScenarioResponse(scenario.getId(), scenario.getScenarioName(), scenario.getScenarioDescription());
