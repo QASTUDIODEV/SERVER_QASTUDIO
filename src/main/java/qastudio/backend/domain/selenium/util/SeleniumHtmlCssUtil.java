@@ -14,9 +14,18 @@ public class SeleniumHtmlCssUtil {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         return (String) js.executeScript(
                 "document.querySelectorAll('input, textarea').forEach(el => el.setAttribute('value', el.value)); " +
-                        "return document.documentElement.outerHTML;"
+                        "let elements = document.querySelectorAll('*'); " +
+                        "let visibleHtml = ''; " +
+                        "for (let el of elements) { " +
+                        "    let style = window.getComputedStyle(el);" +
+                        "    if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') { " +
+                        "        visibleHtml += el.outerHTML + '\\n'; " +
+                        "    } " +
+                        "} " +
+                        "return '<html>' + document.documentElement.innerHTML.replace(document.body.innerHTML, visibleHtml) + '</html>';"
         );
     }
+
     public static String getCurrentPageCss(WebDriver driver) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
