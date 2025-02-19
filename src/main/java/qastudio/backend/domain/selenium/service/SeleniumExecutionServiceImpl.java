@@ -3,7 +3,6 @@ package qastudio.backend.domain.selenium.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -23,11 +22,9 @@ import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 import qastudio.backend.global.s3.service.S3Service;
 
-import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static qastudio.backend.global.util.MemoryUtils.logMemoryUsage;
@@ -52,7 +49,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             logMemoryUsage("실행 전 JVM 메모리 상태");
             driver.get(targetUrl);
             String html = driver.getPageSource();
-//            String html = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
             String css = SeleniumActionExecutor.getCurrentPageCss(driver);
             executionLogs.add("HTML 및 CSS 코드 수집 완료");
             return new SeleniumExecutionResponse("SUCCESS", executionLogs, html, css);
@@ -61,10 +57,10 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("FAIL", executionLogs, null, null);
         } finally {
             if (driver != null) {
-                driver.close();
-//                driver = null;
+                driver.quit();
+                driver = null;
             }
-//            System.gc(); // JVM 가비지 컬렉션 강제 실행
+            System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
         }
     }
@@ -93,8 +89,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("FAIL", List.of("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage()));
         } finally {
             if (driver != null) {
-                driver.close();
-//                driver = null;
+                driver.quit();
+                driver = null;
             }
             System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
@@ -128,8 +124,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         initializeSelenium(sessionId);
 
         try {
-            logMemoryUsage("실행 전 JVM 메모리 상태");
-            loadCookies(driver);
+            logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
             driver.get(request.getTargetUrl());
 
             ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
@@ -145,17 +140,16 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             if (errorId != null) {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
-            saveCookies(driver);
             return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs, null, null, testId);
         } catch (Exception e) {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
             return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
             if (driver != null) {
-                driver.close();
-//                driver = null;
+                driver.quit();
+                driver = null;
             }
-//            System.gc(); // JVM 가비지 컬렉션 강제 실행
+            System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
             webSocketHandler.closeSession(sessionId);
         }
@@ -165,8 +159,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--disable-sync");
-        options.addArguments("--profile-directory=Default");
-        options.addArguments("--user-data-dir=/home/selenium/.config/google-chrome");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
@@ -192,41 +184,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         }
     }
 
-    private void saveCookies(WebDriver driver) {
-        File cookieFile = new File("cookies.data");
-        try (FileWriter fileWriter = new FileWriter(cookieFile);
-             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
-
-            for (Cookie cookie : driver.manage().getCookies()) {
-                bufferedWriter.write(cookie.getName() + ";" + cookie.getValue() + ";" +
-                        cookie.getDomain() + ";" + cookie.getPath() + ";" +
-                        cookie.getExpiry() + ";" + cookie.isSecure());
-                bufferedWriter.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("❌ 쿠키 저장 중 오류 발생: " + e.getMessage());
-        }
-    }
-    private void loadCookies(WebDriver driver) {
-        File cookieFile = new File("cookies.data");
-        if (!cookieFile.exists()) return;
-
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(cookieFile))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                String[] cookieParts = line.split(";");
-                Cookie cookie = new Cookie.Builder(cookieParts[0], cookieParts[1])
-                        .domain(cookieParts[2])
-                        .path(cookieParts[3])
-                        .expiresOn(cookieParts[4].equals("null") ? null : new Date(cookieParts[4]))
-                        .isSecure(Boolean.parseBoolean(cookieParts[5]))
-                        .build();
-                driver.manage().addCookie(cookie);
-            }
-        } catch (IOException e) {
-            System.out.println("❌ 쿠키 로딩 중 오류 발생: " + e.getMessage());
-        }
-    }
 
     private void initializeSelenium(String sessionId) {
         SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
@@ -252,9 +209,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 errorCode = result.getErrorCode();
                 errorMessage = result.getErrorMessage();
                 errorImage = result.getErrorImage();
-                System.out.println("errorCode: " + errorCode);
-                System.out.println("errorMessage: " + errorMessage);
-                System.out.println("errorImage: " + errorImage);
                 break;
             } else {
                 executedActions++;
