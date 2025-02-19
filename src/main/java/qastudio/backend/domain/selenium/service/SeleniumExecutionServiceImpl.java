@@ -165,7 +165,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--disable-sync");
-        options.addArguments("--user-data-dir=/home/user/.config/google-chrome");
+        options.addArguments("--user-data-dir=/home/selenium/.config/google-chrome");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
