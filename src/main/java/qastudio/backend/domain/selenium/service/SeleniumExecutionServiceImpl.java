@@ -61,8 +61,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("FAIL", executionLogs, null, null);
         } finally {
             if (driver != null) {
-                driver.quit();
-                driver = null;
+                driver.close();
+//                driver = null;
             }
             System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
@@ -128,7 +128,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         initializeSelenium(sessionId);
 
         try {
-            logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
+            logMemoryUsage("실행 전 JVM 메모리 상태");
             loadCookies(driver);
             driver.get(request.getTargetUrl());
 
