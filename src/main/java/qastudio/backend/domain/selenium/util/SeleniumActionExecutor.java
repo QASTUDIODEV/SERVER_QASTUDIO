@@ -71,6 +71,15 @@ public class SeleniumActionExecutor {
 
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
             ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 액션 실행
+            if (actionType == ActionType.CLICK) {
+                try {
+                    Thread.sleep(3000); // 3초 대기
+                    logs.add("✅ 대기: 3초");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    logs.add("❌ 대기 중단: " + e.getMessage());
+                }
+            }
 
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
             return new ActionExecutionResult(1, null, null, null);
