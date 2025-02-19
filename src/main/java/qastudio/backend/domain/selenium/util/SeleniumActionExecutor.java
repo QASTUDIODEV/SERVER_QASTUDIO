@@ -55,17 +55,77 @@ public class SeleniumActionExecutor {
 
             ActionType actionType = convertActionType(actionDetail);
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
 
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
             if (actionType == ActionType.CLICK) {
                 waitFor(3000, logs);
             }
+            checkForNetworkErrors(driver, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
             return new ActionExecutionResult(1, null, null, null);
 
+        } catch (NoSuchElementException e) {
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "LOCATOR_NOT_FOUND", e);
+        } catch (ElementNotInteractableException e) {
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "LOCATOR_NOT_CLICKABLE", e);
+        } catch (TimeoutException e) {
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "TIMEOUT_ERROR", e);
+        } catch (UnhandledAlertException e) {
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "UNEXPECTED_ALERT", e);
+        } catch (WebDriverException e) {
+            if (e.getMessage().contains("disconnected") || e.getMessage().contains("Session ID is null")) {
+                return handleDetailedError(driver, actionDetail, sessionId, logs, "SESSION_EXPIRED", e);
+            }
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "UNKNOWN_ERROR", e);
         } catch (Exception e) {
-            return handleActionException(driver, actionDetail, sessionId, logs, e);
+            return handleDetailedError(driver, actionDetail, sessionId, logs, "UNKNOWN_ERROR", e);
+        }
+    }
+    private static void checkForNetworkErrors(WebDriver driver, List<String> logs) {
+        try {
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            String networkErrors = (String) js.executeScript(
+                    "return performance.getEntriesByType('resource')"
+                            + ".filter(e => e.initiatorType === 'xmlhttprequest' || e.initiatorType === 'fetch')"
+                            + ".map(e => e.name + ' - ' + (e.responseEnd - e.startTime) + 'ms').join('\\n');"
+            );
+
+            if (!networkErrors.isEmpty()) {
+                logs.add("[NETWORK ERROR] 감지된 API 응답 실패: \n" + networkErrors);
+            } else {
+                logs.add("[NETWORK CHECK] 모든 API 요청이 정상적으로 처리됨.");
+            }
+        } catch (Exception e) {
+            logs.add("[NETWORK CHECK ERROR] 네트워크 로그 확인 중 오류 발생: " + e.getMessage());
+        }
+    }
+    private static ActionExecutionResult handleDetailedError(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs, String errorCode, Exception e) {
+        logs.add("❌ [" + errorCode + "] 오류 발생: " + actionDetail.getActionDescription() + " - " + e.getMessage());
+
+        String serverErrorMessage = getServerErrorMessage(driver);
+        if (!serverErrorMessage.isEmpty()) {
+            logs.add("서버 응답 오류: " + serverErrorMessage);
+            errorCode = "SERVER_ERROR"; // 서버 응답 오류가 감지되면 errorCode를 변경
+        }
+
+        String imageUrl = captureScreenshotAndUpload(driver);
+        webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
+
+        return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+    }
+
+    private static String getServerErrorMessage(WebDriver driver) {
+        try {
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            String response = (String) js.executeScript(
+                    "return performance.getEntriesByType('resource')"
+                            + ".filter(e => e.initiatorType === 'xmlhttprequest' || e.initiatorType === 'fetch')"
+                            + ".map(e => e.name + ' - ' + (e.responseEnd - e.startTime) + 'ms').join('\\n');"
+            );
+            return response.isEmpty() ? "No network errors detected" : response;
+        } catch (Exception e) {
+            return "Error while fetching network logs: " + e.getMessage();
         }
     }
 
