@@ -8,7 +8,8 @@ public enum ActionType {
     TEXT("text"),
     IS_DISPLAYED("is_displayed"),
     IS_ENABLED("is_enabled"),
-    IS_SELECTED("is_selected");
+    IS_SELECTED("is_selected"),
+    WAIT("wait"); // Add WAIT here
 
     private final String value;
 

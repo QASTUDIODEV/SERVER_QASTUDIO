@@ -45,6 +45,15 @@ public class ActionExecutor {
                 boolean isSelected = webElement.isSelected();
                 logs.add("✅ 체크박스 선택 여부: " + isSelected);
                 break;
+            case  WAIT:
+                try {
+                    Thread.sleep(3000);
+                    logs.add("✅ 대기: 3초");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    logs.add("❌ 대기 중단: " + e.getMessage());
+                }
+                break;
             default:
                 logs.add("⚠️ 지원되지 않는 액션: " + actionType.getValue());
                 throw new UnsupportedOperationException("지원되지 않는 액션: " + actionType.getValue());
@@ -85,6 +94,15 @@ public class ActionExecutor {
             case IS_SELECTED:
                 boolean isSelected = webElement.isSelected();
                 logs.add("✅ 체크박스 선택 여부: " + isSelected);
+                break;
+            case WAIT:
+                try {
+                    Thread.sleep(3000);
+                    logs.add("✅ 대기: 3초");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    logs.add("❌ 대기 중단: " + e.getMessage());
+                }
                 break;
             default:
                 logs.add("⚠️ 지원되지 않는 액션: " + actionType.getValue());
