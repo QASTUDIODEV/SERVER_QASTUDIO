@@ -155,7 +155,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 driver.close();
 //                driver = null;
             }
-            System.gc(); // JVM 가비지 컬렉션 강제 실행
+//            System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
             webSocketHandler.closeSession(sessionId);
         }
@@ -165,6 +165,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--disable-sync");
+        options.addArguments("--profile-directory=Default");
         options.addArguments("--user-data-dir=/home/selenium/.config/google-chrome");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
