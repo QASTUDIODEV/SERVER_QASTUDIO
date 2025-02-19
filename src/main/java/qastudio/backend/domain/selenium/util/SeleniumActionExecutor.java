@@ -64,7 +64,7 @@ public class SeleniumActionExecutor {
             String actionTypeString = actionDetail.getAction().getType();
             if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
                 actionTypeString = "click";
-            } else if ("fill text".equalsIgnoreCase(actionTypeString)) {
+            } else if ("Fill_Text".equalsIgnoreCase(actionTypeString)) {
                 actionTypeString = "send_keys";
             }
             ActionType actionType = ActionType.fromString(actionTypeString);
