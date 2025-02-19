@@ -48,8 +48,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         try {
             logMemoryUsage("실행 전 JVM 메모리 상태");
             driver.get(targetUrl);
-//            String html = driver.getPageSource();
-            String html = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
+            String html = driver.getPageSource();
+//            String html = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
             String css = SeleniumActionExecutor.getCurrentPageCss(driver);
             executionLogs.add("HTML 및 CSS 코드 수집 완료");
             return new SeleniumExecutionResponse("SUCCESS", executionLogs, html, css);
@@ -159,7 +159,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-sync");
+//        options.addArguments("--disable-sync");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
