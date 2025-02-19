@@ -53,7 +53,9 @@ public class ActionExecutor {
                 break;
             case  WAIT:
                 try {
-                    new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+                    new WebDriverWait(driver, Duration.ofSeconds(2))
+                            .until(driver1 -> false);
+
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
@@ -102,7 +104,9 @@ public class ActionExecutor {
                 break;
             case WAIT:
                 try {
-                    new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+                    new WebDriverWait(driver, Duration.ofSeconds(2))
+                            .until(driver1 -> false);
+
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());

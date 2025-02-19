@@ -21,7 +21,8 @@ public class CustomActionExecutor {
         try {
             webElement = findElementSafely(driver, actionDetail);
 //            Thread.sleep(3000);
-            new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+            new WebDriverWait(driver, Duration.ofSeconds(2))
+                    .until(driver1 -> false);
 
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
@@ -53,7 +54,7 @@ public class CustomActionExecutor {
     private static WebElement findElementSafely(WebDriver driver, CustomExecutionRequest.ActionDetail actionDetail) {
         try {
             LocatorType locatorType = LocatorType.fromString(actionDetail.getLocator().getStrategy());
-            return new WebDriverWait(driver, Duration.ofSeconds(10))
+            return new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(ExpectedConditions.presenceOfElementLocated(LocatorUtils.getByLocator(locatorType, actionDetail.getLocator().getValue())));
         } catch (TimeoutException e) {
             return null;
