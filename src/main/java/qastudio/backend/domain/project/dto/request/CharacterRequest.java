@@ -2,6 +2,7 @@ package qastudio.backend.domain.project.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Getter;
 
@@ -16,6 +17,9 @@ public class CharacterRequest {
         private String characterDescription;
         @NotEmpty(message = "accessPage 필드는 필수 입력 값입니다.")
         private List<@NotBlank(message = "accessPage의 각 값은 빈 문자열일 수 없습니다.") String> accessPage;
+        @NotNull(message = "aiScenario 필드는 필수 입력 값입니다.")
+        private Boolean aiScenario;
+
     }
 
     @Getter
