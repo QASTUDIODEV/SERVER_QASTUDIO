@@ -90,9 +90,9 @@ jobs:
                   --name selenium-chrome \
                   --network selenium-net \
                   -p 4444:4444 \
-                  --shm-size=1.5g \
-                  --memory=4.5g \
-                  --memory-swap=6g \
+                  --shm-size=2g \
+                  --memory=10g \
+                  --memory-swap=12g \
                   -e SE_DISABLE_AUTH=true \
                   selenium/standalone-chrome:132.0
             else
