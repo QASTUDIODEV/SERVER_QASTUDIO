@@ -20,7 +20,8 @@ public class CustomActionExecutor {
         WebElement webElement = null;
         try {
             webElement = findElementSafely(driver, actionDetail);
-            Thread.sleep(3000);
+//            Thread.sleep(3000);
+            new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
@@ -36,7 +37,7 @@ public class CustomActionExecutor {
             ActionType actionType = ActionType.fromString(actionTypeString);
 
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
+            ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
 
             return new ActionExecutionResult(1, null, null, null);
 

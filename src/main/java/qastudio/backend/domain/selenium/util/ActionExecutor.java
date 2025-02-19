@@ -1,17 +1,23 @@
 package qastudio.backend.domain.selenium.util;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import qastudio.backend.domain.selenium.dto.request.CustomExecutionRequest;
 import qastudio.backend.domain.selenium.dto.request.SeleniumExecutionRequest;
 import qastudio.backend.domain.selenium.entity.enums.ActionType;
 
+import java.time.Duration;
 import java.util.List;
 
 public class ActionExecutor {
 
     private ActionExecutor() {}
 
-    public static void executeAction(WebElement webElement, ActionType actionType, SeleniumExecutionRequest.ActionDetail actionDetail, List<String> logs) {
+    public static void executeAction(WebDriver driver, WebElement webElement, ActionType actionType, SeleniumExecutionRequest.ActionDetail actionDetail, List<String> logs) {
         switch (actionType) {
             case CLICK:
                 webElement.click();
@@ -47,10 +53,9 @@ public class ActionExecutor {
                 break;
             case  WAIT:
                 try {
-                    Thread.sleep(3000);
+                    new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
                     logs.add("✅ 대기: 3초");
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
                 }
                 break;
@@ -61,7 +66,7 @@ public class ActionExecutor {
     }
 
 
-    public static void executeAction(WebElement webElement, ActionType actionType, CustomExecutionRequest.ActionDetail actionDetail, List<String> logs) {
+    public static void executeAction(WebDriver driver, WebElement webElement, ActionType actionType, CustomExecutionRequest.ActionDetail actionDetail, List<String> logs) {
         switch (actionType) {
             case CLICK:
                 webElement.click();
@@ -97,10 +102,9 @@ public class ActionExecutor {
                 break;
             case WAIT:
                 try {
-                    Thread.sleep(3000);
+                    new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
                     logs.add("✅ 대기: 3초");
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
                 }
                 break;
