@@ -64,7 +64,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 driver.close();
 //                driver = null;
             }
-            System.gc(); // JVM 가비지 컬렉션 강제 실행
+//            System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
         }
     }
