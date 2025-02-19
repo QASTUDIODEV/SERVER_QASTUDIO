@@ -48,7 +48,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         try {
             logMemoryUsage("실행 전 JVM 메모리 상태");
             driver.get(targetUrl);
-            String html = driver.getPageSource();
+//            String html = driver.getPageSource();
+            String html = SeleniumHtmlCssUtil.getCurrentPageHtmlWithInputs(driver);
             String css = SeleniumActionExecutor.getCurrentPageCss(driver);
             executionLogs.add("HTML 및 CSS 코드 수집 완료");
             return new SeleniumExecutionResponse("SUCCESS", executionLogs, html, css);
@@ -66,7 +67,6 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
 
 
-    // 시나리오 실행 기본 로직
     public SeleniumExecutionResponse executeRecordActions(CustomExecutionRequest request) {
         WebDriver driver = createRemoteWebDriver();
 
@@ -127,20 +127,16 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         try {
             logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
             driver.get(request.getTargetUrl());
-            executionLogs.add("URL 접근: " + request.getTargetUrl());
 
             ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
 
-            executionLogs.add("테스트 완료");
             int attainment = calculateAttainment(request.getActions().size(), executionResult.getExecutedActions());
 
 //            driver.quit();
 
             Long testId = saveTest(request, userId, executionResult, startTime, attainment);
-            executionLogs.add("테스트 데이터 저장");
 
             Long errorId = executionResult.hasError() ? saveError(executionResult, testId) : null;
-            executionLogs.add("오류 데이터 저장");
 
             if (errorId != null) {
                 testCommandService.updateTestErrorId(testId, errorId);
