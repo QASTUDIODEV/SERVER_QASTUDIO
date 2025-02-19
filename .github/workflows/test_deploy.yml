@@ -77,20 +77,15 @@ jobs:
             # Check for running container on port 8080
             CONTAINER_ID=$(sudo docker ps -q --filter "publish=8080")
             
-        
             # Stop the running container if it exists
             if [ ! -z "$CONTAINER_ID" ]; then
               echo "Stopping existing container: $CONTAINER_ID"
               sudo docker stop $CONTAINER_ID
             fi
             
-            sudo docker stop selenium-chrome || true
-            sudo docker rm selenium-chrome || true
-            sudo docker network create selenium-net || true
-
-            SELENIUM_HUB=$(sudo docker ps -q --filter "name=selenium-hub")
-              if [ -z "$SELENIUM_HUB" ]; then
-              echo "Starting Selenium Hub..."
+            SELENIUM_CONTAINER=$(sudo docker ps -q --filter "name=selenium_chrome")
+            if [ -z "$SELENIUM_CONTAINER" ]; then
+              echo "Starting Selenium Standalone Chrome container..."
               sudo docker run -d \
                   --name selenium-chrome \
                   --network selenium-net \
@@ -99,28 +94,10 @@ jobs:
                   --memory=10g \
                   --memory-swap=12g \
                   -e SE_DISABLE_AUTH=true \
-                  selenium/hub:4.19.1
+                  selenium/standalone-chrome:132.0
             else
               echo "Selenium container is already running."
             fi
-            
-            SELENIUM_NODE=$(sudo docker ps -q --filter "name=selenium-node-chrome")
-            if [ -z "$SELENIUM_NODE" ]; then
-              echo "Starting Selenium Node Chrome..."
-              sudo docker run -d \
-                --name selenium-node-chrome \
-                --network selenium-net \
-                -e SE_EVENT_BUS_HOST=selenium-hub \
-                -e SE_EVENT_BUS_PUBLISH_PORT=4442 \
-                -e SE_EVENT_BUS_SUBSCRIBE_PORT=4443 \
-                --shm-size=1.5g \
-                --memory=4.5g \
-                --memory-swap=6g \
-                selenium/node-chrome:132.0
-              else
-                echo "Selenium Node Chrome is already running."
-            fi
-            
 
             # Pull the latest image from Docker Hubs
             echo "Pulling latest image: ${{ env.DOCKER_IMAGE_NAME }}"
