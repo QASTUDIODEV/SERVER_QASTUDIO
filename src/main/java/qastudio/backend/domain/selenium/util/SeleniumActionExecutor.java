@@ -48,6 +48,10 @@ public class SeleniumActionExecutor {
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             WebElement webElement = findAndHighlightElement(driver, actionDetail, sessionId, logs);
+            new WebDriverWait(driver, Duration.ofSeconds(2))
+                    .until(driver1 -> false);
+
+
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
@@ -56,9 +60,9 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
 
             ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
-            if (actionType == ActionType.CLICK) {
-                new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-            }
+            new WebDriverWait(driver, Duration.ofSeconds(2))
+                    .until(driver1 -> false);
+
             checkForNetworkErrors(driver, logs);
 
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
@@ -134,7 +138,9 @@ public class SeleniumActionExecutor {
         sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
         unhighlightElement(driver, webElement);
 //        sleep(3000);
-        new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+        new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(driver1 -> false);
+
         return webElement;
     }
 
