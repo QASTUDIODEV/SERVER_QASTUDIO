@@ -149,7 +149,7 @@ public class SeleniumActionExecutor {
         }
     }
 
-    private static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
+    public static void sendHtmlAndCssUpdate(WebDriver driver, String sessionId, List<String> logs, Long actionId, String status, String phase) {
         if (webSocketHandler != null) {
             try {
 //                String formattedHtml = HtmlCssFormatter.formatHtml(driver.getPageSource());
