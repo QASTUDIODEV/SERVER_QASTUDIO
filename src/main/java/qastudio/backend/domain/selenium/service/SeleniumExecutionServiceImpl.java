@@ -3,6 +3,7 @@ package qastudio.backend.domain.selenium.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -22,9 +23,11 @@ import qastudio.backend.domain.test.service.TestCommandService;
 import qastudio.backend.global.websocket.handler.SeleniumWebSocketHandler;
 import qastudio.backend.global.s3.service.S3Service;
 
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static qastudio.backend.global.util.MemoryUtils.logMemoryUsage;
@@ -90,8 +93,8 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             return new SeleniumExecutionResponse("FAIL", List.of("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage()));
         } finally {
             if (driver != null) {
-                driver.quit();
-                driver = null;
+                driver.close();
+//                driver = null;
             }
             System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
@@ -126,6 +129,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
         try {
             logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
+            loadCookies(driver);
             driver.get(request.getTargetUrl());
 
             ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
@@ -141,14 +145,15 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
             if (errorId != null) {
                 testCommandService.updateTestErrorId(testId, errorId);
             }
+            saveCookies(driver);
             return new SeleniumExecutionResponse(errorId == null ? State.SUCCESS.name() : State.FAIL.name(), executionLogs, null, null, testId);
         } catch (Exception e) {
             executionLogs.add("❌ 실행 중 예기치 않은 오류 발생: " + e.getMessage());
             return new SeleniumExecutionResponse("FAIL", executionLogs);
         } finally {
             if (driver != null) {
-                driver.quit();
-                driver = null;
+                driver.close();
+//                driver = null;
             }
             System.gc(); // JVM 가비지 컬렉션 강제 실행
             logMemoryUsage("WebDriver 종료 후 JVM 메모리 상태");
@@ -160,6 +165,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private WebDriver createRemoteWebDriver() {
         ChromeOptions options = new ChromeOptions();
 //        options.addArguments("--disable-sync");
+        options.addArguments("--user-data-dir=/home/user/.config/google-chrome");
         options.addArguments("--disable-popup-blocking");
         options.addArguments("--disable-default-apps");
         options.addArguments("--disable-notifications");
@@ -185,6 +191,41 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         }
     }
 
+    private void saveCookies(WebDriver driver) {
+        File cookieFile = new File("cookies.data");
+        try (FileWriter fileWriter = new FileWriter(cookieFile);
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+
+            for (Cookie cookie : driver.manage().getCookies()) {
+                bufferedWriter.write(cookie.getName() + ";" + cookie.getValue() + ";" +
+                        cookie.getDomain() + ";" + cookie.getPath() + ";" +
+                        cookie.getExpiry() + ";" + cookie.isSecure());
+                bufferedWriter.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("❌ 쿠키 저장 중 오류 발생: " + e.getMessage());
+        }
+    }
+    private void loadCookies(WebDriver driver) {
+        File cookieFile = new File("cookies.data");
+        if (!cookieFile.exists()) return;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(cookieFile))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] cookieParts = line.split(";");
+                Cookie cookie = new Cookie.Builder(cookieParts[0], cookieParts[1])
+                        .domain(cookieParts[2])
+                        .path(cookieParts[3])
+                        .expiresOn(cookieParts[4].equals("null") ? null : new Date(cookieParts[4]))
+                        .isSecure(Boolean.parseBoolean(cookieParts[5]))
+                        .build();
+                driver.manage().addCookie(cookie);
+            }
+        } catch (IOException e) {
+            System.out.println("❌ 쿠키 로딩 중 오류 발생: " + e.getMessage());
+        }
+    }
 
     private void initializeSelenium(String sessionId) {
         SeleniumActionExecutor.setWebSocketHandler(webSocketHandler);
@@ -210,21 +251,14 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 errorCode = result.getErrorCode();
                 errorMessage = result.getErrorMessage();
                 errorImage = result.getErrorImage();
+                System.out.println("errorCode: " + errorCode);
+                System.out.println("errorMessage: " + errorMessage);
+                System.out.println("errorImage: " + errorImage);
                 break;
             } else {
                 executedActions++;
             }
         }
-        // 모든 액션이 끝난 후 잠시 대기
-        try {
-            Thread.sleep(3000); // 3초 대기
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // 마지막으로 화면을 한 번 더 sendHtmlAndCss 호출
-        SeleniumActionExecutor.sendHtmlAndCssUpdate(driver, sessionId, executionLogs, null, "SUCCESS", "FINAL");
-
         return new ActionExecutionResult(executedActions, errorCode, errorMessage, errorImage);
     }
     private Long saveTest(SeleniumExecutionRequest request, Long userId, ActionExecutionResult executionResult, long startTime, int attainment) {
