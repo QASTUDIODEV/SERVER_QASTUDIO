@@ -183,7 +183,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
         options.addArguments("--disable-features=TranslateUI");
         options.addArguments(("--metrics-recording-only"));
         try {
-            String remoteUrl = "http://selenium-hub:4444/wd/hub";
+            String remoteUrl = "http://selenium-chrome:4444/wd/hub";
             return new RemoteWebDriver(new URL(remoteUrl), options);
         } catch (MalformedURLException e) {
             throw new RuntimeException("Invalid remote WebDriver URL", e);
