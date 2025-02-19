@@ -215,6 +215,15 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
                 executedActions++;
             }
         }
+        // 모든 액션이 끝난 후 잠시 대기
+        try {
+            Thread.sleep(3000); // 3초 대기
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // 마지막으로 화면을 한 번 더 sendHtmlAndCss 호출
+        SeleniumActionExecutor.sendHtmlAndCssUpdate(driver, sessionId, executionLogs, null, "SUCCESS", "FINAL");
 
         return new ActionExecutionResult(executedActions, errorCode, errorMessage, errorImage);
     }
