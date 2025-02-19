@@ -47,52 +47,66 @@ public class SeleniumActionExecutor {
 
 
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
-        WebElement webElement = null;
         try {
-            webElement = findElementSafely(driver, actionDetail);
-            highlightElement(driver, webElement);
-            sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
-            unhighlightElement(driver, webElement);
-            sleep(3000);
-
+            WebElement webElement = findAndHighlightElement(driver, actionDetail, sessionId, logs);
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
             }
 
-
-            // 액션 변환
-            String actionTypeString = actionDetail.getAction().getType();
-            if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
-                actionTypeString = "click";
-            } else if ("Fill_Text".equalsIgnoreCase(actionTypeString)) {
-                actionTypeString = "send_keys";
-            }
-            ActionType actionType = ActionType.fromString(actionTypeString);
-
+            ActionType actionType = convertActionType(actionDetail);
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs); // 액션 실행
+            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
+
             if (actionType == ActionType.CLICK) {
-                try {
-                    Thread.sleep(3000); // 3초 대기
-                    logs.add("✅ 대기: 3초");
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    logs.add("❌ 대기 중단: " + e.getMessage());
-                }
+                waitFor(3000, logs);
             }
 
             sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "SUCCESS", "AFTER_ACTION");
             return new ActionExecutionResult(1, null, null, null);
 
         } catch (Exception e) {
-            logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
-            // 브라우저 화면 캡처 및 S3 업로드
-            String imageUrl = captureScreenshotAndUpload(driver);
-            webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
-            // 오류 정보만 반환 (데이터 저장은 executeTest()에서 수행)
-            return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+            return handleActionException(driver, actionDetail, sessionId, logs, e);
         }
     }
+
+    private static WebElement findAndHighlightElement(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) throws InterruptedException {
+        WebElement webElement = findElementSafely(driver, actionDetail);
+        highlightElement(driver, webElement);
+        sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
+        unhighlightElement(driver, webElement);
+        sleep(3000);
+        return webElement;
+    }
+
+    private static ActionType convertActionType(SeleniumExecutionRequest.ActionDetail actionDetail) {
+        String actionTypeString = actionDetail.getAction().getType();
+        if ("navigate".equalsIgnoreCase(actionTypeString) || "click".equalsIgnoreCase(actionTypeString)) {
+            actionTypeString = "click";
+        } else if ("Fill_Text".equalsIgnoreCase(actionTypeString)) {
+            actionTypeString = "send_keys";
+        }
+        return ActionType.fromString(actionTypeString);
+    }
+
+    private static void waitFor(int milliseconds, List<String> logs) {
+        try {
+            Thread.sleep(milliseconds);
+            logs.add("✅ 대기: " + milliseconds / 1000 + "초");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logs.add("❌ 대기 중단: " + e.getMessage());
+        }
+    }
+
+    private static ActionExecutionResult handleActionException(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs, Exception e) {
+        logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
+        String imageUrl = captureScreenshotAndUpload(driver);
+        webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
+        return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+    }
+
+
+
 
     private static void highlightElement(WebDriver driver, WebElement element) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
