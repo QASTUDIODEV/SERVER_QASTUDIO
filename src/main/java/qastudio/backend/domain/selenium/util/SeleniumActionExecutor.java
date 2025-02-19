@@ -25,7 +25,6 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 
-import static java.lang.Thread.sleep;
 
 public class SeleniumActionExecutor {
 
@@ -56,9 +55,9 @@ public class SeleniumActionExecutor {
             ActionType actionType = convertActionType(actionDetail);
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
 
-            ActionExecutor.executeAction(webElement, actionType, actionDetail, logs);
+            ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
             if (actionType == ActionType.CLICK) {
-                waitFor(3000, logs);
+                new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
             }
             checkForNetworkErrors(driver, logs);
 
@@ -134,7 +133,8 @@ public class SeleniumActionExecutor {
         highlightElement(driver, webElement);
         sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
         unhighlightElement(driver, webElement);
-        sleep(3000);
+//        sleep(3000);
+        new WebDriverWait(driver, Duration.ofSeconds(3)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
         return webElement;
     }
 
@@ -147,24 +147,6 @@ public class SeleniumActionExecutor {
         }
         return ActionType.fromString(actionTypeString);
     }
-
-    private static void waitFor(int milliseconds, List<String> logs) {
-        try {
-            Thread.sleep(milliseconds);
-            logs.add("✅ 대기: " + milliseconds / 1000 + "초");
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logs.add("❌ 대기 중단: " + e.getMessage());
-        }
-    }
-
-    private static ActionExecutionResult handleActionException(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs, Exception e) {
-        logs.add("❌ 요소 찾기 실패 또는 실행 오류: " + actionDetail.getActionDescription() + " - 오류: " + e.getMessage());
-        String imageUrl = captureScreenshotAndUpload(driver);
-        webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
-        return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
-    }
-
 
 
 

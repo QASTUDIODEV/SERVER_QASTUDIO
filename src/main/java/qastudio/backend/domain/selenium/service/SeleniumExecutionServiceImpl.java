@@ -40,6 +40,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     private final ErrorRepository errorRepository;
 
     public SeleniumExecutionResponse fetchPageSource(Long userId, String targetUrl) {
+        targetUrl = removeTrailingSlash(targetUrl);
         WebDriver driver = createRemoteWebDriver();
 
 //        WebDriver driver = new ChromeDriver();
@@ -109,7 +110,12 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
 
 
-
+    private String removeTrailingSlash(String url) {
+        if (url != null && url.endsWith("/")) {
+            return url.substring(0, url.length() - 1);
+        }
+        return url;
+    }
 
 
 
