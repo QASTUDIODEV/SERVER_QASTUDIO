@@ -31,6 +31,9 @@ public class CharacterRequest {
         private String characterDescription;
         @NotEmpty(message = "accessPage 필드는 필수 입력 값입니다.")
         private List<@NotBlank(message = "accessPage의 각 값은 빈 문자열일 수 없습니다.") String> accessPage;
+        @NotNull(message = "aiScenario 필드는 필수 입력 값입니다.")
+        private Boolean aiScenario;
+        private Long scenarioId;
     }
 
     @Getter

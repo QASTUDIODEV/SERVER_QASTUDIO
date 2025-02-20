@@ -115,7 +115,7 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
     }
 
     @Override
-    public CharacterScenario updateCharacter(Long userId, Long projectId, Long characterId, Long scenarioId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
+    public CharacterScenario updateCharacter(Long userId, Long projectId, Long characterId, UpdateCharacter updateCharacter, String token) throws JsonProcessingException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
@@ -155,8 +155,31 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         }
         existingCharacterTable.update(updateCharacter);
 
-        Scenario updatedScenario = createScenario(user, project, existingCharacterTable, token, scenarioId);
-        List<ActionTable> actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
+        Scenario updatedScenario = null; // 기본 값 설정
+        List<ActionTable> actionTables = Collections.emptyList(); // 기본 값 설정
+
+        if(Boolean.TRUE.equals(updateCharacter.getAiScenario())) {
+            if(updateCharacter.getScenarioId() != null) {
+                updatedScenario = createScenario(
+                        user, project, existingCharacterTable, token, updateCharacter.getScenarioId());
+            } else {
+                Long scenarioId = null; // 시나리오 처음 생성할 때
+                updatedScenario = createScenario(
+                        user, project, existingCharacterTable, token, scenarioId);
+            }
+            actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
+        } else {
+            if(updateCharacter.getScenarioId() != null) {
+                updatedScenario = scenarioRepository.findById(updateCharacter.getScenarioId())
+                        .orElse(null);
+
+                if (updatedScenario == null) {
+                    updatedScenario = createScenario(
+                            user, project, existingCharacterTable, token, updateCharacter.getScenarioId());
+                }
+                actionTables = actionTableRepository.findByScenarioId(updatedScenario.getId());
+            }
+        }
 
         return characterConverter.toCharacterScenario(
                 existingCharacterTable,
@@ -244,13 +267,14 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
                 .map(Page::getPath)
                 .toList();
         String aiResponse = getAiResponse(assistantId, name, description, pathList, token);
+        logger.info(aiResponse);
+        logger.info("aiResponse snippet: {}", aiResponse.substring(0, 350));
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(aiResponse);
         String dataJson = rootNode.path("data").asText();
         JsonNode dataNode = objectMapper.readTree(dataJson);
 
-        logger.info(aiResponse);
 
         Scenario scenario;
         try {
