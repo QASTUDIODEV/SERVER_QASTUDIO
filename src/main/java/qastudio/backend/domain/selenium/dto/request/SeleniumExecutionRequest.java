@@ -18,12 +18,16 @@ public class SeleniumExecutionRequest {
     @Schema(description = "페이지 ID", example = "3")
     private final Long pageId;
 
+    @Schema(description = "시나리오 이름", example = "Test Scenario")
+    private final String scenarioName;
+
     @Schema(description = "실행할 액션 목록")
     private final List<ActionDetail> actions;
-    public SeleniumExecutionRequest(String targetUrl, Long projectId, Long pageId, List<ActionDetail> actions) {
+    public SeleniumExecutionRequest(String targetUrl, Long projectId, Long pageId, String scenarioName,List<ActionDetail> actions) {
         this.targetUrl = targetUrl;
         this.projectId = projectId;
         this.pageId = pageId;
+        this.scenarioName = scenarioName;
         this.actions = actions;
     }
     @Getter

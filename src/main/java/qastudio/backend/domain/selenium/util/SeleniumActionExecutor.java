@@ -48,9 +48,11 @@ public class SeleniumActionExecutor {
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             WebElement webElement = findAndHighlightElement(driver, actionDetail, sessionId, logs);
-            // 무조건 2초 기다리기
-            new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+
+
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+
 
 
 
@@ -63,9 +65,7 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
 
             ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
-            new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
-
+            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
 
             checkForNetworkErrors(driver, logs);
 
@@ -113,15 +113,33 @@ public class SeleniumActionExecutor {
         String serverErrorMessage = getServerErrorMessage(driver);
         if (!serverErrorMessage.isEmpty()) {
             logs.add("서버 응답 오류: " + serverErrorMessage);
-            errorCode = "SERVER_ERROR"; // 서버 응답 오류가 감지되면 errorCode를 변경
+            errorCode = "SERVER_ERROR";
         }
 
         String imageUrl = captureScreenshotAndUpload(driver);
         webSocketHandler.sendFailureMessage(sessionId, actionDetail.getActionId(), "FAIL", "AFTER_ACTION", e.getMessage());
 
-        return new ActionExecutionResult(0, 500, e.getMessage(), imageUrl);
+        int errorCodeValue = getErrorCodeValue(errorCode);
+        return new ActionExecutionResult(0, errorCodeValue, e.getMessage(), imageUrl);
     }
-
+    private static int getErrorCodeValue(String errorCode) {
+        switch (errorCode) {
+            case "LOCATOR_NOT_FOUND":
+                return 404;
+            case "LOCATOR_NOT_CLICKABLE":
+                return 400;
+            case "TIMEOUT_ERROR":
+                return 408;
+            case "UNEXPECTED_ALERT":
+                return 409;
+            case "SESSION_EXPIRED":
+                return 440;
+            case "SERVER_ERROR":
+                return 500;
+            default:
+                return 500;
+        }
+    }
     private static String getServerErrorMessage(WebDriver driver) {
         try {
             JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -142,9 +160,8 @@ public class SeleniumActionExecutor {
         sendHtmlAndCssUpdate(driver, sessionId, logs, actionDetail.getActionId(), "IN_PROGRESS", "BEFORE_ACTION");
         unhighlightElement(driver, webElement);
 //        sleep(3000);
-        new WebDriverWait(driver, Duration.ofSeconds(2))
-                .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
-
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
 
         return webElement;
     }

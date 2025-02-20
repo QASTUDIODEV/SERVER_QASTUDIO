@@ -121,9 +121,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
     @Override
     public SeleniumExecutionResponse executeTest(String sessionId, Long userId, SeleniumExecutionRequest request) {
-        WebDriver driver = createRemoteWebDriver();
+//        WebDriver driver = createRemoteWebDriver();
 
-//        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
+        WebDriver driver = new ChromeDriver(); // 로컬 테스트 용도
         List<String> executionLogs = new ArrayList<>();
         long startTime = System.currentTimeMillis();
 
@@ -224,7 +224,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
     private Long saveTest(SeleniumExecutionRequest request, Long userId, ActionExecutionResult executionResult, long startTime, int attainment) {
         return testCommandService.createTest(new TestRequest(
-                "Test Run - " + request.getTargetUrl(),
+                request.getScenarioName(),
                 attainment,
                 executionResult.hasError() ? State.FAIL : State.SUCCESS,
                 (System.currentTimeMillis() - startTime) / 1000.0,
