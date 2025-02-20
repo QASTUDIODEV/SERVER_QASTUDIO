@@ -51,7 +51,7 @@ public class ActionExecutor {
             case  WAIT:
                 try {
                     JavascriptExecutor js = (JavascriptExecutor) driver;
-                    js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+                    js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
@@ -101,7 +101,7 @@ public class ActionExecutor {
             case WAIT:
                 try {
                     JavascriptExecutor js = (JavascriptExecutor) driver;
-                    js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+                    js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
