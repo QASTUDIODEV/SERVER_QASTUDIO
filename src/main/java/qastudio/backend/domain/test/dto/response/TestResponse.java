@@ -64,6 +64,8 @@ public class TestResponse {
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class TestList {
+        // 프로젝트 url
+        private String projectUrl;
         // 테스트 리스트
         private List<Test> testList;
         private Integer listSize;

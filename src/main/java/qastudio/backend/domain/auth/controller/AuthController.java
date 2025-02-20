@@ -210,6 +210,7 @@ public class AuthController {
     @GetMapping("/oauth2/authorization/github")
     public void githubLogin() {
     }
+
     @Operation(
             summary = "로그아웃 API | by 지지",
             description = "사용자가 로그아웃하면 refreshToken을 삭제하고 accessToken을 블랙리스트에 추가합니다."

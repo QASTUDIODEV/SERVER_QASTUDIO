@@ -41,6 +41,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom{
     public Optional<User> findByUserId(Long userId) {
         User resultUser = jpaQueryFactory
                 .selectFrom(user)
+                .distinct()
+                .leftJoin(user.accounts, accountTable).fetchJoin()
                 .where(user.id.eq(userId))
                 .fetchOne();
         return Optional.ofNullable(resultUser);

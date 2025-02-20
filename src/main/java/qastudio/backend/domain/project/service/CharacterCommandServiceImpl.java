@@ -98,9 +98,14 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
             }
         }
 
-        Long scenarioId = null; // 시나리오 처음 생성할 때
-        Scenario scenario = createScenario(user, project, characterTable, token, scenarioId);
-        List<ActionTable> actionTables = actionTableRepository.findByScenarioId(scenario.getId());
+        Scenario scenario = null; // 기본 값 설정
+        List<ActionTable> actionTables = Collections.emptyList(); // 기본 값 설정
+
+        if (Boolean.TRUE.equals(createCharacter.getAiScenario())){
+            Long scenarioId = null; // 시나리오 처음 생성할 때
+            scenario = createScenario(user, project, characterTable, token, scenarioId);
+            actionTables = actionTableRepository.findByScenarioId(scenario.getId());
+        }
 
         return characterConverter.toCharacterScenario(
                 savedCharacterTable,

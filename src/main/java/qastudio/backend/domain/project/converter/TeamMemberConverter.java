@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class TeamMemberConverter {
 
-    public static TeamMemberResponse.UserEmailList toUserEmailListFromUserProjects(List<UserProject> userProjects) {
+    public static TeamMemberResponse.UserEmailList toUserEmailListFromUserProjects(List<UserProject> userProjects, List<String> unacceptedMembers) {
 
         List<TeamMemberResponse.UserEmail> members = userProjects.stream()
                 .map(userProject -> {
@@ -28,11 +28,12 @@ public class TeamMemberConverter {
 
         return TeamMemberResponse.UserEmailList.builder()
                 .userEmails(members)
+                .unacceptedMembers(unacceptedMembers)
                 .build();
 
     }
 
-    public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects) {
+    public static TeamMemberResponse.MemberList toMemberList(List<UserProject> userProjects, List<String> unacceptedMembers) {
 
         List<TeamMemberResponse.Member> members = userProjects.stream()
                 .map(userProject -> {
@@ -50,8 +51,9 @@ public class TeamMemberConverter {
                 .collect(Collectors.toList());
 
         return TeamMemberResponse.MemberList.builder()
-                    .members(members)
-                    .build();
+                .members(members)
+                .unacceptedMembers(unacceptedMembers)
+                .build();
     }
 
     public static TeamMemberResponse.UserEmailList toUserEmailListFromAccounts(List<AccountTable> accounts) {
@@ -77,16 +79,21 @@ public class TeamMemberConverter {
                 .build();
     }
 
-    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId, Long userId) {
+    public static TeamMemberResponse.AcceptInvitation toAcceptInvitation(Long projectId) {
         return TeamMemberResponse.AcceptInvitation.builder()
                 .projectId(projectId)
-                .userId(userId)
                 .build();
     }
 
     public static TeamMemberResponse.SearchEmail toSearchEmail(boolean isMember) {
         return TeamMemberResponse.SearchEmail.builder()
                 .isQastudioMember(isMember)
+                .build();
+    }
+
+    public static TeamMemberResponse.AllUserEmails toAllUserEmails(List<String> emails) {
+        return TeamMemberResponse.AllUserEmails.builder()
+                .members(emails)
                 .build();
     }
 }

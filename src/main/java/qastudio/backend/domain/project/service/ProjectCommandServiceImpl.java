@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import qastudio.backend.domain.project.converter.ProjectConverter;
+import qastudio.backend.domain.project.converter.UserProjectConverter;
 import qastudio.backend.domain.project.dto.request.ProjectRequest;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.entity.Page;
@@ -24,9 +26,13 @@ import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.project.entity.enums.Role;
 import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
+import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
+import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
+import qastudio.backend.global.apiPayload.code.exception.custom.TeamMemberException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.domain.project.repository.Page.PageRepository;
 import qastudio.backend.domain.project.repository.PageSceenario.PageScenarioRepository;
@@ -36,6 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +60,8 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
     private final UserRepository userRepository;
     private final UserProjectRepository userProjectRepository;
     private final TeamMemberQueryService teamMemberQueryService;
+    private final AccountTableRepository accountTableRepository;
+    private final StringRedisTemplate redisTemplate;
 
     @Value("${ai.base-url}")
     String baseUrl;
@@ -166,7 +177,7 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         // 프로젝트 생성자 (Leader) 설정
-        UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(null).build();
+        UserProject userProject = UserProject.builder().user(user).project(savedProject).role(Role.LEADER).userEmail(user.getAccounts().get(0).getEmail()).build();
         userProjectRepository.save(userProject);
 
         // 팀원 초대
@@ -175,6 +186,122 @@ public class ProjectCommandServiceImpl implements ProjectCommandService{
 
         return projectConverter.toProjectCreationResponse(userProject, memberEmailList, savedProject);
     }
+
+    @Override
+    public void deleteProject(Long projectId, Long userId) {
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // 유저 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        // 해당 유저가 프로젝트 팀 멤버인지 확인
+        boolean isMember = project.getUserProjects().stream()
+                .filter(userProject -> userProject != null && userProject.getUser() != null)
+                .anyMatch(userProject -> userProject.getUser().getId().equals(userId));
+
+        if (!isMember) {
+            throw new BadRequestException(ErrorStatus.USER_NOT_TEAM_MEMBER);
+        }
+
+        // 해당 유저가 프로젝트의 LEADER인지 확인
+        boolean isLeader = project.getUserProjects().stream()
+                .filter(userProject -> userProject != null && userProject.getUser() != null)
+                .anyMatch(userProject -> userProject.getUser().getId().equals(userId)
+                        && userProject.getRole() == Role.LEADER);
+
+        if (!isLeader) {
+            throw new BadRequestException(ErrorStatus.USER_NOT_LEADER);
+        }
+
+        projectRepository.delete(project);
+    }
+
+    @Override
+    public void updateProject(Long userId, Long projectId, ProjectRequest.UpdateProject updateProject) {
+        // 현재 요청을 보낸 사용자가 해당 프로젝트의 LEADER인지 확인
+        UserProject requestingUserProject = userProjectRepository.findByUserIdAndProjectId(userId, projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        if (!requestingUserProject.getRole().equals(Role.LEADER)) {
+            throw new TeamMemberException(ErrorStatus.USER_NOT_LEADER);
+        }
+
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        String staticUrls = projectConverter.getStaticUrl(updateProject.getProjectImage());
+
+        // 프로젝트 정보 수정
+        project.updateProject(updateProject.getProjectName(), staticUrls, updateProject.getProjectUrl());
+
+        // UserProject 조회 (LEADER 제외)
+        List<UserProject> userProjects = userProjectRepository.findByProjectIdExcludingLeader(projectId);
+
+        List<String> memberEmails = userProjects.stream()
+                .map(UserProject::getUserEmail)
+                .toList();
+
+        // 초대를 수락하지 않은 유저 조회
+        List<String> unacceptedMembers = teamMemberQueryService.getInvitationEmails(projectId);
+
+        // 프로젝트 초대에 승낙 & 승낙하지 않은 유저 모두 조회
+        List<String> existingUserEmails = Stream.concat(memberEmails.stream(), unacceptedMembers.stream())
+                .distinct()
+                .toList();
+
+        // 새로운 요청된 이메일 목록
+        Set<String> newUserEmails = updateProject.getMemberEmailList().stream()
+                .map(TeamMemberRequest.MemberEmail::getEmail)
+                .collect(Collectors.toSet());
+
+        // 삭제할 유저 이메일 (새로 요청된 이메일 목록에 포함되지 않은 유저)
+        List<String> usersToRemove = existingUserEmails.stream()
+                .filter(up -> !newUserEmails.contains(up))
+                .toList();
+
+        // 추가할 유저 초대 이메일 보내기
+        for (String email : newUserEmails) {
+            if (!existingUserEmails.contains(email)) {
+                // AccountTable에서 email을 기준으로 userId 조회
+                Long newUserId = accountTableRepository.findByEmail(email).stream()
+                        .map(AccountTable::getUser)
+                        .map(User::getId)
+                        .findFirst()
+                        .orElse(-1L);
+
+                // 초대 메일 전송
+                teamMemberQueryService.inviteMember(email, project, newUserId);
+                // redis 저장
+                teamMemberQueryService.saveInvitationEmail(projectId, email, 604800000);
+            }
+        }
+
+        // userProjects에서 필터링하여 삭제할 UserProject 객체 필터링
+        List<UserProject> userProjectsToRemove = userProjects.stream()
+                .filter(up -> usersToRemove.contains(up.getUserEmail()))
+                .toList();
+
+        // 기존 팀원 삭제
+        userProjectRepository.deleteAll(userProjectsToRemove);
+
+        // unacceptedEmailList 중 newUserEmails에 없는 이메일을 제거 (승낙하지 못하도록)
+        for (String email : unacceptedMembers) {
+            if (!newUserEmails.contains(email)) {
+                removeInvitationEmail(projectId, email);
+            }
+        }
+
+    }
+
+    private void removeInvitationEmail(Long projectId, String email) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        redisTemplate.delete(redisKey);
+    }
+
 
     @Override
     public Project updateProjectIntroduction(Long projectId, ProjectRequest.UpdateIntroduce updateIntroduce) {

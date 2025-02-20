@@ -32,4 +32,8 @@ public class UserProject extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "project_id")
     private Project project;
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }

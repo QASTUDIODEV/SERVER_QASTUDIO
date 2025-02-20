@@ -3,6 +3,7 @@ package qastudio.backend.domain.user.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import qastudio.backend.domain.project.entity.Project;
 import qastudio.backend.domain.project.entity.UserProject;
 import qastudio.backend.domain.user.dto.response.UserResponse;
 import qastudio.backend.domain.user.entity.User;
@@ -10,7 +11,10 @@ import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.test.entity.Test;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,7 +33,7 @@ public class UserConverter {
         return UserResponse.UserInfo.builder()
                 .userId(user.getId())
                 .nickname(user.getNickname())
-                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .email(user.getAccounts().get(0).getEmail())
                 .profileImage(user.getProfileImage())
                 .bannerImage(user.getBannerImage())
                 .account(user.getAccounts().stream()
@@ -43,7 +47,7 @@ public class UserConverter {
         return UserResponse.MemberInfo.builder()
                 .userId(memberUser.getId())
                 .nickname(memberUser.getNickname())
-                .email(memberUser.getAccounts().get(0).getEmail()) // N+1 문제 발생
+                .email(memberUser.getAccounts().get(0).getEmail())
                 .profileImage(memberUser.getProfileImage())
                 .bannerImage(memberUser.getBannerImage())
                 .projectCnt(projectCnt)
@@ -51,10 +55,22 @@ public class UserConverter {
     }
 
     public static UserResponse.UserProject toUserProject(UserProject userProject) {
-        Integer participantCnt = userProject.getProject().getUserProjects().size();
+        Integer participantCnt = Optional.ofNullable(userProject.getProject())
+                .map(Project::getUserProjects)
+                .map(userProjects -> (int) userProjects.stream()
+                        .filter(Objects::nonNull)
+                        .map(UserProject::getUserEmail)
+                        .distinct()
+                        .count())
+                .orElse(0);
 
-        LocalDate lastModifiedDate = userProject.getProject().getTests().stream()
+        LocalDate lastModifiedDate = Optional.ofNullable(userProject.getProject())
+                .map(Project::getTests)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
                 .map(Test::getTestDate)
+                .filter(Objects::nonNull)
                 .max(LocalDate::compareTo)
                 .orElse(null);
 
@@ -78,6 +94,12 @@ public class UserConverter {
                 .totalElements(userProjectList.getTotalElements())
                 .isFirst(userProjectList.isFirst())
                 .isLast(userProjectList.isLast())
+                .build();
+    }
+
+    public static UserResponse.UserEmail toUserEmail(User user) {
+        return UserResponse.UserEmail.builder()
+                .email(user.getAccounts().get(0).getEmail()) // N+1 문제 발생
                 .build();
     }
 }

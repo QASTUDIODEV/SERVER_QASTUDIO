@@ -117,7 +117,7 @@ public class CharacterConverter {
                 .characterName(characterTable.getCharacterName())
                 .characterDescription(characterTable.getCharacterDescription())
                 .accessPage(accessPages)
-                .scenarioId(scenario.getId())
+                .scenarioId(scenario != null ? scenario.getId() : null)
                 .scenarioDescription(scenarioDescriptionWithSteps)
                 .build();
     }

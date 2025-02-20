@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.web.bind.annotation.*;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
@@ -14,6 +15,7 @@ import qastudio.backend.domain.project.service.TeamMemberCommandService;
 import qastudio.backend.domain.project.service.TeamMemberQueryService;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.global.apiPayload.ApiResponse;
+import qastudio.backend.global.handler.annotation.Auth;
 
 import java.util.List;
 
@@ -101,8 +103,8 @@ public class TeamMemberController {
     })
     @GetMapping("/{projectId}/team-members")
     public ApiResponse<TeamMemberResponse.MemberList> getTeamMemberList(@PathVariable("projectId") Long projectId) {
-        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberList(projectId);
-        return ApiResponse.onSuccess(TeamMemberConverter.toMemberList(userProjects));
+        TeamMemberResponse.MemberList memberList = teamMemberQueryService.getTeamMemberList(projectId);
+        return ApiResponse.onSuccess(memberList);
     }
 
     @Operation(
@@ -123,8 +125,8 @@ public class TeamMemberController {
     })
     @GetMapping("/{projectId}/team-members/emails")
     public ApiResponse<TeamMemberResponse.UserEmailList> getTeamMemberExceptLeader(@PathVariable("projectId") Long projectId) {
-        List<UserProject> userProjects = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
-        return ApiResponse.onSuccess(TeamMemberConverter.toUserEmailListFromUserProjects(userProjects));
+        TeamMemberResponse.UserEmailList userEmailList = teamMemberQueryService.getTeamMemberExceptLeader(projectId);
+        return ApiResponse.onSuccess(userEmailList);
     }
 
     // EmailList
@@ -172,8 +174,12 @@ public class TeamMemberController {
                     )),
     })
     @DeleteMapping("/{projectId}/team-members")
-    public ApiResponse<Void> deleteMembers(@PathVariable("projectId") Long projectId, @RequestBody @Valid TeamMemberRequest.MemberEmail inviteMember) {
-        teamMemberCommandService.deleteMembers(projectId, inviteMember);
+    public ApiResponse<Void> deleteMembers(
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid TeamMemberRequest.MemberEmail inviteMember,
+            @Auth Long userId
+    ) {
+        teamMemberCommandService.deleteMembers(projectId, inviteMember, userId);
         return ApiResponse.onSuccess(null);
     }
 
@@ -213,8 +219,47 @@ public class TeamMemberController {
             description = "토큰을 입력하여 초대를 수락합니다."
     )
     @GetMapping("/team-members/invite")
-    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token) {
-        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMember(token);
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestParam("token") String token, @Auth Long userId) {
+        TeamMemberResponse.AcceptInvitation acceptInvitation = teamMemberCommandService.inviteMemberWithToken(token, userId);
         return ApiResponse.onSuccess(acceptInvitation);
     }
+
+    @Operation(
+            summary = "projectId와 email을 통해 팀원 초대 수락 API | by 노을",
+            description = "projectId와 email을 입력하여 초대를 수락합니다."
+    )
+    @PostMapping("/team-members/email-invite")
+    public ApiResponse<TeamMemberResponse.AcceptInvitation> acceptInvitation(@RequestBody @Valid TeamMemberRequest.InviteWithEmail inviteWithEmail, @Auth Long userId) {
+        TeamMemberResponse.AcceptInvitation res = teamMemberCommandService.inviteMemberWithEmailAndToken(
+                inviteWithEmail.getEmail(),
+                inviteWithEmail.getToken(),
+                userId
+        );
+        return ApiResponse.onSuccess(res);
+    }
+
+    @Operation(
+            summary = "프로젝트 권한 변경 API | by 노을",
+            description = "일반 유저에서 LEADER로 권한을 변경합니다. 방장만 가능합니다."
+    )
+    @PostMapping("/{projectId}/team-members/change-permissions")
+    public ApiResponse<Void> changePermission(
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid TeamMemberRequest.ChangePermission changePermission,
+            @Auth Long userId
+    ) {
+        teamMemberCommandService.changePermission(changePermission, projectId, userId);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(
+            summary = "프로젝트 팀원 모든 이메일 조회 API | by 노을",
+            description = "승낙 여부에 상관없이 모든 이메일을 조회합니다."
+    )
+    @GetMapping("/{projectId}/team-members/all-emails")
+    public ApiResponse<TeamMemberResponse.AllUserEmails> getTeamMemberEmailExceptLeader(@PathVariable("projectId") Long projectId) {
+        TeamMemberResponse.AllUserEmails userEmailList = teamMemberQueryService.getTeamMemberEmailExceptLeader(projectId);
+        return ApiResponse.onSuccess(userEmailList);
+    }
+
 }

@@ -92,4 +92,12 @@ public class UserResponse {
         private Boolean isFirst;
         private Boolean isLast;
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class UserEmail {
+        private String email;
+    }
 }

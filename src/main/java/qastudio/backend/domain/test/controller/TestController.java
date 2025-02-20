@@ -1,5 +1,6 @@
 package qastudio.backend.domain.test.controller;
 
+import com.querydsl.core.Tuple;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -16,6 +17,7 @@ import qastudio.backend.domain.test.service.TestQueryService;
 import qastudio.backend.global.apiPayload.ApiResponse;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -61,12 +63,12 @@ public class TestController {
     })
     @GetMapping("/statistics")
     public ApiResponse<TestResponse.TestStatistics> getTestStatistics(@PathVariable("projectId") Long projectId) {
-        Project testStatistics = testQueryService.getTestStatistics(projectId);
-        Long totalTestCnt = testQueryService.getTotalTests(projectId);
-        Long totalSuccessTestCnt = testQueryService.getTotalSuccessTests(projectId);
-        Long totalFailTestCnt = testQueryService.getTotalFailTests(projectId);
-        Double successRate = testQueryService.getSuccessRate(projectId);
-        Double failRate = testQueryService.getFailRate(projectId);
-        return ApiResponse.onSuccess(TestConverter.toTestStatistics(testStatistics, totalTestCnt, totalSuccessTestCnt,totalFailTestCnt, successRate, failRate));
+        Project project = testQueryService.getProjectDetail(projectId);
+
+        List<Tuple> testCounts = testQueryService.getTestCounts(projectId);
+        Double successRate = testQueryService.getSuccessRate(testCounts);
+        Double failRate = testQueryService.getFailRate(testCounts);
+
+        return ApiResponse.onSuccess(TestConverter.toTestStatistics(project, successRate, failRate));
     }
 }
