@@ -22,7 +22,7 @@ public class CustomActionExecutor {
             webElement = findElementSafely(driver, actionDetail);
 //            Thread.sleep(3000);
             JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+            js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
 
 
 

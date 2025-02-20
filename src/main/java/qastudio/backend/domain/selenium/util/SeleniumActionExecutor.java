@@ -51,7 +51,7 @@ public class SeleniumActionExecutor {
 
 
             JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+            js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
 
 
 
@@ -65,7 +65,7 @@ public class SeleniumActionExecutor {
             LocatorActionValidator.validate(LocatorType.fromString(actionDetail.getLocator().getStrategy()), actionType);
 
             ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
-            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+            js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
 
             checkForNetworkErrors(driver, logs);
 
@@ -161,7 +161,7 @@ public class SeleniumActionExecutor {
         unhighlightElement(driver, webElement);
 //        sleep(3000);
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+        js.executeAsyncScript("window.setTimeout(arguments[0], 1000);");
 
         return webElement;
     }
