@@ -58,7 +58,7 @@ public class Test extends BaseEntity {
     @JoinColumn(nullable = false, name = "page_id")
     private Page page;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "error_id")
     private Error error;
 

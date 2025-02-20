@@ -3,6 +3,7 @@ package qastudio.backend.domain.project.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import qastudio.backend.domain.scenario.entity.Scenario;
+import qastudio.backend.domain.test.entity.Test;
 import qastudio.backend.global.comon.domain.BaseEntity;
 
 import java.util.ArrayList;
@@ -43,4 +44,7 @@ public class Page extends BaseEntity {
 
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Scenario> scenarios = new ArrayList<>();
+
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Test> tests = new ArrayList<>();
 }
