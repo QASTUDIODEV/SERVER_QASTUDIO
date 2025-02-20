@@ -224,7 +224,7 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
     }
     private Long saveTest(SeleniumExecutionRequest request, Long userId, ActionExecutionResult executionResult, long startTime, int attainment) {
         return testCommandService.createTest(new TestRequest(
-                "Test Run - " + request.getTargetUrl(),
+                request.getScenarioName(),
                 attainment,
                 executionResult.hasError() ? State.FAIL : State.SUCCESS,
                 (System.currentTimeMillis() - startTime) / 1000.0,
