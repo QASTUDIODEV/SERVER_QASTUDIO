@@ -124,12 +124,11 @@ public class CharacterController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "역할-시나리오 수정 성공입니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "Invalid request.")
     })
-    @PatchMapping("/{projectId}/characters/{characterId}/scenarios/{scenarioId}")
+    @PatchMapping("/{projectId}/characters/{characterId}")
     public ApiResponse<CharacterResponse.CharacterScenario> updateCharacter (
             @Auth Long userId,
             @PathVariable("projectId") Long projectId,
             @PathVariable("characterId") Long characterId,
-            @PathVariable("scenarioId") Long scenarioId,
             @RequestBody @Valid CharacterRequest.UpdateCharacter updateCharacter,
             @Parameter(hidden = true) HttpServletRequest request)
             throws JsonProcessingException {
@@ -148,7 +147,7 @@ public class CharacterController {
             throw new AuthException(ErrorStatus.MISSING_AUTHORITY);
         }
 
-        CharacterScenario characterScenario = characterCommandService.updateCharacter(userId, projectId, characterId, scenarioId, updateCharacter, jwtToken);
+        CharacterScenario characterScenario = characterCommandService.updateCharacter(userId, projectId, characterId, updateCharacter, jwtToken);
         return ApiResponse.onSuccess(characterScenario);
     }
 
