@@ -131,7 +131,9 @@ public class SeleniumExecutionServiceImpl implements SeleniumExecutionService {
 
         try {
             logMemoryUsage("🚀 실행 전 JVM 메모리 상태");
-            driver.get(request.getTargetUrl());
+            String targetUrl = request.getTargetUrl();
+            targetUrl = removeTrailingSlash(targetUrl);
+            driver.get(targetUrl);
 
             ActionExecutionResult executionResult = executeActions(driver, request, sessionId, executionLogs);
 
