@@ -1,9 +1,6 @@
 package qastudio.backend.domain.selenium.util;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import qastudio.backend.domain.selenium.dto.request.CustomExecutionRequest;
@@ -53,8 +50,8 @@ public class ActionExecutor {
                 break;
             case  WAIT:
                 try {
-                    new WebDriverWait(driver, Duration.ofSeconds(2))
-                            .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+                    JavascriptExecutor js = (JavascriptExecutor) driver;
+                    js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
@@ -103,8 +100,8 @@ public class ActionExecutor {
                 break;
             case WAIT:
                 try {
-                    new WebDriverWait(driver, Duration.ofSeconds(2))
-                            .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+                    JavascriptExecutor js = (JavascriptExecutor) driver;
+                    js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());

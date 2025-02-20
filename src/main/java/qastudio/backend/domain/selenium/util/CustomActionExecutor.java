@@ -21,8 +21,9 @@ public class CustomActionExecutor {
         try {
             webElement = findElementSafely(driver, actionDetail);
 //            Thread.sleep(3000);
-            new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeAsyncScript("window.setTimeout(arguments[0], 2000);");
+
 
 
             if (webElement == null) {
