@@ -54,8 +54,7 @@ public class ActionExecutor {
             case  WAIT:
                 try {
                     new WebDriverWait(driver, Duration.ofSeconds(2))
-                            .until(driver1 -> false);
-
+                            .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());
@@ -105,8 +104,7 @@ public class ActionExecutor {
             case WAIT:
                 try {
                     new WebDriverWait(driver, Duration.ofSeconds(2))
-                            .until(driver1 -> false);
-
+                            .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
                     logs.add("✅ 대기: 3초");
                 } catch (TimeoutException e) {
                     logs.add("❌ 대기 중단: " + e.getMessage());

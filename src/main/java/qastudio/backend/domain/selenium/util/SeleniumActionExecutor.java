@@ -48,8 +48,11 @@ public class SeleniumActionExecutor {
     public static ActionExecutionResult performAction(WebDriver driver, SeleniumExecutionRequest.ActionDetail actionDetail, String sessionId, List<String> logs) {
         try {
             WebElement webElement = findAndHighlightElement(driver, actionDetail, sessionId, logs);
+            // 무조건 2초 기다리기
             new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> false);
+                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+
+
 
 
             if (webElement == null) {
@@ -61,7 +64,8 @@ public class SeleniumActionExecutor {
 
             ActionExecutor.executeAction(driver, webElement, actionType, actionDetail, logs);
             new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> false);
+                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+
 
             checkForNetworkErrors(driver, logs);
 
@@ -139,7 +143,8 @@ public class SeleniumActionExecutor {
         unhighlightElement(driver, webElement);
 //        sleep(3000);
         new WebDriverWait(driver, Duration.ofSeconds(2))
-                .until(driver1 -> false);
+                .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+
 
         return webElement;
     }
