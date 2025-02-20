@@ -77,6 +77,7 @@ public class ScenarioQueryServiceImpl implements ScenarioQueryService {
                 fullTargetUrl,
                 scenario.getCharacterTable().getProject().getId(),
                 scenario.getPage().getId(),
+                scenario.getScenarioName(),
                 seleniumActions
         );
     }
