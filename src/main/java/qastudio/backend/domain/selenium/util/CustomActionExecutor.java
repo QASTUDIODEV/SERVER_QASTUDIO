@@ -22,7 +22,8 @@ public class CustomActionExecutor {
             webElement = findElementSafely(driver, actionDetail);
 //            Thread.sleep(3000);
             new WebDriverWait(driver, Duration.ofSeconds(2))
-                    .until(driver1 -> false);
+                    .until(driver1 -> System.nanoTime() + 2_000_000_000L < System.nanoTime());
+
 
             if (webElement == null) {
                 throw new NoSuchElementException("Locator not found: " + actionDetail.getLocator().getValue());
