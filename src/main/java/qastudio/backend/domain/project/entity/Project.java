@@ -1,6 +1,7 @@
 package qastudio.backend.domain.project.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import qastudio.backend.domain.project.entity.enums.ProjectStack;
 import qastudio.backend.domain.project.entity.enums.ViewType;
@@ -48,10 +49,15 @@ public class Project extends BaseEntity {
     private List<CharacterTable> characterTables = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "user_project_id")
     private List<UserProject> userProjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "test_id")
     private List<Test> tests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Page> pages = new ArrayList<>();
 
     public void updateProjectInfo(String assistantId, String introduction, String viewType, String developmentSkill) {
         this.assistantId = assistantId;
@@ -74,5 +80,11 @@ public class Project extends BaseEntity {
 
     public void updateIntroduction(String introduction) {
         this.introduction = introduction;
+    }
+
+    public void updateProject(String projectName, String projectImage, String projectUrl) {
+        this.projectImage = projectImage;
+        this.projectName = projectName;
+        this.projectUrl = projectUrl;
     }
 }

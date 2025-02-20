@@ -49,6 +49,19 @@ public class ProjectController {
     }
 
     @Operation(
+            summary = "프로젝트 수정 API | by 노을",
+            description = "프로젝트 이미지, 프로젝트 이름, 프로젝트 url, 프로젝트를 공유하는 사람을 수정합니다. 프로젝트 이미지는 presigned/upload로 업로드 후, response.result의 keyName만 projectImage로 주세요"
+    )
+    @PutMapping(value = "/{projectId}")
+    public ApiResponse<Void> updateProject(
+            @Auth Long userId,
+            @PathVariable("projectId") Long projectId,
+            @RequestBody @Valid ProjectRequest.UpdateProject updateProject){
+        projectCommandService.updateProject(userId, projectId, updateProject);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(
             summary = "zip 파일 업로드 API | by 노을",
             description = "zip파일을 업로드하여 프로젝트 구조를 학습합니다."
     )
@@ -89,7 +102,7 @@ public class ProjectController {
         }
 
         Project project = projectCommandService.uploadProjectFile(userId, projectId, zipFile, jwtToken);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project, true)); // isLead
     }
 
     @Operation(
@@ -118,9 +131,9 @@ public class ProjectController {
                     )),
     })
     @GetMapping("/{projectId}")
-    public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId) {
-        Project project = projectQueryService.getSummarizedProjectInfo(projectId);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+    public ApiResponse<ProjectResponse.ProjectDetail> getSummarizedProjectInfo(@PathVariable("projectId") Long projectId, @Auth Long userId) {
+        ProjectResponse.ProjectDetail projectDetail = projectQueryService.getSummarizedProjectInfo(projectId, userId);
+        return ApiResponse.onSuccess(projectDetail);
     }
 
     @Operation(
@@ -162,9 +175,22 @@ public class ProjectController {
                     )),
     })
     @PatchMapping("/{projectId}")
-    public ApiResponse<ProjectResponse.ProjectDetail> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
-        Project project = projectCommandService.updateProjectIntroduction(projectId, updateIntroduce);
-        return ApiResponse.onSuccess(ProjectConverter.toProjectDetail(project));
+    public ApiResponse<Void> updateProjectIntroduction(@PathVariable("projectId") Long projectId, @RequestBody @Valid ProjectRequest.UpdateIntroduce updateIntroduce) {
+        projectCommandService.updateProjectIntroduction(projectId, updateIntroduce);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @Operation(
+            summary = "프로젝트 삭제 API | by 노을",
+            description = "프로젝트를 삭제합니다."
+    )
+    @DeleteMapping("/{projectId}")
+    public ApiResponse<Void> deleteProject(
+            @PathVariable("projectId") Long projectId,
+            @Auth Long userId
+    ) {
+        projectCommandService.deleteProject(projectId, userId);
+        return ApiResponse.onSuccess(null);
     }
 
 }

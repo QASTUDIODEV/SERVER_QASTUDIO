@@ -88,6 +88,20 @@ public class UserController {
     }
 
     @Operation(
+            summary = "현재 로그인한 사용자 이메일 조회 API | by 노을",
+            description = "현재 로그인한 사용자 이메일을 조회합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "성공입니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER404", description = "존재하지 않는 사용자입니다.")
+    })
+    @GetMapping("/email")
+    public ApiResponse<UserResponse.UserEmail> getUserEmail(@Auth Long userId) {
+        User user = userQueryService.getUser(userId);
+        return ApiResponse.onSuccess(UserConverter.toUserEmail(user));
+    }
+
+    @Operation(
             summary = "사용자 정보 수정 API | by 제로",
             description = "마이페이지의 사용자 정보를 수정합니다."
     )

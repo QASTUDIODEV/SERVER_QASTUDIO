@@ -30,4 +30,22 @@ public class TeamMemberRequest {
         private String email;
     }
 
+    @Getter
+    public static class InviteWithEmail {
+        // 이메일
+        @Email(message = "이메일 형식에 맞지 않습니다.")
+        @NotBlank(message = "이메일은 필수 입력 값입니다.")
+        private String email;
+        // projectId
+        @NotBlank(message = "token은 필수 입력 값입니다.")
+        private String token;
+    }
+
+    @Getter
+    public static class ChangePermission {
+        // userId
+        @NotNull(message = "userId는 필수 값입니다.")
+        private Long userId;
+    }
+
 }

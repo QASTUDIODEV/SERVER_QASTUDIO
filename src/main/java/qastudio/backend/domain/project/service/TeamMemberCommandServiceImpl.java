@@ -1,23 +1,12 @@
 package qastudio.backend.domain.project.service;
 
+import ch.qos.logback.core.rolling.helper.TokenConverter;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import qastudio.backend.domain.auth.converter.EmailConverter;
-import qastudio.backend.domain.auth.dto.request.EmailRequest;
-import qastudio.backend.domain.auth.dto.response.EmailResponse;
-import qastudio.backend.domain.auth.service.AuthQueryService;
-import qastudio.backend.domain.auth.service.EmailQueryService;
 import qastudio.backend.domain.project.converter.TeamMemberConverter;
 import qastudio.backend.domain.project.dto.request.TeamMemberRequest;
 import qastudio.backend.domain.project.dto.response.TeamMemberResponse;
@@ -28,19 +17,15 @@ import qastudio.backend.domain.project.repository.Project.ProjectRepository;
 import qastudio.backend.domain.project.repository.UserProject.UserProjectRepository;
 import qastudio.backend.domain.user.entity.AccountTable;
 import qastudio.backend.domain.user.entity.User;
-import qastudio.backend.domain.user.entity.enums.EmailType;
 import qastudio.backend.domain.user.repository.AccountTable.AccountTableRepository;
 import qastudio.backend.domain.user.repository.User.UserRepository;
+import qastudio.backend.global.apiPayload.code.exception.custom.AuthException;
 import qastudio.backend.global.apiPayload.code.exception.custom.BadRequestException;
 import qastudio.backend.global.apiPayload.code.exception.custom.TeamMemberException;
 import qastudio.backend.global.apiPayload.code.status.ErrorStatus;
 import qastudio.backend.global.security.jwt.InviteTokenProvider;
 
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,20 +38,37 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final InviteTokenProvider inviteTokenProvider;
+    private final StringRedisTemplate redisTemplate;
+
 
     @Override
-    public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember) {
+    public void deleteMembers(Long projectId, TeamMemberRequest.MemberEmail deleteMember, Long userId) {
+        // 현재 요청을 보낸 사용자가 해당 프로젝트의 LEADER인지 확인
+        UserProject requestingUserProject = userProjectRepository.findByUserIdAndProjectId(userId, projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        if (!requestingUserProject.getRole().equals(Role.LEADER)) {
+            throw new TeamMemberException(ErrorStatus.USER_NOT_LEADER);
+        }
+
         String email = deleteMember.getEmail();
 
+        // 수락하지 않은 팀원 리스트에 이메일이 있는지 확인
+        if (isInvitationValid(projectId, email)) {
+            // 초대 이메일 삭제
+            removeInvitationEmail(projectId, email);
+            return;
+        }
+
         // 삭제하고자 하는 유저
-        Long userId = accountTableRepository.findByEmail(email).stream()
+        Long deleteUserId = accountTableRepository.findByEmail(email).stream()
                 .map(AccountTable::getUser)
                 .map(User::getId)
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
         // user의 이메일 정보가 요청을 보낸 이메일과 맞는지 확인
-        boolean match = accountTableRepository.existsByUserIdAndEmail(userId, email);
+        boolean match = accountTableRepository.existsByUserIdAndEmail(deleteUserId, email);
         if (!match) {
             throw new BadRequestException(ErrorStatus.UNMATCHED_USER);
         }
@@ -76,23 +78,36 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
 
         // 유저 삭제
         userProjects.stream()
-                .filter(userProject -> userProject.getUser().getId().equals(userId)) // userId가 일치하는 항목 필터링
+                .filter(userProject -> userProject.getUser().getId().equals(deleteUserId)) // deleteUserId가 일치하는 항목 필터링
                 .forEach(userProjectRepository::delete);
 
     }
 
     @Override
-    public TeamMemberResponse.AcceptInvitation inviteMember(String token) {
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithToken(String token, Long userId) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
         Claims claims = inviteTokenProvider.validateToken(token);
 
         Long projectId = claims.get("projectId", Long.class);
-        Long userId = claims.get("userId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
 
-        if (userId == -1) {
-            return TeamMemberConverter.toAcceptInvitation(projectId, null);
+        if (tokenUserId == -1) {
+            return TeamMemberConverter.toAcceptInvitation(projectId);
+        }
+
+        if (!tokenUserId.equals(userId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
         }
 
         String email = claims.get("email", String.class);
+
+        // 로그인한 유저와 projectId redis에 있는지 확인
+        if (!isInvitationValid(projectId, email)) {
+            throw new TeamMemberException(ErrorStatus.INVALID_INVITATION);
+        }
 
         // 프로젝트 조회
         Project project = projectRepository.findByProjectId(projectId)
@@ -102,16 +117,105 @@ public class TeamMemberCommandServiceImpl implements TeamMemberCommandService{
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
 
+
         // 중복 초대되었다면 생성하지 않고 projectId 응답
         boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
         if (isAlreadyInvited) {
-            return TeamMemberConverter.toAcceptInvitation(projectId, userId);
+            return TeamMemberConverter.toAcceptInvitation(projectId);
         }
+
+        // 초대 이메일 삭제
+        removeInvitationEmail(projectId, email);
 
         UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
         userProjectRepository.save(userProject);
 
-        return TeamMemberConverter.toAcceptInvitation(projectId, userId);
+        return TeamMemberConverter.toAcceptInvitation(projectId);
+    }
+
+    @Override
+    public TeamMemberResponse.AcceptInvitation inviteMemberWithEmailAndToken(String email, String token, Long userId) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new TeamMemberException(ErrorStatus.TOKEN_MISSING);
+        }
+
+        Claims claims = inviteTokenProvider.validateToken(token);
+        Long projectId = claims.get("projectId", Long.class);
+        Long tokenUserId = claims.get("userId", Long.class);
+
+        if (tokenUserId == -1) {
+            // 초대하고자 하는 유저
+            tokenUserId = accountTableRepository.findByEmail(email).stream()
+                    .map(AccountTable::getUser)
+                    .map(User::getId)
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+        }
+
+        if (!userId.equals(tokenUserId)) {
+            throw new TeamMemberException(ErrorStatus.UNAUTHORIZED_INVITATION);
+        }
+
+        // 중복 초대되었는지 확인
+        boolean isAlreadyInvited = userProjectRepository.existsByUserIdAndProjectId(userId, projectId);
+        if (isAlreadyInvited) {
+            throw new TeamMemberException(ErrorStatus.ALREADY_REGISTERED_MEMBER);
+        }
+
+        // 로그인한 유저와 projectId redis에 있는지 확인
+        if (!isInvitationValid(projectId, email)) {
+            throw new TeamMemberException(ErrorStatus.INVALID_INVITATION);
+        }
+
+        // 프로젝트 조회
+        Project project = projectRepository.findByProjectId(projectId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        // 유저 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorStatus.USER_NOT_FOUND));
+
+        UserProject userProject = TeamMemberConverter.toUserProject(user, project, Role.MEMBER, email);
+        userProjectRepository.save(userProject);
+
+        // 초대 이메일 삭제
+        removeInvitationEmail(projectId, email);
+
+        return TeamMemberConverter.toAcceptInvitation(projectId);
+    }
+
+
+
+    @Override
+    @Transactional
+    public void changePermission(TeamMemberRequest.ChangePermission changePermission, Long projectId, Long userId) {
+        // 현재 요청을 보낸 사용자가 해당 프로젝트의 LEADER인지 확인
+        UserProject requestingUserProject = userProjectRepository.findByUserIdAndProjectId(userId, projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        if (!requestingUserProject.getRole().equals(Role.LEADER)) {
+            throw new TeamMemberException(ErrorStatus.USER_NOT_LEADER);
+        }
+
+        // member로 변경
+        requestingUserProject.updateRole(Role.MEMBER);
+
+        UserProject targetUserProject = userProjectRepository.findByUserIdAndProjectId(changePermission.getUserId(), projectId)
+                .orElseThrow(() -> new AuthException(ErrorStatus.USER_NOT_TEAM_MEMBER));
+
+        // LEADER로 변경
+        targetUserProject.updateRole(Role.LEADER);
+    }
+
+    private void removeInvitationEmail(Long projectId, String email) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        redisTemplate.delete(redisKey);
+    }
+
+    // 프로젝트별 초대 이메일 검증
+    private boolean isInvitationValid(Long projectId, String email) {
+        String redisKey = "invite:" + projectId + ":" + email;
+        return redisTemplate.opsForValue().get(redisKey) != null;
     }
 
 }
