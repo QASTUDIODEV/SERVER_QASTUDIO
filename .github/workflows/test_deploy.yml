@@ -94,6 +94,8 @@ jobs:
                   --memory=10g \
                   --memory-swap=12g \
                   -e SE_DISABLE_AUTH=true \
+                  -e SE_NODE_MAX_SESSIONS=5 \
+                  -e SE_NODE_OVERRIDE_MAX_SESSIONS=true \
                   selenium/standalone-chrome:132.0
             else
               echo "Selenium container is already running."
