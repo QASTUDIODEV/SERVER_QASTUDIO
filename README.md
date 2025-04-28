@@ -65,6 +65,7 @@ QA  자동화 플랫폼 **QAStudio** 서버를 위한 Repository
 - [QA 자동화 툴 개발기: Selenium 기반 시스템이 마주한 문제와 해결 과정](https://medium.com/ne-o-rdinary-tech/qa-%EC%9E%90%EB%8F%99%ED%99%94-%ED%88%B4-%EA%B0%9C%EB%B0%9C%EA%B8%B0-selenium-%EA%B8%B0%EB%B0%98-%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%9D%B4-%EB%A7%88%EC%A3%BC%ED%95%9C-%EB%AC%B8%EC%A0%9C%EC%99%80-%ED%95%B4%EA%B2%B0-%EA%B3%BC%EC%A0%95-5b527fd2ff89)
 
 # 🏠 시스템 아키텍처
+<img width="599" alt="스크린샷 2025-04-28 오후 10 00 25" src="https://github.com/user-attachments/assets/ac63ece4-b2a8-4424-af4a-d19a514aa63d" />
 
 
 ### 📋 Commit Message Convention
